@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "declaration": true,
+    "declarationDir": "dist",
+    "outDir": "dist",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": "./src",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+    "paths": {
+      "@components": ["components/index.ts"],
+      "@foundations": ["foundation/index.ts"],
+      "@helpers": ["helpers/index.ts"],
+      "@almeidinha/mfui": ["src/index.ts"],
+    },
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"],
+}

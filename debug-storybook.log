@@ -1,0 +1,40 @@
+[23:08:22.840] [INFO] storybook v10.2.8
+[23:08:23.361] [DEBUG] Getting package.json info for /Users/marcosfa/Documents/works/react-playground/mf-ui-library/package.json...
+[23:08:23.362] [WARN] You are currently using Storybook [1m10.2.8[22m but you have packages which are incompatible with it:
+
+- storybook-addon-jarle-monaco@0.6.1 which depends on ^6
+
+Please consider updating your packages or contacting the maintainers for compatibility details.
+
+For more details on compatibility guidance, see:
+https://github.com/storybookjs/storybook/issues/32836
+[23:08:23.880] [DEBUG] Serving static files from [36mnode_modules/.pnpm/@chromatic-com+storybook@5.0.1_storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3._652e3a12f88fdd308e10247a90c53c9c/node_modules/@chromatic-com/storybook/assets[39m at [36m/addon-visual-tests-assets[39m
+[23:08:23.881] [INFO] Starting...
+[23:08:23.907] [WARN] No story files found for the specified pattern: [34msrc/**/*.mdx[39m
+[23:08:24.090] [DEBUG] Starting preview..
+[23:08:24.093] [WARN] 🚨 Unable to index ./src/foundation/typography/typography.stories.tsx:
+  SyntaxError: Identifier 'Table' has already been declared. (4:9)
+    at constructor (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:12175:21)
+    at Parser.raise (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:16355:71)
+    at TypeScriptScopeHandler.declareName (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:15175:51)
+    at Parser.declareNameFromIdentifier (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:17009:20)
+    at Parser.checkIdentifier (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:17006:126)
+    at Parser.checkLVal (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:16973:16)
+    at Parser.finishImportSpecifier (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:20980:21)
+    at Parser.parseImportSpecifier (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:21065:21)
+    at Parser.parseImportSpecifier (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:18590:220)
+    at Parser.parseNamedImportSpecifiers (file:///Users/marcosfa/Documents/works/react-playground/mf-ui-library/node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-DQ5I5L6R.js:21048:38)
+[23:08:24.099] [ERROR] Failed to build the preview
+[23:08:24.099] [ERROR] Error: Unable to index ./src/foundation/typography/typography.stories.tsx
+    at _StoryIndexGenerator.getIndexAndStats (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/core-server/index.js:6082:15)
+    at async _StoryIndexGenerator.getIndex (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/core-server/index.js:6071:13)
+    at async getOptimizeDeps (file://./node_modules/.pnpm/@storybook+builder-vite@10.2.8_esbuild@0.27.3_rollup@4.57.1_storybook@10.2.8_@testing-l_22ed622dc9800c17631a6a6bf63c34fc/node_modules/@storybook/builder-vite/dist/index.js:1862:15)
+    at async createViteServer (file://./node_modules/.pnpm/@storybook+builder-vite@10.2.8_esbuild@0.27.3_rollup@4.57.1_storybook@10.2.8_@testing-l_22ed622dc9800c17631a6a6bf63c34fc/node_modules/@storybook/builder-vite/dist/index.js:1888:19)
+    at async Module.start (file://./node_modules/.pnpm/@storybook+builder-vite@10.2.8_esbuild@0.27.3_rollup@4.57.1_storybook@10.2.8_@testing-l_22ed622dc9800c17631a6a6bf63c34fc/node_modules/@storybook/builder-vite/dist/index.js:1923:17)
+    at async storybookDevServer (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/core-server/index.js:7207:83)
+    at async buildOrThrow (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/core-server/index.js:4504:12)
+    at async buildDevStandalone (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/core-server/index.js:7577:66)
+    at async withTelemetry (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/_node-chunks/chunk-KIOKJLL5.js:218:12)
+    at async dev (file://./node_modules/.pnpm/storybook@10.2.8_@testing-library+dom@10.4.1_prettier@3.8.1_react-dom@19.2.4_react@19.2.4__react@19.2.4/node_modules/storybook/dist/bin/core.js:2734:3)
+[23:08:24.102] [WARN] Broken build, fix the error above.
+You may need to refresh the browser.
