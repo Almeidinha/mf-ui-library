@@ -1,4 +1,5 @@
 export * from "./useDebounce";
+export * from "./useInputControllableState";
 export * from "./useInputElementState";
 export * from "./useIsMobile";
 export * from "./useKeyDown";

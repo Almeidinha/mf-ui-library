@@ -9,7 +9,6 @@ import {
 } from "react";
 
 import { FC, PropsWithChildren } from "./generic-types";
-import { Nothing } from "./nothing";
 import { isDefined, isFunction } from "./safe-navigation";
 
 /**
@@ -153,11 +152,11 @@ export function getSlots<T extends AnySlotType>(
   return filterSlotByType(slot, children);
 }
 
-export function getSlot<T extends AnySlotType>(
+export function getSlot<P = unknown, T extends AnySlotType = AnySlotType>(
   slot: T,
   children?: ReactNode,
-): ReactElement {
-  return findSlotByType(slot, children) ?? <Nothing />;
+): ReactElement<P> | undefined {
+  return findSlotByType(slot, children) as ReactElement<P> | undefined;
 }
 
 export function getOptionalSlot<T extends AnySlotType>(

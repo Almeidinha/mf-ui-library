@@ -18,3 +18,4 @@ export * from "./menu";
 export * from "./pagination";
 export * from "./table";
 export * from "./data-table";
+export * from "./date-picker";
