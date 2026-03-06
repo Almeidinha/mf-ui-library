@@ -1,17 +1,47 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
-export function useKeyDown(targetKey: string, handler: () => void) {
+type KeyHandler = (e: KeyboardEvent) => void;
+
+export function useKeyDown(
+  targetKeys: string | readonly string[],
+  handler: KeyHandler,
+  options?: {
+    enabled?: boolean;
+    eventTarget?: Window | Document | HTMLElement;
+  },
+) {
+  const { enabled = true, eventTarget } = options ?? {};
+
+  const handlerRef = useRef<KeyHandler>(handler);
   useEffect(() => {
-    function downHandler({ key }: { key: string }) {
-      if (key === targetKey) {
-        handler();
-      }
+    handlerRef.current = handler;
+  }, [handler]);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
     }
 
-    window.addEventListener("keydown", downHandler);
-    return () => {
-      window.removeEventListener("keydown", downHandler);
+    const target =
+      eventTarget ?? (typeof window !== "undefined" ? window : undefined);
+
+    if (!target) {
+      return;
+    }
+
+    const keys = Array.isArray(targetKeys) ? targetKeys : [targetKeys];
+    const keySet = new Set(keys);
+
+    const downHandler = (e: KeyboardEvent) => {
+      if (keySet.has(e.key)) {
+        handlerRef.current(e);
+      }
     };
-  }, [handler, targetKey]);
-  return;
+
+    target.addEventListener("keydown", downHandler as EventListener);
+
+    return () => {
+      target.removeEventListener("keydown", downHandler as EventListener);
+    };
+  }, [targetKeys, enabled, eventTarget]);
 }
