@@ -19,3 +19,5 @@ export * from "./pagination";
 export * from "./table";
 export * from "./data-table";
 export * from "./date-picker";
+export * from "./divider";
+export * from "./action-link";

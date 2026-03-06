@@ -7,7 +7,22 @@ const meta = {
   title: "Components/Divider",
   component: Divider,
   parameters: {
-    layout: "centered",
+    docs: {
+      description: {
+        component: `
+---
+
+## How to use
+
+\`\`\`javascript
+import { Divider } from './index'
+
+<Divider />
+\`\`\`
+
+        `,
+      },
+    },
   },
   args: {
     subdued: false,
@@ -20,7 +35,7 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   render: function Render(args) {
     return (
-      <Flex style={{ width: "50vh" }}>
+      <Flex>
         <Divider {...args} />
       </Flex>
     );
