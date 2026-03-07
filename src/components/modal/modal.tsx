@@ -1,7 +1,8 @@
-import { Borders, Focused, Gap, Padding, Surface } from "@foundations";
 import { IconMinor } from "components/icon";
 import { Button } from "components/molecules/button";
 import { Heading2 } from "components/typography";
+import { Borders, Focused, Surface } from "foundation/colors";
+import { Gap, Padding } from "foundation/spacing";
 import { ReactNode, useId } from "react";
 import styled from "styled-components";
 

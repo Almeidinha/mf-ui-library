@@ -1,6 +1,14 @@
 export type Hex = `#${string}`;
 
 export function clamp(n: number, min: number, max: number) {
+  if (!Number.isFinite(n)) {
+    return min;
+  }
+
+  if (min > max) {
+    [min, max] = [max, min];
+  }
+
   return Math.max(min, Math.min(max, n));
 }
 

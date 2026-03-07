@@ -1,4 +1,5 @@
-import { Background, shadowXl, Surface } from "@foundations";
+import { Background, Surface } from "foundation/colors";
+import { shadowXl } from "foundation/shadows";
 import { useKeyDown } from "hooks";
 import React, {
   HTMLAttributes,

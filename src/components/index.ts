@@ -22,3 +22,4 @@ export * from "./date-picker";
 export * from "./divider";
 export * from "./action-link";
 export * from "./modal";
+export * from "./progress-bar";

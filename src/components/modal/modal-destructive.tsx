@@ -1,5 +1,5 @@
-import { Gap, Padding } from "@foundations";
 import { Button } from "components/molecules/button";
+import { Gap, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
 import { ModalBase, ModalBaseProps } from "./modal-base";
