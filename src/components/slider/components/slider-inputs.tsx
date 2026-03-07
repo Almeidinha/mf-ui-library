@@ -49,7 +49,7 @@ const getNextCommittedValue = (
     return valueType === ValueType.MIN ? minValue : maxValue;
   }
 
-  if (type === SliderType.SLIDER) {
+  if (type === SliderType.Single) {
     return clamp(parsedValue, range[0], range[1]);
   }
 
@@ -96,7 +96,7 @@ const SliderInputsBase: FC<ISliderInputs> = (props) => {
 
   const commitValue = useCallback(
     (valueType: ValueType) => {
-      if (type === SliderType.SLIDER) {
+      if (type === SliderType.Single) {
         const nextValue = getNextCommittedValue(maxDraft, ValueType.MAX, props);
         setMaxDraft(String(nextValue));
 
@@ -155,7 +155,7 @@ const SliderInputsBase: FC<ISliderInputs> = (props) => {
       }
     };
 
-  if (type === SliderType.RANGE_SLIDER) {
+  if (type === SliderType.Range) {
     return (
       <Fragment>
         <FieldContainer $align="right">

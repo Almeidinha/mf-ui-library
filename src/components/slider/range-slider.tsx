@@ -137,7 +137,7 @@ const RangeValues = memo((props: RangeValuesProps) => {
     <GridContainer>
       {editable ? (
         <SliderInputs
-          type={SliderType.RANGE_SLIDER}
+          type={SliderType.Range}
           range={range}
           minValue={safeValues[0]}
           maxValue={safeValues[1]}
@@ -279,7 +279,7 @@ export const RangeSlider: FC<RangeSliderProps> = (props) => {
         <SliderComponent
           domain={range}
           values={safeValues}
-          type={SliderType.RANGE_SLIDER}
+          type={SliderType.Range}
           onChange={handleChange}
           onUpdate={hasData ? handleUpdate : undefined}
           getHandleAriaLabel={(index) =>

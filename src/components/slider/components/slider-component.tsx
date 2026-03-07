@@ -58,7 +58,7 @@ const SliderComponentBase: FC<IProps> = (props) => {
     getHandleAriaValueText,
   } = props;
 
-  const mode = type === SliderType.RANGE_SLIDER ? 3 : 2;
+  const mode = type === SliderType.Range ? 3 : 2;
 
   const handleOnChange = (newValues: ReadonlyArray<number>): void => {
     const hasChanged =
@@ -114,7 +114,7 @@ const SliderComponentBase: FC<IProps> = (props) => {
         )}
       </Handles>
 
-      <Tracks left={type === SliderType.SLIDER} right={false}>
+      <Tracks left={type === SliderType.Single} right={false}>
         {({
           tracks,
           getTrackProps,

@@ -1,8 +1,8 @@
 import styled, { css } from "styled-components";
 
 export enum SliderType {
-  SLIDER,
-  RANGE_SLIDER,
+  Single,
+  Range,
 }
 
 export enum ValueType {

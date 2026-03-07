@@ -87,7 +87,7 @@ export const Slider: FC<SliderProps> = (props) => {
         <SliderComponent
           domain={domain}
           values={[safeValue]}
-          type={SliderType.SLIDER}
+          type={SliderType.Single}
           onChange={handleChange}
           getHandleAriaLabel={() => "Value"}
           getHandleAriaValueText={(currentValue) =>
@@ -97,7 +97,7 @@ export const Slider: FC<SliderProps> = (props) => {
 
         {editable ? (
           <SliderInputs
-            type={SliderType.SLIDER}
+            type={SliderType.Single}
             range={domain}
             minValue={min}
             maxValue={safeValue}

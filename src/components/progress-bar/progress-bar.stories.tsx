@@ -5,7 +5,33 @@ import { ProgressBar } from "./progress-bar";
 const meta = {
   title: "Components/ProgressBar",
   component: ProgressBar,
-  parameters: {},
+  parameters: {
+    docs: {
+      description: {
+        component: `
+The Progress Bar visually communicates the completion status of a task or process.
+It indicates how much progress has been made and how much remains until completion.
+
+Use the size option to adjust the visual weight of the progress bar when different levels of emphasis or layout density are required.
+---
+
+## How to use
+
+\`\`\`tsx
+import { ProgressBar } from './index'
+
+<ProgressBar
+  progress={40}
+>
+  <Body>Modal text</Body>
+</ProgressBar>
+\`\`\`
+
+---
+        `,
+      },
+    },
+  },
   args: {
     progress: 50,
     size: "small",
