@@ -38,9 +38,9 @@ const OverlayFrame = styled.div`
   }
 `;
 
-const ModalFrame = styled.div<{ widthValue: string }>`
+const ModalFrame = styled.div<{ $widthValue: string }>`
   background-color: ${Surface.Default.Default};
-  width: min(calc(100vw - 32px), ${({ widthValue }) => widthValue});
+  width: min(calc(100vw - 32px), ${({ $widthValue }) => $widthValue});
   max-height: calc(100vh - 32px);
   overflow: hidden;
   border-radius: 8px;
@@ -169,7 +169,7 @@ export function ModalBase({
         aria-modal="true"
         aria-labelledby={ariaLabelledby}
         aria-label={computedAriaLabel}
-        widthValue={MODAL_SIZE[modalSize]}
+        $widthValue={MODAL_SIZE[modalSize]}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >

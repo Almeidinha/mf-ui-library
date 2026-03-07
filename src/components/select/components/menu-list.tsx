@@ -52,13 +52,13 @@ const MenuListFrame = styled.div<{ $height?: number }>`
   ${shadowMd};
 `;
 
-const MenuRow = styled(SpaceBetween)<{ active?: boolean }>`
+const MenuRow = styled(SpaceBetween)<{ $active?: boolean }>`
   border: none;
   text-align: left;
   padding: ${Padding.s};
   margin: ${Margin.none} ${Margin.xxs};
-  background-color: ${({ active }) =>
-    is(active) ? Surface.Selected.Default : Surface.Default.Default};
+  background-color: ${({ $active }) =>
+    is($active) ? Surface.Selected.Default : Surface.Default.Default};
   border-radius: 6px;
 
   i:first-child {
@@ -76,13 +76,13 @@ const MenuRow = styled(SpaceBetween)<{ active?: boolean }>`
   }
 
   &:hover {
-    background-color: ${({ active }) =>
-      is(active) ? Surface.Selected.Hover : Surface.Default.Hover};
+    background-color: ${({ $active }) =>
+      is($active) ? Surface.Selected.Hover : Surface.Default.Hover};
   }
 
   &:active {
-    background-color: ${({ active }) =>
-      is(active) ? Surface.Selected.Pressed : Surface.Default.Pressed};
+    background-color: ${({ $active }) =>
+      is($active) ? Surface.Selected.Pressed : Surface.Default.Pressed};
   }
 `;
 
@@ -132,7 +132,7 @@ const Row = <T,>(props: RowProps<T>) => {
     <MenuRow
       className="menu-row"
       center
-      active={currentValue.some(
+      $active={currentValue.some(
         (val) => getOptionKey(val) === getOptionKey(option.value),
       )}
       onClick={() => handleClick(option)}

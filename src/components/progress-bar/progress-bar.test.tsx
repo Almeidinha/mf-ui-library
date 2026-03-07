@@ -2,50 +2,48 @@ import { render, screen } from "@testing-library/react";
 
 import { ProgressBar } from "./index";
 
-describe("ProgressBar Tests", () => {
-  describe("ProgressBar Tests", () => {
-    it("should render the ProgressBar with default size", () => {
-      render(<ProgressBar progress={10} />);
+describe("ProgressBar", () => {
+  it("renders with default (medium) size and progress aria", () => {
+    render(<ProgressBar progress={10} aria-label="Progress" />);
 
-      const progressBar = screen.getByRole("progressbar");
+    const track = screen.getByRole("progressbar", { name: "Progress" });
+    const fill = track.firstElementChild as HTMLElement | null;
 
-      expect(progressBar).toBeInTheDocument();
-    });
+    expect(track).toBeInTheDocument();
+    expect(track).toHaveStyle("height: 16px");
+    expect(track).toHaveAttribute("aria-valuenow", "10");
+    expect(track).toHaveAttribute("aria-valuetext", "10%");
 
-    it("should render the ProgressBar with large size", () => {
-      render(<ProgressBar progress={4} large />);
+    expect(fill).not.toBeNull();
+    expect(fill as HTMLElement).toHaveStyle("width: 10%");
+  });
 
-      const progressBar = screen.getByRole("progressbar");
+  it("renders with large size", () => {
+    render(<ProgressBar progress={4} size="large" aria-label="Progress" />);
 
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle("height: 32px");
-    });
+    const track = screen.getByRole("progressbar", { name: "Progress" });
+    expect(track).toBeInTheDocument();
+    expect(track).toHaveStyle("height: 32px");
+  });
 
-    it("should render the ProgressBar with small size", () => {
-      render(<ProgressBar progress={4} small />);
+  it("renders with small size", () => {
+    render(<ProgressBar progress={4} size="small" aria-label="Progress" />);
 
-      const progressBar = screen.getByRole("progressbar");
+    const track = screen.getByRole("progressbar", { name: "Progress" });
+    expect(track).toBeInTheDocument();
+    expect(track).toHaveStyle("height: 8px");
+  });
 
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle("height: 8px");
-    });
+  it("sets fill width based on clamped progress", () => {
+    render(<ProgressBar progress={120} size="large" aria-label="Progress" />);
 
-    it("should render the ProgressBar with medium size", () => {
-      render(<ProgressBar progress={4} medium />);
+    const track = screen.getByRole("progressbar", { name: "Progress" });
+    const fill = track.firstElementChild as HTMLElement | null;
 
-      const progressBar = screen.getByRole("progressbar");
+    expect(track).toHaveAttribute("aria-valuenow", "100");
+    expect(track).toHaveAttribute("aria-valuetext", "100%");
 
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle("height: 16px");
-    });
-
-    it("should render the ProgressBar with its width reflecting the progress", () => {
-      render(<ProgressBar progress={85} large />);
-
-      const progressBar = screen.getByRole("progressbar");
-
-      expect(progressBar).toBeInTheDocument();
-      expect(progressBar).toHaveStyle("width: 85%");
-    });
+    expect(fill).not.toBeNull();
+    expect(fill as HTMLElement).toHaveStyle("width: 100%");
   });
 });
