@@ -24,3 +24,4 @@ export * from "./action-link";
 export * from "./modal";
 export * from "./progress-bar";
 export * from "./slider";
+export * from "./switch";
