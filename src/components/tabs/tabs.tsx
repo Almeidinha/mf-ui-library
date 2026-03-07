@@ -81,7 +81,6 @@ function decorateContent(
   return React.cloneElement(child, {
     id: panelId(idPrefix, index),
     role: "tabpanel",
-    tabIndex: 0,
     "aria-labelledby": tabId(idPrefix, index),
     // pick ONE: either hidden OR display none; here we rely on display
     style: {

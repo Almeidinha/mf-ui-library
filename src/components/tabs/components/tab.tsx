@@ -1,5 +1,5 @@
 import { Label } from "components/typography";
-import { Borders, Surface } from "foundation/colors";
+import { Borders, Focused, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { Nothing } from "helpers/nothing";
@@ -19,7 +19,19 @@ const TabFrame = styled.div<{ $selected: boolean; $secondary: boolean }>`
   display: flex;
   align-items: center;
   cursor: pointer;
-  outline: none;
+  outline: none; /* rely on focus-visible below */
+  user-select: none;
+
+  &:focus-visible {
+    outline: 2px solid ${Focused.Default};
+    outline-offset: -2px;
+    ${({ $secondary }) =>
+      !$secondary &&
+      css`
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
+      `}
+  }
 
   ${({ $secondary, $selected }) =>
     $secondary
@@ -32,19 +44,25 @@ const TabFrame = styled.div<{ $selected: boolean; $secondary: boolean }>`
             ? Surface.Default.Depressed
             : Surface.Default.Default};
           border-radius: 18px;
-
-          &:focus-visible {
-            box-shadow: 0 0 0 2px ${Borders.Highlight.Default};
+          &:hover {
+            background: ${$selected
+              ? Surface.Default.Depressed
+              : Surface.Default.Hover};
           }
         `
       : css`
           padding: ${Padding.m};
-          border-bottom: ${$selected
-            ? `3px solid ${Borders.Highlight.Default}`
-            : "3px solid transparent"};
+          border-bottom: 3px solid
+            ${$selected ? Borders.Highlight.Default : "transparent"};
 
+          /* extra focus affordance for primary tabs: underline even when not selected */
           &:focus-visible {
-            border-bottom: 3px solid ${Borders.Highlight.Default};
+            border-bottom-color: ${Borders.Highlight.Default};
+          }
+          &:hover {
+            border-bottom-color: ${$selected
+              ? Borders.Highlight.Default
+              : Borders.Default.Subdued};
           }
         `}
 `;
