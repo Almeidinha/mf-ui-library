@@ -2,6 +2,7 @@ import {
   Children,
   cloneElement,
   CSSProperties,
+  HTMLAttributes,
   isValidElement,
   PureComponent,
   ReactElement,
@@ -38,9 +39,6 @@ function isReactElement(obj: unknown): obj is ReactElement {
   return isValidElement(obj);
 }
 
-/**
- * Old base Slot class, kept for backward compatibility.
- */
 export class Slot<T = unknown> extends PureComponent<PropsWithChildren<T>> {
   static __slot = true;
 
@@ -49,13 +47,7 @@ export class Slot<T = unknown> extends PureComponent<PropsWithChildren<T>> {
   }
 }
 
-/**
- * Old stylable slot class, also kept for backward compatibility.
- */
-export class StylableSlot extends Slot<{
-  className?: string;
-  style?: CSSProperties;
-}> {
+export class StylableSlot extends Slot<HTMLAttributes<HTMLDivElement>> {
   override render() {
     return <div {...this.props}>{this.props.children}</div>;
   }

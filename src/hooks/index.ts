@@ -6,3 +6,4 @@ export * from "./useKeyDown";
 export * from "./useMergedRefs";
 export * from "./useOnClickOutside";
 export * from "./useRepositionOnScroll";
+export * from "./useRovingTabListKeyDown";
