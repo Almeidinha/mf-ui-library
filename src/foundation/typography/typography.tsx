@@ -12,13 +12,13 @@ import {
 import { InterFontFace } from "./fonts";
 import { getTextAspect, ITransientTextAspectProps } from "./text-aspect-flags";
 
-export type ILabelProps = ITransientTextAspectProps & {
+export type LabelProps = ITransientTextAspectProps & {
   default?: boolean;
   subtle?: boolean;
   strong?: boolean;
 };
 
-export type IBodyProps = ITransientTextAspectProps & {
+export type BodyProps = ITransientTextAspectProps & {
   default?: boolean;
   strong?: boolean;
 };
@@ -83,7 +83,7 @@ const Heading4 = css<ITransientTextAspectProps>`
   line-height: ${LineHeight.b};
 `;
 
-const Body = css<IBodyProps>`
+const Body = css<BodyProps>`
   ${Base}
   font-weight: ${({ strong }) =>
     is(strong) ? FontWeight.Medium : FontWeight.Regular};
@@ -91,7 +91,7 @@ const Body = css<IBodyProps>`
   line-height: ${LineHeight.b};
 `;
 
-const BodyLarge = css<IBodyProps>`
+const BodyLarge = css<BodyProps>`
   ${Base}
   font-weight: ${({ strong }) =>
     is(strong) ? FontWeight.SemiBold : FontWeight.Regular};
@@ -111,7 +111,7 @@ const Caption = css<ITransientTextAspectProps>`
   line-height: ${LineHeight.a};
 `;
 
-const Label = css<ILabelProps>`
+const Label = css<LabelProps>`
   ${Base}
   font-weight:  ${({ strong }) =>
     is(strong) ? FontWeight.Medium : FontWeight.Regular};
@@ -119,7 +119,7 @@ const Label = css<ILabelProps>`
   line-height: ${({ subtle }) => (is(subtle) ? LineHeight.a : LineHeight.b)};
 `;
 
-const Link = css<IBodyProps>`
+const Link = css<BodyProps>`
   ${Base}
   font-weight: ${({ strong }) =>
     is(strong) ? FontWeight.Medium : FontWeight.Regular};

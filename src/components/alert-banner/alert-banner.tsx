@@ -1,18 +1,12 @@
 import { IconMinor } from "components/icon";
 import { Button } from "components/molecules/button";
-import { Gap, Padding } from "@foundations";
-import {
-  FC,
-  Hex,
-  If,
-  is,
-  isNilOrEmpty,
-  Nothing,
-  PropsWithChildren,
-  safeCallback,
-} from "@helpers";
 import { CardFrame } from "components/shared-styled-components";
 import { Body } from "components/typography";
+import { Gap, Padding } from "foundation/spacing";
+import { FC, PropsWithChildren } from "helpers/generic-types";
+import { If, Nothing } from "helpers/nothing";
+import { Hex } from "helpers/numbers";
+import { is, isNilOrEmpty, safeCallback } from "helpers/safe-navigation";
 import styled from "styled-components";
 
 import {

@@ -1,8 +1,10 @@
-import { Borders, Surface } from "@foundations";
-import { clamp, If, isNilOrEmpty, safeArray } from "@helpers";
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Label } from "components/typography";
+import { Borders, Surface } from "foundation/colors";
+import { If } from "helpers/nothing";
+import { clamp } from "helpers/numbers";
+import { isNilOrEmpty, safeArray } from "helpers/safe-navigation";
 import { useRepositionOnScroll } from "hooks";
 import React, {
   JSX,

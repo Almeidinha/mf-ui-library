@@ -1,5 +1,6 @@
-import { Surface } from "@foundations";
-import { Hex, PropsWithChildren } from "@helpers";
+import { Surface } from "foundation/colors";
+import { PropsWithChildren } from "helpers/generic-types";
+import { Hex } from "helpers/numbers";
 
 const enum BadgeType {
   Neutral = 1,

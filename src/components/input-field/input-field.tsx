@@ -1,22 +1,12 @@
-import {
-  Borders,
-  Focused,
-  Margin,
-  Padding,
-  Surface,
-  Typography,
-} from "@foundations";
-import {
-  forwardRef,
-  getSlot,
-  If,
-  is,
-  isDefined,
-  isEmpty,
-  Slot,
-} from "@helpers";
 import { labelPositionType } from "components/select/types";
 import { Label } from "components/typography";
+import { Borders, Focused, Surface } from "foundation/colors";
+import { Margin, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
+import { forwardRef } from "helpers/generic-types";
+import { If } from "helpers/nothing";
+import { is, isDefined, isEmpty } from "helpers/safe-navigation";
+import { getSlot, Slot } from "helpers/slots";
 import { InputHTMLAttributes } from "react";
 import styled, { css } from "styled-components";
 

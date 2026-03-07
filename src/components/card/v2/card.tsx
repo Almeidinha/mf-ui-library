@@ -1,8 +1,11 @@
-import { Margin, Padding } from "@foundations";
-import { FC, If, isSlotOfType, PropsWithChildren, toKebabCase } from "@helpers";
 import { SpaceBetween } from "components/layout";
 import { CardFrameV2 } from "components/shared-styled-components";
 import { Heading3 } from "components/typography";
+import { Margin, Padding } from "foundation/spacing";
+import { FC, PropsWithChildren } from "helpers/generic-types";
+import { If } from "helpers/nothing";
+import { isSlotOfType } from "helpers/slots";
+import { toKebabCase } from "helpers/strings";
 import {
   Children,
   HTMLAttributes,

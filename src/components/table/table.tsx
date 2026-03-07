@@ -1,21 +1,3 @@
-import { Button } from "components/molecules/button";
-import {
-  Borders,
-  Margin,
-  Padding,
-  shadowMd,
-  Surface,
-  Typography,
-} from "@foundations";
-import {
-  FC,
-  If,
-  is,
-  isDefined,
-  isString,
-  Nothing,
-  PropsWithChildren,
-} from "@helpers";
 import {
   Checkbox,
   CheckboxProps,
@@ -28,7 +10,15 @@ import {
   SimpleMenuItem,
   useSimpleMenuState,
 } from "components/molecules";
+import { Button } from "components/molecules/button";
 import { Label } from "components/typography";
+import { Borders, Surface } from "foundation/colors";
+import { shadowMd } from "foundation/shadows";
+import { Margin, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
+import { FC, PropsWithChildren } from "helpers/generic-types";
+import { If, Nothing } from "helpers/nothing";
+import { is, isDefined, isString } from "helpers/safe-navigation";
 import {
   Children,
   cloneElement,

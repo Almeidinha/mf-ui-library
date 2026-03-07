@@ -1,4 +1,3 @@
-import { Icons } from "@foundations";
 import { render, screen } from "@testing-library/react";
 import { Button } from "components/molecules/button";
 

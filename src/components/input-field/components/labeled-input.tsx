@@ -1,7 +1,9 @@
-import { Margin } from "@foundations";
-import { FC, If, PropsWithChildren, safeArray } from "@helpers";
 import { ErrorMessage } from "components/molecules/error-message";
 import { Body, Label } from "components/typography";
+import { Margin } from "foundation/spacing";
+import { FC, PropsWithChildren } from "helpers/generic-types";
+import { If } from "helpers/nothing";
+import { safeArray } from "helpers/safe-navigation";
 import styled from "styled-components";
 
 const HTMLLabel = styled.div`

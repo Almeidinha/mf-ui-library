@@ -1,6 +1,6 @@
-import { Button } from "components/molecules/button";
-import { Gap, Margin, Padding } from "@foundations";
 import { Card } from "components/card";
+import { Button } from "components/molecules/button";
+import { Gap, Margin, Padding } from "foundation/spacing";
 import { useOnClickOutside } from "hooks";
 import { useCallback, useState } from "react";
 import styled, { keyframes } from "styled-components";

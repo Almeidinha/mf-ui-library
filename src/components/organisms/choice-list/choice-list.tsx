@@ -1,7 +1,8 @@
-import { Gap, Padding } from "@foundations";
-import { defaultTo, FC } from "@helpers";
 import { Flex } from "components/layout";
 import { RadioButton as RadioButtonBase } from "components/radio-button";
+import { Gap, Padding } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
+import { defaultTo } from "helpers/safe-navigation";
 import React from "react";
 import styled from "styled-components";
 

@@ -1,13 +1,8 @@
-import {
-  Borders,
-  Focused,
-  Icons,
-  Margin,
-  Padding,
-  Surface,
-  Typography,
-} from "@foundations";
-import { FC, is } from "@helpers";
+import { Borders, Focused, Icons, Surface } from "foundation/colors";
+import { Margin, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
+import { FC } from "helpers/generic-types";
+import { is } from "helpers/safe-navigation";
 import { InputHTMLAttributes, ReactNode } from "react";
 import styled from "styled-components";
 

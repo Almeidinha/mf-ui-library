@@ -1,10 +1,11 @@
-import { IBodyProps, ILabelProps, Margin, Typography } from "@foundations";
-import { FC, PropsWithChildren } from "@helpers";
+import { Margin } from "foundation/spacing";
+import { BodyProps, LabelProps, Typography } from "foundation/typography";
 import {
   ITransientTextAspectProps,
   TextAspectProps,
   TYPOGRAPHY_BLOCKED_PROPS,
 } from "foundation/typography/text-aspect-flags";
+import { FC, PropsWithChildren } from "helpers/generic-types";
 import { HTMLAttributes } from "react";
 import styled from "styled-components";
 
@@ -92,21 +93,21 @@ export const Heading4: FC<ITextComponentProps> = (props) => {
 
 export const BODY_LARGE = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
-})<ITransientTextComponentProps & IBodyProps>`
+})<ITransientTextComponentProps & BodyProps>`
   ${Typography.BodyLarge};
 `;
 
-export const BodyLarge: FC<ITextComponentProps & IBodyProps> = (props) => {
+export const BodyLarge: FC<ITextComponentProps & BodyProps> = (props) => {
   return <BODY_LARGE {...toTransientProps(props)}>{props.children}</BODY_LARGE>;
 };
 
 export const BODY = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
-})<ITransientTextComponentProps & IBodyProps>`
+})<ITransientTextComponentProps & BodyProps>`
   ${Typography.Body};
 `;
 
-export const Body: FC<ITextComponentProps & IBodyProps> = (props) => {
+export const Body: FC<ITextComponentProps & BodyProps> = (props) => {
   return <BODY {...toTransientProps(props)}>{props.children}</BODY>;
 };
 
@@ -122,20 +123,20 @@ export const Caption: FC<ITextComponentProps> = (props) => {
 
 export const LABEL = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
-})<ITransientTextComponentProps & ILabelProps>`
+})<ITransientTextComponentProps & LabelProps>`
   ${Typography.Label};
 `;
 
-export const Label: FC<ITextComponentProps & ILabelProps> = (props) => {
+export const Label: FC<ITextComponentProps & LabelProps> = (props) => {
   return <LABEL {...toTransientProps(props)}>{props.children}</LABEL>;
 };
 
 export const LINK = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
-})<ITransientTextComponentProps & IBodyProps>`
+})<ITransientTextComponentProps & BodyProps>`
   ${Typography.Link};
 `;
 
-export const Link: FC<ITextComponentProps & IBodyProps> = (props) => {
+export const Link: FC<ITextComponentProps & BodyProps> = (props) => {
   return <LINK {...toTransientProps(props)}>{props.children}</LINK>;
 };

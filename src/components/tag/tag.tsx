@@ -1,6 +1,7 @@
-import { Padding } from "@foundations";
-import { FC, If } from "@helpers";
 import { Flex } from "components/layout";
+import { Padding } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
+import { If } from "helpers/nothing";
 import React, { HTMLAttributes } from "react";
 import styled from "styled-components";
 

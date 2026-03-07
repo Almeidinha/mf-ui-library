@@ -1,8 +1,8 @@
-import { Margin } from "@foundations";
 import { forwardRef, isDefined, isEmpty, Nothing } from "@helpers";
 import type { CheckboxProps } from "components/checkbox";
 import { Checkbox } from "components/checkbox";
 import { Label } from "components/typography";
+import { Margin } from "foundation/spacing";
 import React from "react";
 import styled from "styled-components";
 

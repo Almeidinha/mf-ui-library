@@ -1,18 +1,12 @@
-import { Margin, Padding } from "@foundations";
-import {
-  FC,
-  getOtherChildren,
-  getSlot,
-  getSlots,
-  If,
-  isDefined,
-  isEmpty,
-  PropsWithChildren,
-  toKebabCase,
-} from "@helpers";
 import { SpaceBetween } from "components/layout";
 import { CardFrame } from "components/shared-styled-components";
 import { Heading3 } from "components/typography";
+import { Margin, Padding } from "foundation/spacing";
+import { FC, PropsWithChildren } from "helpers/generic-types";
+import { If } from "helpers/nothing";
+import { isDefined, isEmpty } from "helpers/safe-navigation";
+import { getOtherChildren, getSlot, getSlots } from "helpers/slots";
+import { toKebabCase } from "helpers/strings";
 import { HTMLAttributes } from "react";
 import styled from "styled-components";
 

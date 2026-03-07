@@ -1,5 +1,5 @@
-import { Interactive } from "@foundations";
 import { render, screen } from "@testing-library/react";
+import { Interactive } from "foundation/colors";
 
 import { ActionLink } from ".";
 

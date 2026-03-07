@@ -1,6 +1,7 @@
-import { Icons } from "@foundations";
-import { FC, is } from "@helpers";
 import { IconMinor } from "components/icon";
+import { Icons } from "foundation/colors";
+import { FC } from "helpers/generic-types";
+import { is } from "helpers/safe-navigation";
 import styled, { keyframes } from "styled-components";
 
 import { getValuesBySize, SpinnerSizeProps } from "./spinner-size-flags";

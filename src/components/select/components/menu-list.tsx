@@ -1,16 +1,17 @@
-import { Borders, Margin, Padding, shadowMd, Surface } from "@foundations";
+import { SpaceBetween } from "components/layout";
+import { Heading4, Label } from "components/typography";
+import { Borders, Surface } from "foundation/colors";
+import { shadowMd } from "foundation/shadows";
+import { Margin, Padding } from "foundation/spacing";
+import { If, maybeRender } from "helpers/nothing";
 import {
   defaultTo,
-  If,
   is,
   isDefined,
   isEmpty,
   isNil,
-  maybeRender,
   safeArray,
-} from "@helpers";
-import { SpaceBetween } from "components/layout";
-import { Heading4, Label } from "components/typography";
+} from "helpers/safe-navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import styled from "styled-components";
 

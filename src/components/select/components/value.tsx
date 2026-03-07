@@ -1,26 +1,18 @@
-import {
-  Borders,
-  Focused,
-  Icons,
-  Margin,
-  Padding,
-  Surface,
-  Text,
-  Typography,
-} from "@foundations";
+import { IconMinor } from "components/icon";
+import { Flex, SpaceBetween } from "components/layout";
+import { Button } from "components/molecules/button";
+import { Body, Label } from "components/typography";
+import { Borders, Focused, Icons, Surface, Text } from "foundation/colors";
+import { Margin, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
+import { maybeRender, Nothing } from "helpers/nothing";
 import {
   defaultTo,
   is,
   isDefined,
   isEmpty,
-  maybeRender,
-  Nothing,
   safeArray,
-} from "@helpers";
-import { IconMinor } from "components/icon";
-import { Flex, SpaceBetween } from "components/layout";
-import { Button } from "components/molecules/button";
-import { Body, Label } from "components/typography";
+} from "helpers/safe-navigation";
 import React, {
   JSX,
   memo,

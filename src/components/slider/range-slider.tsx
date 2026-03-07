@@ -1,7 +1,7 @@
-import { Margin, Padding } from "@foundations";
-import { FC } from "@helpers";
 import { Center } from "components/layout";
 import { Label } from "components/typography";
+import { Margin, Padding } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
 import {
   Fragment,
   memo,

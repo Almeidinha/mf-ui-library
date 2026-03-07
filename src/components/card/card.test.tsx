@@ -1,6 +1,6 @@
-import { Margin } from "@foundations";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Margin } from "foundation/spacing";
 import styled from "styled-components";
 import { vi } from "vitest";
 

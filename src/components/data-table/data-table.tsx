@@ -1,5 +1,3 @@
-import { Gap } from "@foundations";
-import { If } from "@helpers";
 import { InputText } from "components/input-field";
 import { Flex, SpaceBetween } from "components/layout";
 import { Pagination } from "components/pagination";
@@ -12,6 +10,8 @@ import {
   TableRow,
 } from "components/table";
 import { Label } from "components/typography";
+import { Gap } from "foundation/spacing";
+import { If } from "helpers/nothing";
 
 import { DataTableColumn, DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";

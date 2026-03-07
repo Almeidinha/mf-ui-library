@@ -1,9 +1,11 @@
-import { Gap, Margin } from "@foundations";
-import { FC, If, isDefined, isEmpty, Nothing } from "@helpers";
 import { Flex } from "components/layout";
 import { ErrorMessage } from "components/molecules";
 import { InputCheckbox } from "components/molecules/input-checkbox";
 import { Label } from "components/typography";
+import { Gap, Margin } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
+import { If, Nothing } from "helpers/nothing";
+import { isDefined, isEmpty } from "helpers/safe-navigation";
 import { useCallback, useMemo, useState } from "react";
 import styled from "styled-components";
 

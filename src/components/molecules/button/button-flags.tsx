@@ -1,12 +1,6 @@
-import {
-  Actions,
-  Borders,
-  Icons,
-  Interactive,
-  Padding,
-  Text,
-} from "@foundations";
-import { PropsWithChildren, RequireOnlyOne } from "@helpers";
+import { Actions, Borders, Icons, Interactive, Text } from "foundation/colors";
+import { Padding } from "foundation/spacing";
+import { PropsWithChildren, RequireOnlyOne } from "helpers/generic-types";
 
 export const enum ButtonType {
   Basic = 1,

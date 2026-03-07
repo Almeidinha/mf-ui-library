@@ -1,5 +1,6 @@
-import { Borders, shadowMd, Surface } from "@foundations";
-import { isNilOrEmpty, safeArray } from "@helpers";
+import { Borders, Surface } from "foundation/colors";
+import { shadowMd } from "foundation/shadows";
+import { isNilOrEmpty, safeArray } from "helpers/safe-navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 

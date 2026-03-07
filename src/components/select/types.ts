@@ -127,7 +127,7 @@ export interface IMenuContainerProps {
   label?: string;
   children?: React.ReactNode;
   onRef?(el: HTMLDivElement | undefined): void;
-  onClick?(el: React.MouseEvent<HTMLDivElement>): void;
+  onClick?(this: void, el: React.MouseEvent<HTMLDivElement>): void;
 }
 
 type RectSize = number | "auto";

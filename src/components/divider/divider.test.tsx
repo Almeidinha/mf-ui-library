@@ -1,5 +1,5 @@
-import { Borders } from "@foundations";
 import { render, screen } from "@testing-library/react";
+import { Borders } from "foundation/colors";
 
 import { Divider } from "./index";
 

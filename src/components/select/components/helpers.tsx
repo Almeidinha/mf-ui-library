@@ -1,7 +1,8 @@
-import { Borders, Icons, Margin, Padding, Surface } from "@foundations";
-import { SpaceBetween } from "components/layout";
 import { IconMinor } from "components/icon";
+import { SpaceBetween } from "components/layout";
 import { Label } from "components/typography";
+import { Borders, Icons, Surface } from "foundation/colors";
+import { Margin, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
 import { DEFAULT_ROW_HEIGHT, menuPositionType } from "../types";

@@ -1,6 +1,6 @@
-import { Margin } from "@foundations";
-import { FC, PropsWithChildren } from "@helpers";
 import { Body, Heading3 } from "components/typography";
+import { Margin } from "foundation/spacing";
+import { FC, PropsWithChildren } from "helpers/generic-types";
 import styled from "styled-components";
 
 interface ILeftRightLayoutGeneratorProps {

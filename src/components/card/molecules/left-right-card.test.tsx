@@ -1,5 +1,5 @@
-import { Margin } from "@foundations";
 import { render, screen } from "@testing-library/react";
+import { Margin } from "foundation/spacing";
 import styled from "styled-components";
 
 import { LeftRightCard } from "./left-right-card";

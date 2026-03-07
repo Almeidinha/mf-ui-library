@@ -1,7 +1,10 @@
-import { Padding, Surface, Text, Typography } from "@foundations";
-import { FC, is, PropsWithChildren } from "@helpers";
 import { Flex } from "components/layout";
 import { Label } from "components/typography";
+import { Surface, Text } from "foundation/colors";
+import { Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
+import { FC, PropsWithChildren } from "helpers/generic-types";
+import { is } from "helpers/safe-navigation";
 import { HTMLAttributes } from "react";
 import styled from "styled-components";
 

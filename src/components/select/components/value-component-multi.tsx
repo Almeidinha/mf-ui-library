@@ -1,5 +1,5 @@
-import { Padding } from "@foundations";
 import { Tag } from "components/tag";
+import { Padding } from "foundation/spacing";
 import { JSX, memo } from "react";
 import styled from "styled-components";
 

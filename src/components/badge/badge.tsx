@@ -1,6 +1,6 @@
-import { Padding } from "@foundations";
-import { FC, PropsWithChildren } from "@helpers";
 import { Label } from "components/typography";
+import { Padding } from "foundation/spacing";
+import { FC, PropsWithChildren } from "helpers/generic-types";
 import styled from "styled-components";
 
 import { BadgeTypeProps, getColor } from "./badge-type-flags";

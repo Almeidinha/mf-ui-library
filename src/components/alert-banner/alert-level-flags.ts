@@ -1,6 +1,6 @@
-// this file was generated, but it is safe to modify
-import { Borders, Icons, Surface } from "@foundations";
-import { Hex, PropsWithChildren, RequireOnlyOne } from "@helpers";
+import { Borders, Icons, Surface } from "foundation/colors";
+import { PropsWithChildren, RequireOnlyOne } from "helpers/generic-types";
+import { Hex } from "helpers/numbers";
 import { ComponentType } from "react";
 
 import { Icon } from "../icon";

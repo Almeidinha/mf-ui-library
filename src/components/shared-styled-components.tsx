@@ -1,4 +1,6 @@
-import { Margin, shadow, Surface } from "@foundations";
+import { Surface } from "foundation/colors";
+import { shadow } from "foundation/shadows";
+import { Margin } from "foundation/spacing";
 import styled from "styled-components";
 
 export const CardFrame = styled.section.withConfig({

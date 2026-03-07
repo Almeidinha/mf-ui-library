@@ -1,15 +1,13 @@
-import { Borders, Margin, Padding, Typography } from "@foundations";
-import {
-  getOtherChildren,
-  getSlot,
-  If,
-  isDefined,
-  PropsWithChildren,
-  Slot,
-  toKebabCase,
-} from "@helpers";
 import { SpaceBetween } from "components/layout";
 import { Heading4 } from "components/typography";
+import { Borders } from "foundation/colors";
+import { Margin, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
+import { PropsWithChildren } from "helpers/generic-types";
+import { If } from "helpers/nothing";
+import { isDefined } from "helpers/safe-navigation";
+import { getOtherChildren, getSlot, Slot } from "helpers/slots";
+import { toKebabCase } from "helpers/strings";
 import { HTMLAttributes } from "react";
 import styled from "styled-components";
 

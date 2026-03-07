@@ -1,7 +1,8 @@
-import { Typography } from "@foundations";
-import { If, is, isNilOrEmpty } from "@helpers";
 import { IconMinor } from "components/icon";
 import { Label } from "components/typography";
+import { Typography } from "foundation/typography";
+import { If } from "helpers/nothing";
+import { is, isNilOrEmpty } from "helpers/safe-navigation";
 import { JSX, memo, useCallback } from "react";
 import { areEqual } from "react-window";
 import styled from "styled-components";

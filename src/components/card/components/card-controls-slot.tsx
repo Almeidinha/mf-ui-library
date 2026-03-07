@@ -1,6 +1,7 @@
-import { Padding } from "@foundations";
-import { PropsWithChildren, Slot } from "@helpers";
 import { Flex } from "components/layout";
+import { Padding } from "foundation/spacing";
+import { PropsWithChildren } from "helpers/generic-types";
+import { Slot } from "helpers/slots";
 import styled from "styled-components";
 
 const ControlsFrame = styled(Flex)`

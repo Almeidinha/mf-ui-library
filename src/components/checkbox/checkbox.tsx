@@ -1,12 +1,12 @@
+import { forwardRef, isDefined } from "@helpers";
 import {
   Actions,
   Borders,
   Focused,
   Interactive,
-  Margin,
   Surface,
-} from "@foundations";
-import { forwardRef, isDefined } from "@helpers";
+} from "foundation/colors";
+import { Margin } from "foundation/spacing";
 import { useMergedRefs } from "hooks";
 import React, { useCallback, useEffect, useRef } from "react";
 import styled from "styled-components";

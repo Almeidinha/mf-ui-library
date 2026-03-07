@@ -1,6 +1,7 @@
-import { Gap, Icons, Surface } from "@foundations";
-import { FC } from "@helpers";
 import { Center } from "components/layout";
+import { Icons, Surface } from "foundation/colors";
+import { Gap } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
 import styled from "styled-components";
 
 const Controls = styled.div`

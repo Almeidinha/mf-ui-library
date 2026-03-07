@@ -2,12 +2,11 @@ import {
   Actions,
   Background,
   Interactive,
-  Margin,
-  Padding,
   Surface,
   Text,
-  Typography,
-} from "@foundations";
+} from "foundation/colors";
+import { Margin, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
 import { Calendar } from "react-multi-date-picker";
 import styled from "styled-components";
 

@@ -1,6 +1,6 @@
-import { Icons } from "@foundations";
-import { forwardRef } from "@helpers";
+import { Icons } from "foundation/colors";
 import { LineHeight } from "foundation/typography/constants";
+import { forwardRef } from "helpers/generic-types";
 import React, { HTMLAttributes, ReactElement } from "react";
 import styled from "styled-components";
 

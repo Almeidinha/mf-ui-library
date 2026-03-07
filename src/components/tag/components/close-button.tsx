@@ -1,6 +1,7 @@
-import { Focused, Icons, Surface } from "@foundations";
-import { FC, is } from "@helpers";
 import { IconMinor } from "components/icon";
+import { Focused, Icons, Surface } from "foundation/colors";
+import { FC } from "helpers/generic-types";
+import { is } from "helpers/safe-navigation";
 import React, { ButtonHTMLAttributes } from "react";
 import styled from "styled-components";
 

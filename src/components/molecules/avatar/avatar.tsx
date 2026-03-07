@@ -1,6 +1,9 @@
-import { Margin, Surface } from "@foundations";
-import { FC, If, isDefined, isEmpty, isNil, Nothing } from "@helpers";
 import { Label } from "components/typography";
+import { Surface } from "foundation/colors";
+import { Margin } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
+import { If, Nothing } from "helpers/nothing";
+import { isDefined, isEmpty, isNil } from "helpers/safe-navigation";
 import styled from "styled-components";
 
 import { SpaceAround } from "../../layout/";

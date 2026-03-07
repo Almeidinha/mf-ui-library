@@ -1,5 +1,5 @@
-import { Actions } from "@foundations";
 import { render, screen } from "@testing-library/react";
+import { Actions } from "foundation/colors";
 
 import { Button } from "./index";
 

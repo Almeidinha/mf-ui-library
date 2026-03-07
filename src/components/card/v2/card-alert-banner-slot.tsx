@@ -1,6 +1,6 @@
-import { Margin } from "@foundations";
-import { SlotComponent } from "@helpers";
 import { AlertBanner, AlertBannerProps } from "components/alert-banner";
+import { Margin } from "foundation/spacing";
+import { SlotComponent } from "helpers/slots";
 import styled from "styled-components";
 
 const CardAlertBanner = styled(AlertBanner)`
