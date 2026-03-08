@@ -26,3 +26,4 @@ export * from "./progress-bar";
 export * from "./slider";
 export * from "./switch";
 export * from "./tabs";
+export * from "./text-area";
