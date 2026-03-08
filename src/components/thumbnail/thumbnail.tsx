@@ -27,7 +27,7 @@ const Box = styled.div<{ $size: string }>`
   box-sizing: border-box;
   overflow: hidden;
   flex-shrink: 0;
-  background: ${Surface?.Default?.Default ?? "transparent"};
+  background: ${Surface.Default.Default};
 `;
 
 const Image = styled.img`
@@ -44,7 +44,12 @@ export const Thumbnail: FC<ThumbnailProps> = ({
   size = "medium",
   className,
 }) => {
-  const [src, setSrc] = useState(imageUrl?.trim() || fallbackUrl?.trim() || "");
+  const primarySrc = imageUrl?.trim() || "";
+  const fallbackSrc = fallbackUrl?.trim() || "";
+
+  const [failedPrimary, setFailedPrimary] = useState(false);
+
+  const src = failedPrimary ? fallbackSrc : primarySrc || fallbackSrc;
 
   if (!src) {
     return null;
@@ -53,13 +58,14 @@ export const Thumbnail: FC<ThumbnailProps> = ({
   return (
     <Box $size={SIZE_MAP[size]} className={className}>
       <Image
+        key={`${primarySrc}|${fallbackSrc}`}
         src={src}
         alt={imageLabel}
         loading="lazy"
         decoding="async"
         onError={() => {
-          if (fallbackUrl && src !== fallbackUrl) {
-            setSrc(fallbackUrl);
+          if (!failedPrimary && fallbackSrc && src !== fallbackSrc) {
+            setFailedPrimary(true);
           }
         }}
       />
