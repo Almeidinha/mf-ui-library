@@ -1,17 +1,16 @@
-import * as ToastPrimitive from "@radix-ui/react-toast";
 import {
   createContext,
   FC,
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 
 import {
-  getSwipeDirection,
   ToastItem,
   ToastItemData,
   ToastPosition,
@@ -32,9 +31,9 @@ export type ToastContextValue = {
 export type ToastProviderProps = {
   children?: ReactNode;
   position?: ToastPosition;
-  duration?: number;
   label?: string;
   maxVisible?: number;
+  duration?: number;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -50,12 +49,17 @@ function createToastId() {
 export const ToastProvider: FC<ToastProviderProps> = ({
   children,
   position = "top",
-  duration,
   label = "Notification",
   maxVisible = 3,
+  duration = 4000,
 }) => {
   const [toasts, setToasts] = useState<ToastItemData[]>([]);
   const removalTimeoutsRef = useRef<Record<string, number>>({});
+  const toastsRef = useRef<ToastItemData[]>([]);
+
+  useEffect(() => {
+    toastsRef.current = toasts;
+  }, [toasts]);
 
   const clearRemovalTimeout = useCallback((id: string) => {
     const timeoutId = removalTimeoutsRef.current[id];
@@ -114,55 +118,52 @@ export const ToastProvider: FC<ToastProviderProps> = ({
 
   const showToast = useCallback(
     (input: ShowToastInput) => {
-      const existingKey = input.key?.trim();
-      const existingOpenToast = existingKey
-        ? toasts.find((toast) => toast.key === existingKey)
+      const nextKey = input.key?.trim();
+      const existingToast = nextKey
+        ? toastsRef.current.find((toast) => toast.key === nextKey)
         : undefined;
 
-      if (existingOpenToast) {
-        clearRemovalTimeout(existingOpenToast.id);
+      if (existingToast) {
+        clearRemovalTimeout(existingToast.id);
 
         setToasts((current) =>
           current.map((toast) =>
-            toast.id === existingOpenToast.id
+            toast.id === existingToast.id
               ? {
                   ...toast,
                   ...input,
-                  key: existingKey,
+                  key: nextKey,
                   open: true,
                 }
               : toast,
           ),
         );
 
-        return existingOpenToast.id;
+        return existingToast.id;
       }
 
       const id = createToastId();
 
       setToasts((current) => {
-        const next = [
-          ...current,
-          {
-            id,
-            key: existingKey,
-            open: true,
-            variant: input.variant ?? "default",
-            title: input.title,
-            description: input.description,
-            duration: input.duration,
-            actionText: input.actionText,
-            actionAltText: input.actionAltText,
-            onActionClick: input.onActionClick,
-          },
-        ];
+        const nextToast: ToastItemData = {
+          id,
+          key: nextKey,
+          open: true,
+          title: input.title,
+          description: input.description,
+          variant: input.variant ?? "default",
+          duration: input.duration,
+          actionText: input.actionText,
+          actionAltText: input.actionAltText,
+          onActionClick: input.onActionClick,
+        };
 
-        return next.slice(-maxVisible);
+        return [...current, nextToast].slice(-maxVisible);
       });
 
       return id;
     },
-    [clearRemovalTimeout, maxVisible, toasts],
+    [clearRemovalTimeout, maxVisible],
   );
 
   const value = useMemo<ToastContextValue>(
@@ -176,13 +177,9 @@ export const ToastProvider: FC<ToastProviderProps> = ({
 
   return (
     <ToastContext.Provider value={value}>
-      <ToastPrimitive.Provider
-        duration={duration}
-        swipeDirection={getSwipeDirection(position)}
-        label={label}
-      >
-        {children}
+      {children}
 
+      <ToastViewport $position={position} aria-label={label}>
         {toasts.map((toast) => (
           <ToastItem
             key={toast.id}
@@ -195,7 +192,7 @@ export const ToastProvider: FC<ToastProviderProps> = ({
             onRemove={() => removeToast(toast.id)}
             position={position}
             variant={toast.variant}
-            duration={toast.duration}
+            duration={toast.duration ?? duration}
             title={toast.title}
             description={toast.description}
             actionText={toast.actionText}
@@ -203,9 +200,7 @@ export const ToastProvider: FC<ToastProviderProps> = ({
             onActionClick={toast.onActionClick}
           />
         ))}
-
-        <ToastViewport $position={position} />
-      </ToastPrimitive.Provider>
+      </ToastViewport>
     </ToastContext.Provider>
   );
 };

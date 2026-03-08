@@ -1,4 +1,3 @@
-import * as ToastPrimitive from "@radix-ui/react-toast";
 import { IconMinor } from "components/icon";
 import { Borders, Focused, Surface, Text } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
@@ -9,9 +8,11 @@ import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
 import {
   AnimationEvent,
-  ComponentPropsWithoutRef,
-  ElementRef,
-  forwardRef,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import styled, { css } from "styled-components";
 
@@ -94,15 +95,6 @@ function resolveToastBorderColor(variant: ToastVariant) {
     default:
       return TOAST_BORDER_COLOR.default;
   }
-}
-
-export function getSwipeDirection(
-  position: ToastPosition,
-): "up" | "down" | "left" | "right" {
-  if (position.startsWith("top")) {
-    return "up";
-  }
-  return "down";
 }
 
 const VIEWPORT_POSITION_STYLES: Record<
@@ -200,71 +192,23 @@ function resolveEnterAnimationStyles(position: ToastPosition) {
   }
 }
 
-type ToastRootPrimitiveElement = ElementRef<typeof ToastPrimitive.Root>;
-type ToastRootPrimitiveProps = ComponentPropsWithoutRef<
-  typeof ToastPrimitive.Root
->;
+function getLiveRegionProps(variant: ToastVariant) {
+  if (variant === "error") {
+    return {
+      role: "alert" as const,
+      "aria-live": "assertive" as const,
+      "aria-atomic": "true" as const,
+    };
+  }
 
-const ToastRootPrimitive = forwardRef<
-  ToastRootPrimitiveElement,
-  ToastRootPrimitiveProps
->((props, ref) => <ToastPrimitive.Root ref={ref} {...props} />);
+  return {
+    role: "status" as const,
+    "aria-live": "polite" as const,
+    "aria-atomic": "true" as const,
+  };
+}
 
-ToastRootPrimitive.displayName = "ToastRootPrimitive";
-
-type ToastViewportPrimitiveElement = ElementRef<typeof ToastPrimitive.Viewport>;
-type ToastViewportPrimitiveProps = ComponentPropsWithoutRef<
-  typeof ToastPrimitive.Viewport
->;
-
-const ToastViewportPrimitive = forwardRef<
-  ToastViewportPrimitiveElement,
-  ToastViewportPrimitiveProps
->((props, ref) => <ToastPrimitive.Viewport ref={ref} {...props} />);
-
-ToastViewportPrimitive.displayName = "ToastViewportPrimitive";
-
-type ToastTitlePrimitiveElement = ElementRef<typeof ToastPrimitive.Title>;
-type ToastTitlePrimitiveProps = ComponentPropsWithoutRef<
-  typeof ToastPrimitive.Title
->;
-
-const ToastTitlePrimitive = forwardRef<
-  ToastTitlePrimitiveElement,
-  ToastTitlePrimitiveProps
->((props, ref) => <ToastPrimitive.Title ref={ref} {...props} />);
-
-ToastTitlePrimitive.displayName = "ToastTitlePrimitive";
-
-type ToastDescriptionPrimitiveElement = ElementRef<
-  typeof ToastPrimitive.Description
->;
-type ToastDescriptionPrimitiveProps = ComponentPropsWithoutRef<
-  typeof ToastPrimitive.Description
->;
-
-const ToastDescriptionPrimitive = forwardRef<
-  ToastDescriptionPrimitiveElement,
-  ToastDescriptionPrimitiveProps
->((props, ref) => <ToastPrimitive.Description ref={ref} {...props} />);
-
-ToastDescriptionPrimitive.displayName = "ToastDescriptionPrimitive";
-
-type ToastClosePrimitiveElement = ElementRef<typeof ToastPrimitive.Close>;
-type ToastClosePrimitiveProps = ComponentPropsWithoutRef<
-  typeof ToastPrimitive.Close
->;
-
-const ToastClosePrimitive = forwardRef<
-  ToastClosePrimitiveElement,
-  ToastClosePrimitiveProps
->((props, ref) => <ToastPrimitive.Close ref={ref} {...props} />);
-
-ToastClosePrimitive.displayName = "ToastClosePrimitive";
-
-export const ToastViewport = styled(ToastViewportPrimitive)<{
-  $position: ToastPosition;
-}>`
+export const ToastViewport = styled.div<{ $position: ToastPosition }>`
   --viewport-padding: ${Padding.l};
 
   position: fixed;
@@ -275,11 +219,11 @@ export const ToastViewport = styled(ToastViewportPrimitive)<{
   max-width: 100vw;
   padding: var(--viewport-padding);
   margin: ${Margin.none};
-  list-style: none;
   z-index: 44000;
-  outline: none;
+  pointer-events: none;
 
-  ${({ $position }) => resolveViewportPositionStyles($position)};
+  ${({ $position }: { $position: ToastPosition }) =>
+    resolveViewportPositionStyles($position)};
 
   @media (max-width: 640px) {
     left: 0;
@@ -292,7 +236,7 @@ export const ToastViewport = styled(ToastViewportPrimitive)<{
   }
 `;
 
-const ToastRoot = styled(ToastRootPrimitive)<{
+const ToastRoot = styled.div<{
   $variant: ToastVariant;
   $position: ToastPosition;
 }>`
@@ -302,8 +246,12 @@ const ToastRoot = styled(ToastRootPrimitive)<{
   display: flex;
   align-items: flex-start;
   gap: ${Gap.m};
-  background-color: ${({ $variant }) => resolveToastBackground($variant)};
-  border: 1px solid ${({ $variant }) => resolveToastBorderColor($variant)};
+  background-color: ${({ $variant }: { $variant: ToastVariant }) =>
+    resolveToastBackground($variant)};
+  border: 1px solid
+    ${({ $variant }: { $variant: ToastVariant }) =>
+      resolveToastBorderColor($variant)};
+  pointer-events: auto;
 
   &:focus-visible {
     outline: 2px solid ${Focused.Default};
@@ -311,27 +259,14 @@ const ToastRoot = styled(ToastRootPrimitive)<{
   }
 
   &[data-state="open"] {
-    ${({ $position }) => resolveEnterAnimationStyles($position)};
+    ${({ $position }: { $position: ToastPosition }) =>
+      resolveEnterAnimationStyles($position)};
   }
 
   &[data-state="closed"] {
+    opacity: 0;
+    pointer-events: none;
     animation: toastHide 140ms ease-in;
-  }
-
-  &[data-swipe="move"] {
-    transform: translate(
-      var(--radix-toast-swipe-move-x, 0),
-      var(--radix-toast-swipe-move-y, 0)
-    );
-  }
-
-  &[data-swipe="cancel"] {
-    transform: translate(0, 0);
-    transition: transform 200ms ease-out;
-  }
-
-  &[data-swipe="end"] {
-    animation: toastSwipeOut 140ms ease-out;
   }
 
   @keyframes toastHide {
@@ -365,29 +300,10 @@ const ToastRoot = styled(ToastRootPrimitive)<{
     }
   }
 
-  @keyframes toastSwipeOut {
-    from {
-      transform: translate(
-        var(--radix-toast-swipe-end-x, 0),
-        var(--radix-toast-swipe-end-y, 0)
-      );
-      opacity: 1;
-    }
-    to {
-      transform: translate(
-        var(--radix-toast-swipe-end-x, 0),
-        var(--radix-toast-swipe-end-y, 0)
-      );
-      opacity: 0;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     &,
     &[data-state="open"],
-    &[data-state="closed"],
-    &[data-swipe="cancel"],
-    &[data-swipe="end"] {
+    &[data-state="closed"] {
       animation: none;
       transition: none;
     }
@@ -399,19 +315,19 @@ const Content = styled.div`
   flex: 1;
 `;
 
-const ToastTitle = styled(ToastTitlePrimitive)`
+const ToastTitle = styled.h3`
   margin: ${Margin.none};
   ${Typography.Label};
   color: ${Text.Subdued};
 `;
 
-const ToastDescription = styled(ToastDescriptionPrimitive)`
+const ToastDescription = styled.p`
   margin: ${Margin.none};
-  ${Typography.BodyLarge};
   color: ${Text.Subdued};
+  ${Typography.BodyLarge};
 `;
 
-const ToastClose = styled(ToastClosePrimitive)`
+const ToastClose = styled.button`
   all: unset;
   display: inline-flex;
   align-items: center;
@@ -470,25 +386,39 @@ export const ToastItem: FC<ToastItemProps> = ({
   actionAltText,
   onRemove,
 }) => {
+  useEffect(() => {
+    if (!open || !duration) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      onOpenChange(false);
+    }, duration);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [open, duration, onOpenChange]);
+
+  const liveRegionProps = useMemo(() => getLiveRegionProps(variant), [variant]);
+
   return (
     <ToastRoot
       $variant={variant}
       $position={position}
-      open={open}
-      onOpenChange={onOpenChange}
-      duration={duration}
-      type="foreground"
-      onAnimationEnd={(event: AnimationEvent<HTMLElement>) => {
+      data-state={open ? "open" : "closed"}
+      tabIndex={0}
+      onAnimationEnd={(event: AnimationEvent<HTMLDivElement>) => {
         if (event.target !== event.currentTarget) {
           return;
         }
-        if (
-          event.animationName === "toastHide" ||
-          event.animationName === "toastSwipeOut"
-        ) {
+
+        if (event.animationName === "toastHide") {
           onRemove?.();
         }
       }}
+      {...liveRegionProps}
+      aria-label={actionAltText}
     >
       <Content>
         <If is={isDefined(title)}>
@@ -498,22 +428,44 @@ export const ToastItem: FC<ToastItemProps> = ({
       </Content>
 
       <If is={isDefined(actionText) && isDefined(onActionClick)}>
-        <ToastPrimitive.Action
-          asChild
-          altText={
-            actionAltText || "Use the action button in this notification"
-          }
+        <ActionButton
+          type="button"
+          onClick={() => {
+            onActionClick?.();
+            onOpenChange(false);
+          }}
+          aria-label={actionAltText || actionText}
         >
-          <ActionButton type="button" onClick={onActionClick}>
-            {actionText}
-          </ActionButton>
-        </ToastPrimitive.Action>
+          {actionText}
+        </ActionButton>
       </If>
 
-      <ToastClose aria-label="Close notification">
+      <ToastClose
+        type="button"
+        aria-label="Close notification"
+        onClick={() => onOpenChange(false)}
+      >
         <CloseIcon aria-hidden />
       </ToastClose>
     </ToastRoot>
+  );
+};
+
+type StandaloneViewportProps = {
+  position: ToastPosition;
+  label: string;
+  children: ReactNode;
+};
+
+const StandaloneViewport: FC<StandaloneViewportProps> = ({
+  position,
+  label,
+  children,
+}) => {
+  return (
+    <ToastViewport $position={position} aria-label={label}>
+      {children}
+    </ToastViewport>
   );
 };
 
@@ -530,15 +482,31 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   actionAltText,
   onActionClick,
 }) => {
+  const [renderedOpen, setRenderedOpen] = useState(open);
+
+  const shouldRender = open || renderedOpen;
+
+  const handleRemove = () => {
+    setRenderedOpen(false);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setRenderedOpen(true);
+    }
+    onOpenChange(nextOpen);
+  };
+
+  if (!shouldRender) {
+    return null;
+  }
+
   return (
-    <ToastPrimitive.Provider
-      duration={duration}
-      swipeDirection={getSwipeDirection(position)}
-      label={label}
-    >
+    <StandaloneViewport position={position} label={label}>
       <ToastItem
         open={open}
-        onOpenChange={onOpenChange}
+        onOpenChange={handleOpenChange}
+        onRemove={handleRemove}
         position={position}
         variant={variant}
         duration={duration}
@@ -548,8 +516,7 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
         actionAltText={actionAltText}
         onActionClick={onActionClick}
       />
-      <ToastViewport $position={position} />
-    </ToastPrimitive.Provider>
+    </StandaloneViewport>
   );
 };
 
