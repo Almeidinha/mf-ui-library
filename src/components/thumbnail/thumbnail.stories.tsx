@@ -12,7 +12,7 @@ const meta = {
     imageUrl: "https://www.svgrepo.com/show/425238/users-avatar.svg",
     size: "medium",
     imageLabel: "Thumbnail Image",
-    fallbackUrl: "",
+    fallbackUrl: "https://www.svgrepo.com/show/425244/users-avatar.svg",
   },
   argTypes: {
     size: {
