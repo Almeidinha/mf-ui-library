@@ -27,3 +27,4 @@ export * from "./slider";
 export * from "./switch";
 export * from "./tabs";
 export * from "./text-area";
+export * from "./thumbnail";

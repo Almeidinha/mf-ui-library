@@ -10,7 +10,8 @@ const meta = {
     docs: {
       description: {
         component: `
-The TextArea component is an extension of HTML
+The TextArea component is an extension of HTML's \`<textarea>\` element with design-system styling,
+an optional label, an \`invalid\` state for validation feedback, configurable \`resize\` behavior, and an \`onChange\` callback that returns the current value.
 ---
 
 ## How to use
