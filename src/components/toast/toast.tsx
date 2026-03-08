@@ -6,14 +6,7 @@ import { Typography } from "foundation/typography";
 import { FC } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
-import {
-  AnimationEvent,
-  ReactNode,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { AnimationEvent, ReactNode, useEffect, useMemo } from "react";
 import styled, { css } from "styled-components";
 
 export type ToastPosition =
@@ -266,6 +259,7 @@ const ToastRoot = styled.div<{
   &[data-state="closed"] {
     opacity: 0;
     pointer-events: none;
+    visibility: hidden;
     animation: toastHide 140ms ease-in;
   }
 
@@ -482,31 +476,11 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   actionAltText,
   onActionClick,
 }) => {
-  const [renderedOpen, setRenderedOpen] = useState(open);
-
-  const shouldRender = open || renderedOpen;
-
-  const handleRemove = () => {
-    setRenderedOpen(false);
-  };
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      setRenderedOpen(true);
-    }
-    onOpenChange(nextOpen);
-  };
-
-  if (!shouldRender) {
-    return null;
-  }
-
   return (
     <StandaloneViewport position={position} label={label}>
       <ToastItem
         open={open}
-        onOpenChange={handleOpenChange}
-        onRemove={handleRemove}
+        onOpenChange={onOpenChange}
         position={position}
         variant={variant}
         duration={duration}
