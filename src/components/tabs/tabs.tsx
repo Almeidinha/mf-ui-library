@@ -5,7 +5,6 @@ import { FC, PropsWithChildren } from "helpers/generic-types";
 import { isReactElementOfType } from "helpers/isReactElementOfType";
 import { is, safeCallback } from "helpers/safe-navigation";
 import { Slot, StylableSlot } from "helpers/slots";
-import { useRovingTabListKeyDown } from "hooks";
 import React, {
   Children,
   ReactElement,
@@ -16,6 +15,7 @@ import React, {
 import styled from "styled-components";
 
 import { Tab as TabBase, TabProps } from "./components";
+import { useRovingTabListKeyDown } from "./hooks/useRovingTabListKeyDown";
 
 // Keep styled wrapper so you can style Tab from the parent (TabList)
 const Tab = styled(TabBase)``;
@@ -75,20 +75,22 @@ function decorateContent(
   child: ReactElement<React.HTMLAttributes<HTMLDivElement>>,
   args: { index: number; selected: number; idPrefix: string },
 ) {
-  const { index, selected, idPrefix } = args;
+  const { index, selected, idPrefix = "tabs" } = args;
   const isActive = index === selected;
 
   return React.cloneElement(child, {
     id: panelId(idPrefix, index),
     role: "tabpanel",
     "aria-labelledby": tabId(idPrefix, index),
-    // pick ONE: either hidden OR display none; here we rely on display
     style: {
       ...(child.props.style ?? {}),
       display: isActive ? undefined : "none",
     },
   });
 }
+
+const isDisabledTab = (t: ReactElement<TabProps>) =>
+  Boolean(t.props.disabled) || t.props["aria-disabled"] === "true";
 
 export const Tabs: FC<TabsProps, SubComponents> = (props) => {
   const {
@@ -135,6 +137,7 @@ export const Tabs: FC<TabsProps, SubComponents> = (props) => {
     selectedIndex: safeSelected,
     onActivate: safeOnChange,
     activationMode,
+    itemSelector: '[role="tab"]',
   });
 
   const decoratedChildren: ReactNode = useMemo(() => {
@@ -210,8 +213,7 @@ function decorateTab(
     activationMode: "auto" | "manual";
   },
 ) {
-  const { index, selected, secondary, idPrefix, onChange, activationMode } =
-    args;
+  const { index, selected, secondary, idPrefix, onChange } = args;
 
   const isSelected = is(tab.props.selected)
     ? !!tab.props.selected
@@ -220,25 +222,29 @@ function decorateTab(
   const id = tab.props.id ?? tabId(idPrefix, index);
   const controls = tab.props["aria-controls"] ?? panelId(idPrefix, index);
 
+  const disabled = isDisabledTab(tab);
+
   return (
     <Tab
       {...tab.props}
+      data-index={index}
       id={id}
       aria-controls={controls}
       secondary={secondary}
+      disabled={disabled}
       selected={isSelected}
-      tabIndex={isSelected ? 0 : -1}
+      tabIndex={disabled ? -1 : isSelected ? 0 : -1}
       onClick={(e) => {
         safeCallback(tab.props.onClick, e);
+        if (disabled) {
+          return;
+        }
         if (!isSelected) {
           onChange(index);
         }
       }}
       onFocus={(e) => {
         safeCallback(tab.props.onFocus, e);
-        if (activationMode === "auto" && index !== selected) {
-          onChange(index);
-        }
       }}
     >
       {tab.props.children}

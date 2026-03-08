@@ -14,9 +14,43 @@ const meta = {
   args: {
     secondary: false,
     selected: 0,
+    activationMode: "auto",
     onChange: undefined,
+    idPrefix: "tabs",
   },
-  argTypes: {},
+  argTypes: {
+    idPrefix: {
+      description: "Prefix for the generated ids for tabs and panels.",
+      table: {
+        type: { summary: "string" },
+        defaultValue: { summary: "tabs" },
+      },
+    },
+    secondary: {
+      table: {
+        defaultValue: { summary: "false" },
+      },
+    },
+    selected: {
+      table: { defaultValue: { summary: "0" } },
+    },
+    onChange: {
+      description:
+        "Callback when the selected tab changes. Receives the new index.",
+      table: {
+        type: { summary: "(index: number) => void)" },
+      },
+    },
+    activationMode: {
+      description:
+        "Whether focusing a tab also activates it, or if activation requires an explicit action (Enter or Space).",
+      control: { type: "radio" },
+      options: ["auto", "manual"],
+      table: {
+        defaultValue: { summary: "auto" },
+      },
+    },
+  },
 } satisfies Meta<typeof Tabs>;
 
 export default meta;
@@ -37,7 +71,8 @@ export const Primary: Story = {
           <Tabs.TabList>
             <Tabs.Tab>Tab 1</Tabs.Tab>
             <Tabs.Tab>Tab 2</Tabs.Tab>
-            <Tabs.Tab>Tab 3</Tabs.Tab>
+            <Tabs.Tab disabled>Tab 3</Tabs.Tab>
+            <Tabs.Tab>Tab 4</Tabs.Tab>
           </Tabs.TabList>
           <Tabs.Content>
             <Body>Content 1</Body>
@@ -47,6 +82,9 @@ export const Primary: Story = {
           </Tabs.Content>
           <Tabs.Content>
             <Body>Content 3</Body>
+          </Tabs.Content>
+          <Tabs.Content>
+            <Body>Content 4</Body>
           </Tabs.Content>
         </Tabs>
       </CardFrame>

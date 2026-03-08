@@ -12,28 +12,40 @@ export type TabProps = PropsWithChildren<
     Prefix?: FC<HTMLAttributes<HTMLElement>>;
     selected?: boolean;
     secondary?: boolean;
+    disabled?: boolean;
   }
 >;
 
-const TabFrame = styled.div<{ $selected: boolean; $secondary: boolean }>`
+const TabFrame = styled.div<{
+  $selected: boolean;
+  $secondary: boolean;
+  $disabled: boolean;
+}>`
   display: flex;
   align-items: center;
-  cursor: pointer;
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   outline: none; /* rely on focus-visible below */
   user-select: none;
 
-  &:focus-visible {
-    outline: 2px solid ${Focused.Default};
-    outline-offset: -2px;
-    ${({ $secondary }) =>
-      !$secondary &&
-      css`
-        border-top-left-radius: 6px;
-        border-top-right-radius: 6px;
-      `}
-  }
+  opacity: ${({ $disabled }) => ($disabled ? 0.55 : 1)};
+  pointer-events: ${({ $disabled }) => ($disabled ? "none" : "auto")};
 
-  ${({ $secondary, $selected }) =>
+  ${({ $disabled, $secondary }) =>
+    !$disabled &&
+    css`
+      &:focus-visible {
+        outline: 2px solid ${Focused.Default};
+        outline-offset: -2px;
+
+        ${!$secondary &&
+        css`
+          border-top-left-radius: 6px;
+          border-top-right-radius: 6px;
+        `}
+      }
+    `}
+
+  ${({ $secondary, $selected, $disabled }) =>
     $secondary
       ? css`
           padding: ${Padding.xs} ${Padding.m};
@@ -44,11 +56,15 @@ const TabFrame = styled.div<{ $selected: boolean; $secondary: boolean }>`
             ? Surface.Default.Depressed
             : Surface.Default.Default};
           border-radius: 18px;
-          &:hover {
-            background: ${$selected
-              ? Surface.Default.Depressed
-              : Surface.Default.Hover};
-          }
+
+          ${!$disabled &&
+          css`
+            &:hover {
+              background: ${$selected
+                ? Surface.Default.Depressed
+                : Surface.Default.Hover};
+            }
+          `}
         `
       : css`
           padding: ${Padding.m};
@@ -59,11 +75,15 @@ const TabFrame = styled.div<{ $selected: boolean; $secondary: boolean }>`
           &:focus-visible {
             border-bottom-color: ${Borders.Highlight.Default};
           }
-          &:hover {
-            border-bottom-color: ${$selected
-              ? Borders.Highlight.Default
-              : Borders.Default.Subdued};
-          }
+
+          ${!$disabled &&
+          css`
+            &:hover {
+              border-bottom-color: ${$selected
+                ? Borders.Highlight.Default
+                : Borders.Default.Subdued};
+            }
+          `}
         `}
 `;
 
@@ -72,6 +92,7 @@ export const Tab = forwardRef<HTMLDivElement, TabProps>((props, ref) => {
     Prefix,
     selected = false,
     secondary = false,
+    disabled = false,
     children,
     ...rest
   } = props;
@@ -82,8 +103,10 @@ export const Tab = forwardRef<HTMLDivElement, TabProps>((props, ref) => {
       ref={ref}
       role="tab"
       aria-selected={selected}
+      aria-disabled={disabled || undefined}
       $selected={selected}
       $secondary={secondary}
+      $disabled={disabled}
     >
       {isDefined(Prefix) ? (
         <Prefix style={{ marginRight: Margin.xs }} />

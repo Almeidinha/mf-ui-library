@@ -76,6 +76,15 @@ export function useRovingTabListKeyDown(options: RovingKeyDownOptions) {
         return;
       }
 
+      const getGlobalIndex = (el: HTMLElement) => {
+        const raw = el.getAttribute("data-index");
+        if (raw == null) {
+          return null;
+        }
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+      };
+
       const container = e.currentTarget as HTMLElement;
 
       const allItems = Array.from(
@@ -112,7 +121,10 @@ export function useRovingTabListKeyDown(options: RovingKeyDownOptions) {
 
       if (activationMode === "manual" && isActivateKey) {
         e.preventDefault();
-        onActivate?.(baseIndex);
+        const global = getGlobalIndex(items[baseIndex]);
+        if (global !== null) {
+          onActivate?.(global);
+        }
         return;
       }
 
@@ -140,7 +152,10 @@ export function useRovingTabListKeyDown(options: RovingKeyDownOptions) {
       const newFocusedIndex = focusAt(next);
 
       if (activationMode === "auto") {
-        onActivate?.(newFocusedIndex);
+        const global = getGlobalIndex(items[newFocusedIndex]);
+        if (global !== null) {
+          onActivate?.(global);
+        }
       }
     },
     [
