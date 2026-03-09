@@ -118,6 +118,24 @@ export const ToastProvider: FC<ToastProviderProps> = ({
     [clearAutoCloseTimeout, scheduleRemoval],
   );
 
+  const restartAutoClose = useCallback(
+    (id: string, timeoutMs?: number) => {
+      clearAutoCloseTimeout(id);
+
+      if (!timeoutMs || timeoutMs <= 0) {
+        return;
+      }
+
+      scheduleAutoClose(id, timeoutMs);
+    },
+    [clearAutoCloseTimeout, scheduleAutoClose],
+  );
+
+  const getToastDuration = useCallback(
+    (toast: ToastItemData) => toast.duration ?? duration,
+    [duration],
+  );
+
   const removeToast = useCallback(
     (id: string) => {
       clearRemovalTimeout(id);
@@ -260,6 +278,24 @@ export const ToastProvider: FC<ToastProviderProps> = ({
                 }
               }}
               onRemove={() => removeToast(toast.id)}
+              onMouseEnter={() => {
+                clearAutoCloseTimeout(toast.id);
+              }}
+              onMouseLeave={() => {
+                restartAutoClose(toast.id, getToastDuration(toast));
+              }}
+              onFocusCapture={() => {
+                clearAutoCloseTimeout(toast.id);
+              }}
+              onBlurCapture={(event) => {
+                const nextFocused = event.relatedTarget as Node | null;
+
+                if (event.currentTarget.contains(nextFocused)) {
+                  return;
+                }
+
+                restartAutoClose(toast.id, getToastDuration(toast));
+              }}
               position={position}
               variant={toast.variant}
               duration={toast.duration}

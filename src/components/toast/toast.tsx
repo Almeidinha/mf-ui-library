@@ -1,12 +1,21 @@
 import { IconMinor } from "components/icon";
+import { Button } from "components/molecules";
+import { Body, Heading3 } from "components/typography";
 import { Borders, Focused, Surface, Text } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Margin, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
 import { FC } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
-import { AnimationEvent, ReactNode, useEffect, useMemo } from "react";
+import {
+  AnimationEvent,
+  FocusEvent,
+  MouseEvent,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import styled, { css } from "styled-components";
 
@@ -14,14 +23,6 @@ type ToastViewportLayerProps = {
   children: ReactNode;
   disablePortal?: boolean;
   container?: Element | DocumentFragment | null;
-};
-
-type ToastItemProps = ToastSharedProps & {
-  open: boolean;
-  position: ToastPosition;
-  onOpenChange: (open: boolean) => void;
-  onRemove?: () => void;
-  createdAt?: number;
 };
 
 export type ToastPosition =
@@ -43,6 +44,18 @@ export type ToastSharedProps = {
   actionAltText?: string;
   closeable?: boolean;
   onActionClick?: () => void;
+};
+
+type ToastItemProps = ToastSharedProps & {
+  open: boolean;
+  position: ToastPosition;
+  onOpenChange: (open: boolean) => void;
+  onRemove?: () => void;
+  createdAt?: number;
+  onMouseEnter?: (event: MouseEvent<HTMLDivElement>) => void;
+  onMouseLeave?: (event: MouseEvent<HTMLDivElement>) => void;
+  onFocusCapture?: (event: FocusEvent<HTMLDivElement>) => void;
+  onBlurCapture?: (event: FocusEvent<HTMLDivElement>) => void;
 };
 
 export type ToastItemData = ToastSharedProps & {
@@ -323,52 +336,42 @@ const Content = styled.div`
   flex: 1;
 `;
 
-const ToastTitle = styled.h3`
+const ToastTitle = styled(Heading3)`
   margin: ${Margin.none};
-  ${Typography.Label};
-  color: ${Text.Subdued};
 `;
 
-const ToastDescription = styled.p`
+const ToastDescription = styled(Body)`
   margin: ${Margin.none};
-  color: ${Text.Subdued};
-  ${Typography.BodyLarge};
 `;
 
-const ToastClose = styled.button`
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 4px;
-  flex-shrink: 0;
-  margin-top: 2px;
-
-  &:focus-visible {
+const ToastClose = styled(Button).attrs({
+  type: "button",
+  subtle: true,
+  plain: true,
+})`
+  padding: ${Padding.none};
+  &:focus {
+    border: none;
+    outline: none;
     border-bottom: 2px solid ${Focused.Default};
     border-radius: 0;
   }
 `;
 
-const CloseIcon = styled(IconMinor.Xmark)`
-  color: ${Text.Subdued};
-
-  svg path {
-    fill: ${Text.Subdued};
+const ActionButton = styled(Button).attrs({
+  type: "button",
+  subtle: true,
+  plain: true,
+})`
+  padding: ${Padding.none};
+  > div {
+    color: ${Text.Subdued};
   }
-`;
-
-const ActionButton = styled.button`
-  all: unset;
-  ${Typography.Label};
-  color: ${Text.Subdued};
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-left: ${Margin.s};
-
-  &:focus-visible {
+  &:focus {
+    border: none;
+    outline: none;
     border-bottom: 2px solid ${Focused.Default};
+    border-radius: 0;
   }
 `;
 
@@ -401,6 +404,10 @@ export const ToastItem: FC<ToastItemProps> = ({
   actionText,
   actionAltText,
   onRemove,
+  onMouseEnter,
+  onMouseLeave,
+  onFocusCapture,
+  onBlurCapture,
 }) => {
   const liveRegionProps = useMemo(() => getLiveRegionProps(variant), [variant]);
 
@@ -409,6 +416,10 @@ export const ToastItem: FC<ToastItemProps> = ({
       $variant={variant}
       $position={position}
       data-state={open ? "open" : "closed"}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onFocusCapture={onFocusCapture}
+      onBlurCapture={onBlurCapture}
       onAnimationEnd={(event: AnimationEvent<HTMLDivElement>) => {
         if (event.target !== event.currentTarget) {
           return;
@@ -446,9 +457,8 @@ export const ToastItem: FC<ToastItemProps> = ({
           type="button"
           aria-label="Close notification"
           onClick={() => onOpenChange(false)}
-        >
-          <CloseIcon aria-hidden />
-        </ToastClose>
+          IconPrefix={IconMinor.Xmark}
+        ></ToastClose>
       </If>
     </ToastRoot>
   );
@@ -488,8 +498,10 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   disablePortal = false,
   portalContainer,
 }) => {
+  const [isPaused, setIsPaused] = useState(false);
+
   useEffect(() => {
-    if (!open || !duration) {
+    if (!open || !duration || isPaused) {
       return;
     }
 
@@ -500,7 +512,7 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [open, duration, onOpenChange]);
+  }, [open, duration, isPaused, onOpenChange]);
 
   return (
     <ToastViewportLayer
@@ -519,6 +531,18 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
           actionText={actionText}
           actionAltText={actionAltText}
           onActionClick={onActionClick}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onFocusCapture={() => setIsPaused(true)}
+          onBlurCapture={(event) => {
+            const nextFocused = event.relatedTarget as Node | null;
+
+            if (event.currentTarget.contains(nextFocused)) {
+              return;
+            }
+
+            setIsPaused(false);
+          }}
         />
       </StandaloneViewport>
     </ToastViewportLayer>

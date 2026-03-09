@@ -97,6 +97,9 @@ export const Primary: Story = {
     const [, updateArgs] = useArgs<StandaloneToastProps>();
     return (
       <div style={{ height: 250 }}>
+        <Button primary onClick={() => updateArgs({ open: true })}>
+          Open me!
+        </Button>
         <Toast {...args} onOpenChange={(open) => updateArgs({ open })} />
       </div>
     );
