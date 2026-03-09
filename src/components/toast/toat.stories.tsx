@@ -2,8 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Button } from "components/molecules";
 import { useArgs } from "storybook/internal/preview-api";
 
-import { ToastProvider, useToast } from "./hooks/useToast";
+import { ToastProvider, ToastProviderProps, useToast } from "./hooks/useToast";
 import { StandaloneToastProps, Toast } from "./toast";
+
+type StoryType = StandaloneToastProps & ToastProviderProps;
 
 const meta = {
   title: "Components/Toast",
@@ -44,11 +46,20 @@ const meta = {
       options: ["info", "default", "success", "warning", "error"],
       table: { defaultValue: { summary: "default" } },
     },
+    duration: {
+      description:
+        "The duration (in milliseconds) before the toast auto-closes. If not provided, the toast will not auto-close.",
+    },
+    maxVisible: {
+      description:
+        "The maximum number of toasts visible at once. If the limit is exceeded, the oldest toast will be removed to make room for the new one.",
+      table: { defaultValue: { summary: "3" }, category: "Provider Props" },
+    },
   },
-} satisfies Meta<typeof Toast>;
+} satisfies Meta<StoryType>;
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<StoryType>;
 
 export const Primary: Story = {
   render: function Render(args) {

@@ -51,11 +51,12 @@ export const ToastProvider: FC<ToastProviderProps> = ({
   position = "top",
   label = "Notification",
   maxVisible = 3,
-  duration = 4000,
+  duration,
 }) => {
   const [toasts, setToasts] = useState<ToastItemData[]>([]);
   const removalTimeoutsRef = useRef<Record<string, number>>({});
   const toastsRef = useRef<ToastItemData[]>([]);
+  const autoCloseTimeoutsRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
     toastsRef.current = toasts;
@@ -70,14 +71,6 @@ export const ToastProvider: FC<ToastProviderProps> = ({
     }
   }, []);
 
-  const removeToast = useCallback(
-    (id: string) => {
-      clearRemovalTimeout(id);
-      setToasts((current) => current.filter((toast) => toast.id !== id));
-    },
-    [clearRemovalTimeout],
-  );
-
   const scheduleRemoval = useCallback(
     (id: string) => {
       clearRemovalTimeout(id);
@@ -90,16 +83,58 @@ export const ToastProvider: FC<ToastProviderProps> = ({
     [clearRemovalTimeout],
   );
 
+  const clearAutoCloseTimeout = useCallback((id: string) => {
+    const timeoutId = autoCloseTimeoutsRef.current[id];
+
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+      delete autoCloseTimeoutsRef.current[id];
+    }
+  }, []);
+
+  const scheduleAutoClose = useCallback(
+    (id: string, timeoutMs?: number) => {
+      clearAutoCloseTimeout(id);
+
+      if (!timeoutMs || timeoutMs <= 0) {
+        return;
+      }
+
+      autoCloseTimeoutsRef.current[id] = window.setTimeout(() => {
+        setToasts((current) =>
+          current.map((toast) =>
+            toast.id === id ? { ...toast, open: false } : toast,
+          ),
+        );
+        scheduleRemoval(id);
+        delete autoCloseTimeoutsRef.current[id];
+      }, timeoutMs);
+    },
+    [clearAutoCloseTimeout, scheduleRemoval],
+  );
+
+  const removeToast = useCallback(
+    (id: string) => {
+      clearRemovalTimeout(id);
+      clearAutoCloseTimeout(id);
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    },
+    [clearRemovalTimeout, clearAutoCloseTimeout],
+  );
+
   const closeToast = useCallback(
     (id: string) => {
+      clearAutoCloseTimeout(id);
+
       setToasts((current) =>
         current.map((toast) =>
           toast.id === id ? { ...toast, open: false } : toast,
         ),
       );
+
       scheduleRemoval(id);
     },
-    [scheduleRemoval],
+    [clearAutoCloseTimeout, scheduleRemoval],
   );
 
   const closeAll = useCallback(() => {
@@ -107,7 +142,12 @@ export const ToastProvider: FC<ToastProviderProps> = ({
       window.clearTimeout(removalTimeoutsRef.current[id]);
     });
 
+    Object.keys(autoCloseTimeoutsRef.current).forEach((id) => {
+      window.clearTimeout(autoCloseTimeoutsRef.current[id]);
+    });
+
     removalTimeoutsRef.current = {};
+    autoCloseTimeoutsRef.current = {};
 
     setToasts((current) => current.map((toast) => ({ ...toast, open: false })));
 
@@ -119,6 +159,7 @@ export const ToastProvider: FC<ToastProviderProps> = ({
   const showToast = useCallback(
     (input: ShowToastInput) => {
       const nextKey = input.key?.trim();
+      const effectiveDuration = input.duration ?? duration;
       const existingToast = nextKey
         ? toastsRef.current.find((toast) => toast.key === nextKey)
         : undefined;
@@ -134,11 +175,13 @@ export const ToastProvider: FC<ToastProviderProps> = ({
                   ...input,
                   key: nextKey,
                   open: true,
+                  createdAt: Date.now(),
                 }
               : toast,
           ),
         );
 
+        scheduleAutoClose(existingToast.id, effectiveDuration);
         return existingToast.id;
       }
 
@@ -149,6 +192,7 @@ export const ToastProvider: FC<ToastProviderProps> = ({
           id,
           key: nextKey,
           open: true,
+          createdAt: Date.now(),
           title: input.title,
           description: input.description,
           variant: input.variant ?? "default",
@@ -158,12 +202,28 @@ export const ToastProvider: FC<ToastProviderProps> = ({
           onActionClick: input.onActionClick,
         };
 
-        return [...current, nextToast].slice(-maxVisible);
+        const next = [...current, nextToast];
+        const overflow = next.slice(0, Math.max(0, next.length - maxVisible));
+        const visible = next.slice(-maxVisible);
+
+        overflow.forEach((toast) => {
+          clearAutoCloseTimeout(toast.id);
+          clearRemovalTimeout(toast.id);
+        });
+
+        return visible;
       });
 
+      scheduleAutoClose(id, effectiveDuration);
       return id;
     },
-    [clearRemovalTimeout, maxVisible],
+    [
+      clearAutoCloseTimeout,
+      clearRemovalTimeout,
+      duration,
+      maxVisible,
+      scheduleAutoClose,
+    ],
   );
 
   const value = useMemo<ToastContextValue>(
@@ -192,7 +252,8 @@ export const ToastProvider: FC<ToastProviderProps> = ({
             onRemove={() => removeToast(toast.id)}
             position={position}
             variant={toast.variant}
-            duration={toast.duration ?? duration}
+            duration={toast.duration}
+            createdAt={toast.createdAt}
             title={toast.title}
             description={toast.description}
             actionText={toast.actionText}

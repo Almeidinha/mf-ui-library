@@ -33,6 +33,7 @@ export type ToastItemData = ToastSharedProps & {
   id: string;
   open: boolean;
   key?: string;
+  createdAt: number;
 };
 
 export type StandaloneToastProps = ToastSharedProps & {
@@ -365,6 +366,7 @@ type ToastItemProps = ToastSharedProps & {
   position: ToastPosition;
   onOpenChange: (open: boolean) => void;
   onRemove?: () => void;
+  createdAt?: number;
 };
 
 export const ToastItem: FC<ToastItemProps> = ({
@@ -372,7 +374,6 @@ export const ToastItem: FC<ToastItemProps> = ({
   onOpenChange,
   position,
   variant = "default",
-  duration,
   title,
   description,
   onActionClick,
@@ -380,20 +381,6 @@ export const ToastItem: FC<ToastItemProps> = ({
   actionAltText,
   onRemove,
 }) => {
-  useEffect(() => {
-    if (!open || !duration) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      onOpenChange(false);
-    }, duration);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [open, duration, onOpenChange]);
-
   const liveRegionProps = useMemo(() => getLiveRegionProps(variant), [variant]);
 
   return (
@@ -476,6 +463,20 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   actionAltText,
   onActionClick,
 }) => {
+  useEffect(() => {
+    if (!open || !duration) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      onOpenChange(false);
+    }, duration);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [open, duration, onOpenChange]);
+
   return (
     <StandaloneViewport position={position} label={label}>
       <ToastItem
@@ -483,7 +484,6 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
         onOpenChange={onOpenChange}
         position={position}
         variant={variant}
-        duration={duration}
         title={title}
         description={description}
         actionText={actionText}
