@@ -248,11 +248,6 @@ const ToastRoot = styled.div<{
       resolveToastBorderColor($variant)};
   pointer-events: auto;
 
-  &:focus-visible {
-    outline: 2px solid ${Focused.Default};
-    outline-offset: -2px;
-  }
-
   &[data-state="open"] {
     ${({ $position }: { $position: ToastPosition }) =>
       resolveEnterAnimationStyles($position)};
@@ -334,8 +329,8 @@ const ToastClose = styled.button`
   margin-top: 2px;
 
   &:focus-visible {
-    outline: 2px solid ${Focused.Default};
-    outline-offset: 2px;
+    border-bottom: 2px solid ${Focused.Default};
+    border-radius: 0;
   }
 `;
 
@@ -356,9 +351,7 @@ const ActionButton = styled.button`
   margin-left: ${Margin.s};
 
   &:focus-visible {
-    outline: 2px solid ${Focused.Default};
-    outline-offset: 2px;
-    border-radius: 4px;
+    border-bottom: 2px solid ${Focused.Default};
   }
 `;
 
@@ -390,7 +383,6 @@ export const ToastItem: FC<ToastItemProps> = ({
       $variant={variant}
       $position={position}
       data-state={open ? "open" : "closed"}
-      tabIndex={0}
       onAnimationEnd={(event: AnimationEvent<HTMLDivElement>) => {
         if (event.target !== event.currentTarget) {
           return;
