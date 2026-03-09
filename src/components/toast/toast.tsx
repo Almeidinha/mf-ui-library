@@ -26,6 +26,7 @@ export type ToastSharedProps = {
   duration?: number;
   actionText?: string;
   actionAltText?: string;
+  closeable?: boolean;
   onActionClick?: () => void;
 };
 
@@ -375,6 +376,7 @@ export const ToastItem: FC<ToastItemProps> = ({
   position,
   variant = "default",
   title,
+  closeable = true,
   description,
   onActionClick,
   actionText,
@@ -421,13 +423,15 @@ export const ToastItem: FC<ToastItemProps> = ({
         </ActionButton>
       </If>
 
-      <ToastClose
-        type="button"
-        aria-label="Close notification"
-        onClick={() => onOpenChange(false)}
-      >
-        <CloseIcon aria-hidden />
-      </ToastClose>
+      <If is={closeable}>
+        <ToastClose
+          type="button"
+          aria-label="Close notification"
+          onClick={() => onOpenChange(false)}
+        >
+          <CloseIcon aria-hidden />
+        </ToastClose>
+      </If>
     </ToastRoot>
   );
 };
@@ -458,6 +462,7 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   variant = "default",
   duration,
   title,
+  closeable,
   description,
   actionText,
   actionAltText,
@@ -485,6 +490,7 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
         position={position}
         variant={variant}
         title={title}
+        closeable={closeable}
         description={description}
         actionText={actionText}
         actionAltText={actionAltText}

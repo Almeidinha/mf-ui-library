@@ -13,17 +13,22 @@ const meta = {
   parameters: {},
   args: {
     open: false,
-    onOpenChange: () => {},
     position: "top",
     variant: "default",
     duration: 3000,
+    closeable: false,
     title: "Toast Title",
     description: "This is a toast notification.",
-    onActionClick: () => {},
     actionText: "Action",
     label: "Notification",
+    onOpenChange: () => {},
+    onActionClick: () => {},
+    maxVisible: 3,
   },
   argTypes: {
+    open: {
+      table: { defaultValue: { summary: "false" } },
+    },
     position: {
       control: { type: "radio" },
       options: [
@@ -34,7 +39,13 @@ const meta = {
         "bottom-left",
         "bottom-right",
       ],
-      table: { defaultValue: { summary: "top" } },
+      table: {
+        defaultValue: { summary: "top" },
+        type: {
+          summary:
+            "top | bottom | top-left | top-right | bottom-left | bottom-right",
+        },
+      },
     },
     label: {
       description:
@@ -44,16 +55,24 @@ const meta = {
     variant: {
       control: { type: "radio" },
       options: ["info", "default", "success", "warning", "error"],
-      table: { defaultValue: { summary: "default" } },
+      table: {
+        defaultValue: { summary: "default" },
+        type: { summary: "info | default | success | warning | error" },
+      },
     },
     duration: {
       description:
         "The duration (in milliseconds) before the toast auto-closes. If not provided, the toast will not auto-close.",
+      table: { defaultValue: { summary: "undefined" } },
     },
     maxVisible: {
       description:
         "The maximum number of toasts visible at once. If the limit is exceeded, the oldest toast will be removed to make room for the new one.",
       table: { defaultValue: { summary: "3" }, category: "Provider Props" },
+    },
+    closeable: {
+      description: "Whether the toast can be manually closed by the user.",
+      table: { defaultValue: { summary: "true" } },
     },
   },
 } satisfies Meta<StoryType>;

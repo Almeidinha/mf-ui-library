@@ -197,6 +197,7 @@ export const ToastProvider: FC<ToastProviderProps> = ({
           description: input.description,
           variant: input.variant ?? "default",
           duration: input.duration,
+          closeable: input.closeable,
           actionText: input.actionText,
           actionAltText: input.actionAltText,
           onActionClick: input.onActionClick,
@@ -251,6 +252,7 @@ export const ToastProvider: FC<ToastProviderProps> = ({
             }}
             onRemove={() => removeToast(toast.id)}
             position={position}
+            closeable={toast.closeable}
             variant={toast.variant}
             duration={toast.duration}
             createdAt={toast.createdAt}
