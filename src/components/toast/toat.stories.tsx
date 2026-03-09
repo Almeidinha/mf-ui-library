@@ -21,6 +21,8 @@ const meta = {
     description: "This is a toast notification.",
     actionText: "Action",
     label: "Notification",
+    disablePortal: true,
+    portalContainer: null,
     onOpenChange: () => {},
     onActionClick: () => {},
     maxVisible: 3,
@@ -73,6 +75,16 @@ const meta = {
     closeable: {
       description: "Whether the toast can be manually closed by the user.",
       table: { defaultValue: { summary: "true" } },
+    },
+    disablePortal: {
+      description:
+        "Whether to disable React Portal for the toast viewport. If true, the viewport will be rendered in place instead of being portaled.",
+      table: { defaultValue: { summary: "false" }, category: "Provider Props" },
+    },
+    portalContainer: {
+      description:
+        "The DOM element to render the toast viewport into when using React Portal. If not provided, it defaults to document.body.",
+      table: { defaultValue: { summary: "null" }, category: "Provider Props" },
     },
   },
 } satisfies Meta<StoryType>;

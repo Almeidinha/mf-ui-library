@@ -16,6 +16,7 @@ import {
   ToastPosition,
   ToastSharedProps,
   ToastViewport,
+  ToastViewportLayer,
 } from "../toast";
 
 export type ShowToastInput = ToastSharedProps & {
@@ -34,6 +35,8 @@ export type ToastProviderProps = {
   label?: string;
   maxVisible?: number;
   duration?: number;
+  disablePortal?: boolean;
+  portalContainer?: Element | DocumentFragment | null;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -52,6 +55,8 @@ export const ToastProvider: FC<ToastProviderProps> = ({
   label = "Notification",
   maxVisible = 3,
   duration,
+  disablePortal = false,
+  portalContainer = null,
 }) => {
   const [toasts, setToasts] = useState<ToastItemData[]>([]);
   const removalTimeoutsRef = useRef<Record<string, number>>({});
@@ -240,30 +245,35 @@ export const ToastProvider: FC<ToastProviderProps> = ({
     <ToastContext.Provider value={value}>
       {children}
 
-      <ToastViewport $position={position} aria-label={label}>
-        {toasts.map((toast) => (
-          <ToastItem
-            key={toast.id}
-            open={toast.open}
-            onOpenChange={(nextOpen) => {
-              if (!nextOpen) {
-                closeToast(toast.id);
-              }
-            }}
-            onRemove={() => removeToast(toast.id)}
-            position={position}
-            closeable={toast.closeable}
-            variant={toast.variant}
-            duration={toast.duration}
-            createdAt={toast.createdAt}
-            title={toast.title}
-            description={toast.description}
-            actionText={toast.actionText}
-            actionAltText={toast.actionAltText}
-            onActionClick={toast.onActionClick}
-          />
-        ))}
-      </ToastViewport>
+      <ToastViewportLayer
+        disablePortal={disablePortal}
+        container={portalContainer}
+      >
+        <ToastViewport $position={position} aria-label={label}>
+          {toasts.map((toast) => (
+            <ToastItem
+              key={toast.id}
+              open={toast.open}
+              onOpenChange={(nextOpen) => {
+                if (!nextOpen) {
+                  closeToast(toast.id);
+                }
+              }}
+              onRemove={() => removeToast(toast.id)}
+              position={position}
+              variant={toast.variant}
+              duration={toast.duration}
+              closeable={toast.closeable}
+              createdAt={toast.createdAt}
+              title={toast.title}
+              description={toast.description}
+              actionText={toast.actionText}
+              actionAltText={toast.actionAltText}
+              onActionClick={toast.onActionClick}
+            />
+          ))}
+        </ToastViewport>
+      </ToastViewportLayer>
     </ToastContext.Provider>
   );
 };

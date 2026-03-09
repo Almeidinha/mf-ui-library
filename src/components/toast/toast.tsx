@@ -7,7 +7,22 @@ import { FC } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
 import { AnimationEvent, ReactNode, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import styled, { css } from "styled-components";
+
+type ToastViewportLayerProps = {
+  children: ReactNode;
+  disablePortal?: boolean;
+  container?: Element | DocumentFragment | null;
+};
+
+type ToastItemProps = ToastSharedProps & {
+  open: boolean;
+  position: ToastPosition;
+  onOpenChange: (open: boolean) => void;
+  onRemove?: () => void;
+  createdAt?: number;
+};
 
 export type ToastPosition =
   | "top"
@@ -42,6 +57,8 @@ export type StandaloneToastProps = ToastSharedProps & {
   onOpenChange: (open: boolean) => void;
   position?: ToastPosition;
   label?: string;
+  disablePortal?: boolean;
+  portalContainer?: Element | DocumentFragment | null;
 };
 
 const TOAST_BACKGROUND: Record<ToastVariant, string> = {
@@ -355,12 +372,21 @@ const ActionButton = styled.button`
   }
 `;
 
-type ToastItemProps = ToastSharedProps & {
-  open: boolean;
-  position: ToastPosition;
-  onOpenChange: (open: boolean) => void;
-  onRemove?: () => void;
-  createdAt?: number;
+export const ToastViewportLayer: FC<ToastViewportLayerProps> = ({
+  children,
+  disablePortal = false,
+  container,
+}) => {
+  if (disablePortal) {
+    return <>{children}</>;
+  }
+
+  if (typeof document === "undefined") {
+    return null;
+  }
+  console.log("Creating portal for ToastViewportLayer, container:");
+
+  return createPortal(children, container ?? document.body);
 };
 
 export const ToastItem: FC<ToastItemProps> = ({
@@ -459,6 +485,8 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   actionText,
   actionAltText,
   onActionClick,
+  disablePortal = false,
+  portalContainer,
 }) => {
   useEffect(() => {
     if (!open || !duration) {
@@ -475,20 +503,25 @@ export const StandaloneToast: FC<StandaloneToastProps> = ({
   }, [open, duration, onOpenChange]);
 
   return (
-    <StandaloneViewport position={position} label={label}>
-      <ToastItem
-        open={open}
-        onOpenChange={onOpenChange}
-        position={position}
-        variant={variant}
-        title={title}
-        closeable={closeable}
-        description={description}
-        actionText={actionText}
-        actionAltText={actionAltText}
-        onActionClick={onActionClick}
-      />
-    </StandaloneViewport>
+    <ToastViewportLayer
+      disablePortal={disablePortal}
+      container={portalContainer}
+    >
+      <StandaloneViewport position={position} label={label}>
+        <ToastItem
+          open={open}
+          onOpenChange={onOpenChange}
+          position={position}
+          variant={variant}
+          title={title}
+          closeable={closeable}
+          description={description}
+          actionText={actionText}
+          actionAltText={actionAltText}
+          onActionClick={onActionClick}
+        />
+      </StandaloneViewport>
+    </ToastViewportLayer>
   );
 };
 
