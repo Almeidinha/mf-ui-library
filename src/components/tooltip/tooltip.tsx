@@ -9,7 +9,7 @@ import {
   useId,
   useState,
 } from "react";
-import styled, { css, keyframes } from "styled-components";
+import styled, { css, keyframes, RuleSet } from "styled-components";
 
 type Position =
   | "top"
@@ -29,136 +29,6 @@ export const TooltipWrapper = styled.span`
   display: inline-flex;
 `;
 
-function getContainerPosition(position: Position) {
-  switch (position) {
-    case "top":
-      return css`
-        left: 50%;
-        bottom: calc(100% + ${GAP}px);
-        transform: translateX(-50%);
-      `;
-    case "top-left":
-      return css`
-        left: 0;
-        bottom: calc(100% + ${GAP}px);
-      `;
-    case "top-right":
-      return css`
-        right: 0;
-        bottom: calc(100% + ${GAP}px);
-      `;
-    case "bottom":
-      return css`
-        left: 50%;
-        top: calc(100% + ${GAP}px);
-        transform: translateX(-50%);
-      `;
-    case "bottom-left":
-      return css`
-        left: 0;
-        top: calc(100% + ${GAP}px);
-      `;
-    case "bottom-right":
-      return css`
-        right: 0;
-        top: calc(100% + ${GAP}px);
-      `;
-    case "left":
-      return css`
-        right: calc(100% + ${GAP}px);
-        top: 50%;
-        transform: translateY(-50%);
-      `;
-    case "right":
-      return css`
-        left: calc(100% + ${GAP}px);
-        top: 50%;
-        transform: translateY(-50%);
-      `;
-  }
-}
-
-function getArrowPosition(position: Position) {
-  switch (position) {
-    case "top":
-      return css`
-        &::after {
-          left: 50%;
-          top: 100%;
-          transform: translateX(-50%);
-          border-color: ${Surface.Default.Inverse} transparent transparent
-            transparent;
-        }
-      `;
-    case "top-left":
-      return css`
-        &::after {
-          left: ${ARROW_OFFSET}px;
-          top: 100%;
-          border-color: ${Surface.Default.Inverse} transparent transparent
-            transparent;
-        }
-      `;
-    case "top-right":
-      return css`
-        &::after {
-          right: ${ARROW_OFFSET}px;
-          top: 100%;
-          border-color: ${Surface.Default.Inverse} transparent transparent
-            transparent;
-        }
-      `;
-    case "bottom":
-      return css`
-        &::after {
-          left: 50%;
-          bottom: 100%;
-          transform: translateX(-50%);
-          border-color: transparent transparent ${Surface.Default.Inverse}
-            transparent;
-        }
-      `;
-    case "bottom-left":
-      return css`
-        &::after {
-          left: ${ARROW_OFFSET}px;
-          bottom: 100%;
-          border-color: transparent transparent ${Surface.Default.Inverse}
-            transparent;
-        }
-      `;
-    case "bottom-right":
-      return css`
-        &::after {
-          right: ${ARROW_OFFSET}px;
-          bottom: 100%;
-          border-color: transparent transparent ${Surface.Default.Inverse}
-            transparent;
-        }
-      `;
-    case "left":
-      return css`
-        &::after {
-          left: 100%;
-          top: 50%;
-          transform: translateY(-50%);
-          border-color: transparent transparent transparent
-            ${Surface.Default.Inverse};
-        }
-      `;
-    case "right":
-      return css`
-        &::after {
-          right: 100%;
-          top: 50%;
-          transform: translateY(-50%);
-          border-color: transparent ${Surface.Default.Inverse} transparent
-            transparent;
-        }
-      `;
-  }
-}
-
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -167,6 +37,116 @@ const fadeIn = keyframes`
     opacity: 1;
   }
 `;
+
+const CONTAINER_POSITION_MAP: Record<Position, RuleSet<object>> = {
+  top: css`
+    left: 50%;
+    bottom: calc(100% + ${GAP}px);
+    transform: translateX(-50%);
+  `,
+  "top-left": css`
+    left: 0;
+    bottom: calc(100% + ${GAP}px);
+  `,
+  "top-right": css`
+    right: 0;
+    bottom: calc(100% + ${GAP}px);
+  `,
+  bottom: css`
+    left: 50%;
+    top: calc(100% + ${GAP}px);
+    transform: translateX(-50%);
+  `,
+  "bottom-left": css`
+    left: 0;
+    top: calc(100% + ${GAP}px);
+  `,
+  "bottom-right": css`
+    right: 0;
+    top: calc(100% + ${GAP}px);
+  `,
+  left: css`
+    right: calc(100% + ${GAP}px);
+    top: 50%;
+    transform: translateY(-50%);
+  `,
+  right: css`
+    left: calc(100% + ${GAP}px);
+    top: 50%;
+    transform: translateY(-50%);
+  `,
+};
+
+const ARROW_POSITION_MAP: Record<Position, RuleSet<object>> = {
+  top: css`
+    &::after {
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
+      border-color: ${Surface.Default.Inverse} transparent transparent
+        transparent;
+    }
+  `,
+  "top-left": css`
+    &::after {
+      left: ${ARROW_OFFSET}px;
+      top: 100%;
+      border-color: ${Surface.Default.Inverse} transparent transparent
+        transparent;
+    }
+  `,
+  "top-right": css`
+    &::after {
+      right: ${ARROW_OFFSET}px;
+      top: 100%;
+      border-color: ${Surface.Default.Inverse} transparent transparent
+        transparent;
+    }
+  `,
+  bottom: css`
+    &::after {
+      left: 50%;
+      bottom: 100%;
+      transform: translateX(-50%);
+      border-color: transparent transparent ${Surface.Default.Inverse}
+        transparent;
+    }
+  `,
+  "bottom-left": css`
+    &::after {
+      left: ${ARROW_OFFSET}px;
+      bottom: 100%;
+      border-color: transparent transparent ${Surface.Default.Inverse}
+        transparent;
+    }
+  `,
+  "bottom-right": css`
+    &::after {
+      right: ${ARROW_OFFSET}px;
+      bottom: 100%;
+      border-color: transparent transparent ${Surface.Default.Inverse}
+        transparent;
+    }
+  `,
+  left: css`
+    &::after {
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border-color: transparent transparent transparent
+        ${Surface.Default.Inverse};
+    }
+  `,
+  right: css`
+    &::after {
+      right: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border-color: transparent ${Surface.Default.Inverse} transparent
+        transparent;
+    }
+  `,
+};
 
 export const TooltipContainer = styled.div<{
   $position: Position;
@@ -177,7 +157,7 @@ export const TooltipContainer = styled.div<{
   pointer-events: none;
   width: ${({ $width }) => (isDefined($width) ? `${$width}px` : "max-content")};
   max-width: min(320px, calc(100vw - 16px));
-  ${({ $position }) => getContainerPosition($position)}
+  ${({ $position }) => CONTAINER_POSITION_MAP[$position]}
 `;
 
 export const TooltipBox = styled(Caption)<{ $position: Position }>`
@@ -204,7 +184,7 @@ export const TooltipBox = styled(Caption)<{ $position: Position }>`
     border-style: solid;
   }
 
-  ${({ $position }) => getArrowPosition($position)}
+  ${({ $position }) => ARROW_POSITION_MAP[$position]}
 `;
 
 export type TooltipProps = {

@@ -17,7 +17,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import styled, { css } from "styled-components";
+import styled, { css, RuleSet } from "styled-components";
 
 type ToastViewportLayerProps = {
   children: ReactNode;
@@ -74,99 +74,72 @@ export type StandaloneToastProps = ToastSharedProps & {
   portalContainer?: Element | DocumentFragment | null;
 };
 
-function resolveToastBackground(variant: ToastVariant) {
-  switch (variant) {
-    case "info":
-      return Surface.Highlight.Subdued;
-    case "success":
-      return Surface.Success.Subdued;
-    case "warning":
-      return Surface.Warning.Subdued;
-    case "error":
-      return Surface.Critical.Subdued;
-    case "default":
-    default:
-      return Surface.Neutral.Subdued;
-  }
-}
+const BACKGROUND_MAP: Record<ToastVariant, string> = {
+  info: Surface.Highlight.Subdued,
+  success: Surface.Success.Subdued,
+  warning: Surface.Warning.Subdued,
+  error: Surface.Critical.Subdued,
+  default: Surface.Neutral.Subdued,
+};
 
-function resolveToastBorderColor(variant: ToastVariant) {
-  switch (variant) {
-    case "info":
-      return Borders.Highlight.Subdued;
-    case "success":
-      return Borders.Success.Subdued;
-    case "warning":
-      return Borders.Warning.Subdued;
-    case "error":
-      return Borders.Critical.Subdued;
-    case "default":
-    default:
-      return Borders.Default.Subdued;
-  }
-}
+const BORDER_COLOR_MAP: Record<ToastVariant, string> = {
+  info: Borders.Highlight.Subdued,
+  success: Borders.Success.Subdued,
+  warning: Borders.Warning.Subdued,
+  error: Borders.Critical.Subdued,
+  default: Borders.Default.Subdued,
+};
 
-function resolveViewportPositionStyles(position: ToastPosition) {
-  switch (position) {
-    case "top":
-      return css`
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        align-items: center;
-      `;
-    case "bottom":
-      return css`
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        align-items: center;
-      `;
-    case "top-left":
-      return css`
-        top: 0;
-        left: 0;
-        align-items: flex-start;
-      `;
-    case "top-right":
-      return css`
-        top: 0;
-        right: 0;
-        align-items: flex-end;
-      `;
-    case "bottom-left":
-      return css`
-        bottom: 0;
-        left: 0;
-        align-items: flex-start;
-      `;
-    case "bottom-right":
-    default:
-      return css`
-        bottom: 0;
-        right: 0;
-        align-items: flex-end;
-      `;
-  }
-}
+const VIEW_PORT_POSITION_MAP: Record<ToastPosition, RuleSet<object>> = {
+  top: css`
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+  `,
+  bottom: css`
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+  `,
+  "top-left": css`
+    top: 0;
+    left: 0;
+    align-items: flex-start;
+  `,
+  "top-right": css`
+    top: 0;
+    right: 0;
+    align-items: flex-end;
+  `,
+  "bottom-left": css`
+    bottom: 0;
+    left: 0;
+    align-items: flex-start;
+  `,
+  "bottom-right": css`
+    bottom: 0;
+    right: 0;
+    align-items: flex-end;
+  `,
+};
 
-function resolveEnterAnimationStyles(position: ToastPosition) {
-  switch (position) {
-    case "top":
-    case "top-left":
-    case "top-right":
-      return css`
-        animation: slideInFromTop 180ms cubic-bezier(0.16, 1, 0.3, 1);
-      `;
-    case "bottom":
-    case "bottom-right":
-    case "bottom-left":
-    default:
-      return css`
-        animation: slideInFromBottom 180ms cubic-bezier(0.16, 1, 0.3, 1);
-      `;
-  }
-}
+const topAnimation = css`
+  animation: slideInFromTop 180ms cubic-bezier(0.16, 1, 0.3, 1);
+`;
+const bottomAnimation = css`
+  animation: slideInFromBottom 180ms cubic-bezier(0.16, 1, 0.3, 1);
+`;
+
+const ENTER_ANIMATION_MAP: Record<ToastPosition, RuleSet<object>> = {
+  top: topAnimation,
+  "top-left": topAnimation,
+  "top-right": topAnimation,
+  bottom: bottomAnimation,
+  "bottom-right": bottomAnimation,
+  "bottom-left": bottomAnimation,
+};
 
 function getLiveRegionProps(variant: ToastVariant) {
   if (variant === "error") {
@@ -199,7 +172,7 @@ export const ToastViewport = styled.div<{ $position: ToastPosition }>`
   pointer-events: none;
 
   ${({ $position }: { $position: ToastPosition }) =>
-    resolveViewportPositionStyles($position)};
+    VIEW_PORT_POSITION_MAP[$position]};
 
   @media (max-width: 640px) {
     left: 0;
@@ -223,15 +196,14 @@ const ToastRoot = styled.div<{
   align-items: flex-start;
   gap: ${Gap.m};
   background-color: ${({ $variant }: { $variant: ToastVariant }) =>
-    resolveToastBackground($variant)};
+    BACKGROUND_MAP[$variant]};
   border: 1px solid
-    ${({ $variant }: { $variant: ToastVariant }) =>
-      resolveToastBorderColor($variant)};
+    ${({ $variant }: { $variant: ToastVariant }) => BORDER_COLOR_MAP[$variant]};
   pointer-events: auto;
 
   &[data-state="open"] {
     ${({ $position }: { $position: ToastPosition }) =>
-      resolveEnterAnimationStyles($position)};
+      ENTER_ANIMATION_MAP[$position]};
   }
 
   &[data-state="closed"] {
