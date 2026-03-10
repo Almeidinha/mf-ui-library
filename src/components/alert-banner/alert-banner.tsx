@@ -16,18 +16,17 @@ import {
   getIcon,
 } from "./alert-level-flags";
 
-interface IAlertBannerProps extends PropsWithChildren {
-  dismissible?: boolean;
-  className?: string;
-  open?: boolean;
-  primaryButtonLabel?: string;
-  secondaryButtonLabel?: string;
-  onPrimaryAction?: () => void;
-  onSecondaryAction?: () => void;
-  onClose?: () => void;
-}
-
-export type AlertBannerProps = IAlertBannerProps & AlertLevelProps;
+type AlertBannerProps = AlertLevelProps &
+  PropsWithChildren<{
+    dismissible?: boolean;
+    className?: string;
+    open?: boolean;
+    primaryButtonLabel?: string;
+    secondaryButtonLabel?: string;
+    onPrimaryAction?: () => void;
+    onSecondaryAction?: () => void;
+    onClose?: () => void;
+  }>;
 
 const InCardFrame = styled(CardFrame).attrs({ as: "div" })<{
   background: Hex;

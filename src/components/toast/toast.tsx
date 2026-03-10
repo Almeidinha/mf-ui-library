@@ -74,146 +74,97 @@ export type StandaloneToastProps = ToastSharedProps & {
   portalContainer?: Element | DocumentFragment | null;
 };
 
-const TOAST_BACKGROUND: Record<ToastVariant, string> = {
-  info: Surface.Highlight.Subdued,
-  success: Surface.Success.Subdued,
-  warning: Surface.Warning.Subdued,
-  error: Surface.Critical.Subdued,
-  default: Surface.Neutral.Subdued,
-};
-
-const TOAST_BORDER_COLOR: Record<ToastVariant, string> = {
-  info: Borders.Highlight.Subdued,
-  success: Borders.Success.Subdued,
-  warning: Borders.Warning.Subdued,
-  error: Borders.Critical.Subdued,
-  default: Borders.Default.Subdued,
-};
-
 function resolveToastBackground(variant: ToastVariant) {
   switch (variant) {
     case "info":
-      return TOAST_BACKGROUND.info;
+      return Surface.Highlight.Subdued;
     case "success":
-      return TOAST_BACKGROUND.success;
+      return Surface.Success.Subdued;
     case "warning":
-      return TOAST_BACKGROUND.warning;
+      return Surface.Warning.Subdued;
     case "error":
-      return TOAST_BACKGROUND.error;
+      return Surface.Critical.Subdued;
     case "default":
     default:
-      return TOAST_BACKGROUND.default;
+      return Surface.Neutral.Subdued;
   }
 }
 
 function resolveToastBorderColor(variant: ToastVariant) {
   switch (variant) {
     case "info":
-      return TOAST_BORDER_COLOR.info;
+      return Borders.Highlight.Subdued;
     case "success":
-      return TOAST_BORDER_COLOR.success;
+      return Borders.Success.Subdued;
     case "warning":
-      return TOAST_BORDER_COLOR.warning;
+      return Borders.Warning.Subdued;
     case "error":
-      return TOAST_BORDER_COLOR.error;
+      return Borders.Critical.Subdued;
     case "default":
     default:
-      return TOAST_BORDER_COLOR.default;
+      return Borders.Default.Subdued;
   }
 }
-
-const VIEWPORT_POSITION_STYLES: Record<
-  ToastPosition,
-  ReturnType<typeof css>
-> = {
-  top: css`
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    align-items: center;
-  `,
-  bottom: css`
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    align-items: center;
-  `,
-  "top-left": css`
-    top: 0;
-    left: 0;
-    align-items: flex-start;
-  `,
-  "top-right": css`
-    top: 0;
-    right: 0;
-    align-items: flex-end;
-  `,
-  "bottom-left": css`
-    bottom: 0;
-    left: 0;
-    align-items: flex-start;
-  `,
-  "bottom-right": css`
-    bottom: 0;
-    right: 0;
-    align-items: flex-end;
-  `,
-};
 
 function resolveViewportPositionStyles(position: ToastPosition) {
   switch (position) {
     case "top":
-      return VIEWPORT_POSITION_STYLES.top;
+      return css`
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        align-items: center;
+      `;
     case "bottom":
-      return VIEWPORT_POSITION_STYLES.bottom;
+      return css`
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        align-items: center;
+      `;
     case "top-left":
-      return VIEWPORT_POSITION_STYLES["top-left"];
+      return css`
+        top: 0;
+        left: 0;
+        align-items: flex-start;
+      `;
     case "top-right":
-      return VIEWPORT_POSITION_STYLES["top-right"];
+      return css`
+        top: 0;
+        right: 0;
+        align-items: flex-end;
+      `;
     case "bottom-left":
-      return VIEWPORT_POSITION_STYLES["bottom-left"];
+      return css`
+        bottom: 0;
+        left: 0;
+        align-items: flex-start;
+      `;
     case "bottom-right":
     default:
-      return VIEWPORT_POSITION_STYLES["bottom-right"];
+      return css`
+        bottom: 0;
+        right: 0;
+        align-items: flex-end;
+      `;
   }
 }
-
-const ENTER_ANIMATION_STYLES: Record<ToastPosition, ReturnType<typeof css>> = {
-  top: css`
-    animation: slideInFromTop 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  `,
-  bottom: css`
-    animation: slideInFromBottom 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  `,
-  "top-left": css`
-    animation: slideInFromTop 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  `,
-  "top-right": css`
-    animation: slideInFromTop 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  `,
-  "bottom-left": css`
-    animation: slideInFromBottom 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  `,
-  "bottom-right": css`
-    animation: slideInFromBottom 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  `,
-};
 
 function resolveEnterAnimationStyles(position: ToastPosition) {
   switch (position) {
     case "top":
-      return ENTER_ANIMATION_STYLES.top;
-    case "bottom":
-      return ENTER_ANIMATION_STYLES.bottom;
     case "top-left":
-      return ENTER_ANIMATION_STYLES["top-left"];
     case "top-right":
-      return ENTER_ANIMATION_STYLES["top-right"];
-    case "bottom-left":
-      return ENTER_ANIMATION_STYLES["bottom-left"];
+      return css`
+        animation: slideInFromTop 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      `;
+    case "bottom":
     case "bottom-right":
+    case "bottom-left":
     default:
-      return ENTER_ANIMATION_STYLES["bottom-right"];
+      return css`
+        animation: slideInFromBottom 180ms cubic-bezier(0.16, 1, 0.3, 1);
+      `;
   }
 }
 
