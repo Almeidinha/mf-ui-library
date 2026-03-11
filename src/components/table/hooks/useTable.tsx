@@ -1,8 +1,10 @@
-import { getNextSortDirection, isDefined } from "@helpers";
+import { isDefined } from "helpers/safe-navigation";
+import { getNextSortDirection } from "helpers/table-helpers";
 import { useReducer } from "react";
+
+import { IFilter, useFilteredRows } from "./useFilteredRows";
 import { IPagination, usePaginatedRows } from "./usePaginatedRows";
-import { useSortedRows, ISort, SortGetter } from "./useSortedRows";
-import { useFilteredRows, IFilter } from "./useFilteredRows";
+import { ISort, SortGetter, useSortedRows } from "./useSortedRows";
 
 export interface IUseTableProps<D> {
   data: D[];

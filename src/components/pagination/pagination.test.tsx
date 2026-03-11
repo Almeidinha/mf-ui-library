@@ -21,9 +21,8 @@ describe("Pagination Input Tests", () => {
       />,
     );
 
-    const paginationInput = screen.getByLabelText(
-      "Current page",
-    ) as HTMLInputElement;
+    const paginationInput: HTMLInputElement =
+      screen.getByLabelText("Current page");
     const previousPage = screen.getByLabelText("Previous page");
     const nextPage = screen.getByLabelText("Next page");
 

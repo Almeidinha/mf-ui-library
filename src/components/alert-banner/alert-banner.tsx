@@ -16,7 +16,7 @@ import {
   getIcon,
 } from "./alert-level-flags";
 
-type AlertBannerProps = AlertLevelProps &
+export type AlertBannerProps = AlertLevelProps &
   PropsWithChildren<{
     dismissible?: boolean;
     className?: string;

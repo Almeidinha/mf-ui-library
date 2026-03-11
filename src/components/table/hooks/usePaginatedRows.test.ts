@@ -1,5 +1,6 @@
-import { renderHook } from "@testing-library/react";
 import { faker } from "@faker-js/faker";
+import { renderHook } from "@testing-library/react";
+
 import { usePaginatedRows } from "./usePaginatedRows";
 
 type Data = {

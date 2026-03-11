@@ -1,4 +1,4 @@
-import { isEmpty, isNil, isObject, isString } from "@helpers";
+import { isEmpty, isNil, isString } from "helpers/safe-navigation";
 import { useMemo } from "react";
 
 export interface IFilter<D> {
@@ -7,7 +7,7 @@ export interface IFilter<D> {
 }
 
 export function useFilteredRows<D>(data: D[], state: IFilter<D>): D[] {
-  // first memoize the data in fuzzy filterable form
+  // first memorize the data in fuzzy filterable form
   // ie turn each object into a flat array of strings
   const filterableData = useMemo(() => {
     return data.map((el) => {
@@ -50,15 +50,20 @@ function fuzzyMatch(str: string, pattern: string) {
   return new RegExp(pattern).test(str);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function flatValues(obj: any): string[] {
-  return Object.keys(obj).flatMap((key) => {
-    const value = obj[key];
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
-    if (isObject(value)) {
+function flatValues(obj: unknown): string[] {
+  if (!isRecord(obj)) {
+    return [String(obj)];
+  }
+
+  return Object.values(obj).flatMap((value): string[] => {
+    if (isRecord(value)) {
       return flatValues(value);
     }
 
-    return [value.toString()];
+    return [String(value)];
   });
 }

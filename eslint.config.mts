@@ -20,27 +20,6 @@ export default defineConfig([
   react.configs.flat["jsx-runtime"],
   reactHooks.configs.flat.recommended,
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    plugins: {
-      js,
-    },
-    extends: ["js/recommended"],
-    languageOptions: {
-      globals: globals.browser,
-      parserOptions: {
-        projectService: {
-          allowDefaultProject: [
-            "./eslint.config.mts",
-            "./tsup.config.ts",
-            "./vitest.config.ts",
-            "./vitest.setup.ts",
-          ],
-        },
-        tsconfigRootDir: __dirname,
-      },
-    },
-  },
-  {
     plugins: {
       "@typescript-eslint": tseslint.plugin,
       "jsx-a11y": jsxA11y,
@@ -117,6 +96,31 @@ export default defineConfig([
       "import/first": "error",
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",
+    },
+  },
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    plugins: {
+      js,
+      "jsx-a11y": jsxA11y,
+    },
+    extends: ["js/recommended"],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: [
+            "./eslint.config.mts",
+            "./tsup.config.ts",
+            "./vitest.config.ts",
+            "./vitest.setup.ts",
+          ],
+        },
+        tsconfigRootDir: __dirname,
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
     },
   },
   {
