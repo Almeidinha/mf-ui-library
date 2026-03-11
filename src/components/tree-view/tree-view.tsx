@@ -47,7 +47,7 @@ const Container = styled.div<{ $useCardContainer: boolean }>`
 const Controls = styled.div`
   display: flex;
   gap: 8px;
-  margin-bottom: ${Padding.s};
+  margin-bottom: ${Margin.s};
 `;
 
 function useControllableListState(
@@ -120,10 +120,6 @@ export const TreeView = ({
     [flatNodes],
   );
 
-  const allExpanded =
-    expandableIds.length > 0 &&
-    expandableIds.every((id) => expandedSet.has(id));
-
   const childrenByParentId = useMemo(() => {
     const map = new Map<string | undefined, FlattenNode[]>();
 
@@ -137,10 +133,17 @@ export const TreeView = ({
     return map;
   }, [flatNodes]);
 
+  const allExpanded =
+    expandableIds.length > 0 &&
+    expandableIds.every((id) => expandedSet.has(id));
+
   const firstVisibleId = visibleIds[0];
   const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
+
+  const visibleIdSet = useMemo(() => new Set(visibleIds), [visibleIds]);
+
   const effectiveFocusedId =
-    focusedId && visibleIds.includes(focusedId) ? focusedId : firstVisibleId;
+    focusedId && visibleIdSet.has(focusedId) ? focusedId : firstVisibleId;
 
   const emitCheck = (payload: CheckNodePayload, nextCheckedIds: string[]) => {
     onCheck?.(nextCheckedIds, payload);
@@ -203,24 +206,6 @@ export const TreeView = ({
     );
   };
 
-  const handleLabelAction = (id: string) => {
-    const node = nodeMap.get(id);
-
-    if (!node) {
-      return;
-    }
-
-    runLabelAction({
-      id,
-      isParent: node.isParent,
-      disabled: node.disabled,
-      labelAction,
-      onCheck: handleCheck,
-      onExpand: handleExpand,
-      onClick: handleClick,
-    });
-  };
-
   const handleExpandAll = () => {
     if (expandDisabled) {
       return;
@@ -249,6 +234,24 @@ export const TreeView = ({
     emitClick({
       id: node.id,
       label: node.label,
+    });
+  };
+
+  const handleLabelAction = (id: string) => {
+    const node = nodeMap.get(id);
+
+    if (!node) {
+      return;
+    }
+
+    runLabelAction({
+      id,
+      isParent: node.isParent,
+      disabled: node.disabled,
+      labelAction,
+      onCheck: handleCheck,
+      onExpand: handleExpand,
+      onClick: handleClick,
     });
   };
 
@@ -421,7 +424,11 @@ export const TreeView = ({
         </Controls>
       ) : null}
 
-      <RootTree role="tree" aria-label={ariaLabel ?? title ?? "Tree view"}>
+      <RootTree
+        role="tree"
+        aria-label={ariaLabel ?? title ?? "Tree view"}
+        aria-multiselectable
+      >
         {renderTreeNodes(undefined)}
       </RootTree>
     </Container>
