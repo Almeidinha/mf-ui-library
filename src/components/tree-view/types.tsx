@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react";
 
 export type LabelAction = "expand" | "check" | "select";
+export type SimpleTreeLabelAction = Exclude<LabelAction, "check">;
 
 export type TreeNodeData = {
   id: string;
@@ -59,7 +60,7 @@ export type ClickNodePayload = {
 export type RenderNodeArgs = {
   node: TreeNodeMeta;
   expanded: boolean;
-  checkState: CheckboxState;
+  checkState?: CheckboxState;
   focused: boolean;
 };
 
@@ -69,7 +70,7 @@ export type TreeIcons = {
   leaf?: ReactNode;
 };
 
-export type TreeViewProps = {
+type BaseTreeViewProps = {
   nodes: TreeNodeData[];
   className?: string;
   title?: string;
@@ -78,14 +79,10 @@ export type TreeViewProps = {
   showChildCount?: boolean;
   expandDisabled?: boolean;
 
-  checkedList?: string[];
-  defaultCheckedList?: string[];
-
   expanded?: string[];
   defaultExpanded?: string[];
-
-  onCheck?: (checkedIds: string[], node: CheckNodePayload) => void;
   onExpand?: (expandedIds: string[], node?: ExpandNodePayload) => void;
+
   onNodeClick?: (node: ClickNodePayload) => void;
   onNodeFocus?: (node: ClickNodePayload) => void;
 
@@ -95,15 +92,31 @@ export type TreeViewProps = {
   showExpandAllControls?: boolean;
   expandAllLabel?: string;
   collapseAllLabel?: string;
+};
 
+export type RichTreeViewProps = BaseTreeViewProps & {
+  isRichTreeView?: true;
+  checkedList?: string[];
+  defaultCheckedList?: string[];
+  onCheck?: (checkedIds: string[], node: CheckNodePayload) => void;
   labelAction?: LabelAction;
 };
+
+export type SimpleTreeViewProps = BaseTreeViewProps & {
+  isRichTreeView: false;
+  checkedList?: never;
+  defaultCheckedList?: never;
+  onCheck?: never;
+  labelAction?: SimpleTreeLabelAction;
+};
+
+export type TreeViewProps = RichTreeViewProps | SimpleTreeViewProps;
 
 export type TreeItemProps = {
   treeId: string;
   node: TreeNodeMeta;
   expanded: boolean;
-  checkState: CheckboxState;
+  checkState?: CheckboxState;
   expandDisabled: boolean;
   showChildCount: boolean;
   focused: boolean;
@@ -111,11 +124,12 @@ export type TreeItemProps = {
   describedById?: string;
   children?: ReactNode;
   defaultIcons?: TreeIcons;
-  onCheck: (id: string) => void;
+  onCheck?: (id: string) => void;
   onExpand: (id: string) => void;
   onClick: (id: string) => void;
   onFocus: (id: string) => void;
   onKeyDown: (event: React.KeyboardEvent, id: string) => void;
   renderNodeContent?: (args: RenderNodeArgs) => ReactNode;
-  labelAction: LabelAction;
+  labelAction: LabelAction | SimpleTreeLabelAction;
+  isRichTreeView: boolean;
 };

@@ -78,11 +78,8 @@ export const TreeView = ({
   useCardContainer = true,
   showChildCount = false,
   expandDisabled = false,
-  checkedList,
-  defaultCheckedList = [],
   expanded,
   defaultExpanded = [],
-  onCheck,
   onExpand,
   onNodeClick,
   onNodeFocus,
@@ -91,9 +88,18 @@ export const TreeView = ({
   showExpandAllControls = false,
   expandAllLabel = "Expand all",
   collapseAllLabel = "Collapse all",
-  labelAction = "expand",
+  labelAction,
+  isRichTreeView = true,
+  ...rest
 }: TreeViewProps) => {
   const treeId = useId();
+  const isRich = isRichTreeView !== false;
+
+  const checkedList = isRich ? rest.checkedList : undefined;
+  const defaultCheckedList = isRich ? rest.defaultCheckedList : undefined;
+  const onCheck = isRich ? rest.onCheck : undefined;
+
+  const resolvedLabelAction = labelAction ?? (isRich ? "expand" : "expand");
 
   const [checkedIds, setCheckedIds] = useControllableListState(
     checkedList,
@@ -161,6 +167,10 @@ export const TreeView = ({
   };
 
   const handleCheck = (id: string) => {
+    if (!isRich) {
+      return;
+    }
+
     const node = nodeMap.get(id);
 
     if (!node || node.disabled) {
@@ -248,8 +258,8 @@ export const TreeView = ({
       id,
       isParent: node.isParent,
       disabled: node.disabled,
-      labelAction,
-      onCheck: handleCheck,
+      labelAction: resolvedLabelAction,
+      onCheck: isRich ? handleCheck : undefined,
       onExpand: handleExpand,
       onClick: handleClick,
     });
@@ -351,7 +361,12 @@ export const TreeView = ({
 
       case " ":
         event.preventDefault();
-        handleCheck(id);
+
+        if (isRich) {
+          handleCheck(id);
+        } else {
+          handleLabelAction(id);
+        }
         break;
 
       default:
@@ -364,7 +379,9 @@ export const TreeView = ({
 
     return siblingNodes.map((node) => {
       const expanded = isNodeExpanded(expandedSet, node.id);
-      const checkState = getNodeCheckState(nodeMap, checkedSet, node.id);
+      const checkState = isRich
+        ? getNodeCheckState(nodeMap, checkedSet, node.id)
+        : undefined;
       const focused = effectiveFocusedId === node.id;
 
       return (
@@ -382,13 +399,14 @@ export const TreeView = ({
             node.helpfulMessage ? `${treeId}-message-${node.id}` : undefined
           }
           defaultIcons={icons}
-          onCheck={handleCheck}
+          onCheck={isRich ? handleCheck : undefined}
           onExpand={handleExpand}
           onClick={handleClick}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           renderNodeContent={renderNodeContent}
-          labelAction={labelAction}
+          labelAction={resolvedLabelAction}
+          isRichTreeView={isRich}
         >
           {node.isParent && expanded ? renderTreeNodes(node.id) : null}
         </TreeNode>
@@ -424,11 +442,7 @@ export const TreeView = ({
         </Controls>
       ) : null}
 
-      <RootTree
-        role="tree"
-        aria-label={ariaLabel ?? title ?? "Tree view"}
-        aria-multiselectable
-      >
+      <RootTree role="tree" aria-label={ariaLabel ?? title ?? "Tree view"}>
         {renderTreeNodes(undefined)}
       </RootTree>
     </Container>

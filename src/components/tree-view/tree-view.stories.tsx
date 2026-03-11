@@ -482,6 +482,7 @@ export const Primary: Story = {
     return (
       <TreeView
         {...args}
+        isRichTreeView
         onCheck={(nextChecked, node) => {
           updateArgs({ checkedList: nextChecked });
           args.onCheck?.(nextChecked, node);
@@ -508,6 +509,30 @@ export const Uncontrolled: Story = {
         }
         onNodeClick={(node) => console.log("Clicked node: ", node)}
       />
+    );
+  },
+};
+
+export const SimpleTree: Story = {
+  render: function Render() {
+    return (
+      <div style={{ width: 250 }}>
+        <TreeView
+          isRichTreeView={false}
+          useCardContainer={false}
+          nodes={multilevel}
+          icons={{
+            parentExpanded: <IconMinor.FolderOpen />,
+            parentCollapsed: <IconMinor.Folder />,
+            leaf: <IconMinor.CircleInfo />,
+          }}
+          labelAction="expand"
+          onExpand={(expanded, node) =>
+            console.log("Expanded: ", expanded, "Node: ", node)
+          }
+          onNodeClick={(node) => console.log("Clicked node: ", node)}
+        />
+      </div>
     );
   },
 };

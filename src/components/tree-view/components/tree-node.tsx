@@ -3,12 +3,12 @@ import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { Label } from "components/typography";
-import { Focused, Surface } from "foundation/colors";
+import { Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import React from "react";
 import styled, { css } from "styled-components";
 
-import { runLabelAction } from "../helper";
+import { hasCustomParentIcons, runLabelAction } from "../helper";
 import { CheckboxState, TreeItemProps } from "../types";
 
 const ListItem = styled.li<{ $disabled: boolean }>`
@@ -19,19 +19,27 @@ const ListItem = styled.li<{ $disabled: boolean }>`
     `}
 `;
 
-const ItemWrapper = styled(Flex)<{ $focused: boolean; $disabled: boolean }>`
+const ItemWrapper = styled(Flex)<{
+  $focused: boolean;
+  $disabled: boolean;
+  $level: number;
+}>`
   align-items: center;
   gap: 8px;
-  padding: ${Padding.xxxs} ${Padding.xxs};
-  border-radius: 6px;
+  padding: ${Padding.xxs};
+  padding-left: ${({ $level }) => 24 * ($level - 1)}px;
+  border-radius: 4px;
   background: ${({ $focused }) =>
-    $focused ? Surface.Default.Default : "transparent"};
+    $focused ? Surface.Selected.Default : "transparent"};
 
-  ${({ $focused }) =>
-    $focused &&
+  ${({ $disabled, $focused }) =>
+    !$disabled &&
     css`
-      outline: 2px solid ${Focused.Default};
-      outline-offset: 2px;
+      &:hover {
+        background: ${$focused
+          ? Surface.Selected.Hover
+          : Surface.Default.Hover};
+      }
     `}
 
   ${({ $disabled }) =>
@@ -43,6 +51,7 @@ const ItemWrapper = styled(Flex)<{ $focused: boolean; $disabled: boolean }>`
 
 const ItemMain = styled.div`
   display: flex;
+  padding-left: ${Padding.xxs};
   align-items: center;
   gap: 8px;
   flex: 1;
@@ -54,10 +63,6 @@ const LabelButton = styled.button<{ $interactive: boolean }>`
   flex: 1;
   min-width: 0;
   cursor: ${({ $interactive }) => ($interactive ? "pointer" : "default")};
-
-  &:hover {
-    background: ${Surface.Default.Default};
-  }
 `;
 
 const NodeIcon = styled.span`
@@ -73,6 +78,15 @@ const CollapseButton = styled(Button)`
   padding: ${Padding.none};
   gap: 0;
   min-width: 20px;
+  background: transparent;
+
+  &:hover {
+    background: transparent;
+  }
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 const HelpfulMessage = styled(Label)`
@@ -83,8 +97,11 @@ const HelpfulMessage = styled(Label)`
 
 const ChildGroup = styled.ol`
   margin: ${Margin.xs} 0 0 0;
-  padding-left: ${Padding.l};
+  padding: ${Padding.none};
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 `;
 
 export const TreeNode = ({
@@ -106,6 +123,7 @@ export const TreeNode = ({
   onKeyDown,
   renderNodeContent,
   labelAction,
+  isRichTreeView,
 }: TreeItemProps) => {
   const checkboxChecked =
     checkState === CheckboxState.INDETERMINATE
@@ -132,6 +150,16 @@ export const TreeNode = ({
       : expanded
         ? defaultIcons?.parentExpanded
         : defaultIcons?.parentCollapsed;
+
+  const showLeftDisclosure =
+    !isRichTreeView &&
+    node.isParent &&
+    !hasCustomParentIcons(
+      defaultIcons?.parentExpanded,
+      defaultIcons?.parentCollapsed,
+    );
+
+  const showRightDisclosure = isRichTreeView && node.isParent;
 
   const handleLabelClick = () => {
     runLabelAction({
@@ -162,6 +190,10 @@ export const TreeNode = ({
     focused,
   }) ?? <Label>{displayText}</Label>;
 
+  const disclosureIcon = expanded
+    ? IconMinor.ChevronDownSolid
+    : IconMinor.ChevronRightSolid;
+
   return (
     <ListItem
       role="treeitem"
@@ -171,9 +203,11 @@ export const TreeNode = ({
       aria-disabled={node.disabled || undefined}
       aria-expanded={node.isParent ? expanded : undefined}
       aria-checked={
-        checkState === CheckboxState.INDETERMINATE
-          ? "mixed"
-          : checkState === CheckboxState.CHECKED
+        isRichTreeView
+          ? checkState === CheckboxState.INDETERMINATE
+            ? "mixed"
+            : checkState === CheckboxState.CHECKED
+          : undefined
       }
       aria-level={node.level}
       aria-posinset={node.posInSet}
@@ -182,25 +216,41 @@ export const TreeNode = ({
     >
       <ItemWrapper
         id={rowId}
+        $level={node.level}
         $focused={focused}
         $disabled={node.disabled}
         tabIndex={tabIndex}
         onFocus={() => onFocus(node.id)}
         onKeyDown={(event) => onKeyDown(event, node.id)}
       >
-        <ItemMain>
-          <Checkbox
+        {showLeftDisclosure ? (
+          <CollapseButton
             tabIndex={-1}
-            checked={checkboxChecked}
-            indeterminate={checkboxIndeterminate}
-            disabled={node.disabled}
-            error={node.invalid}
-            id={`${treeId}-checkbox-${node.id}`}
-            onClick={() => onCheck(node.id)}
-            onChange={() => void 0}
-            aria-labelledby={labelId}
-            aria-describedby={node.helpfulMessage ? messageId : undefined}
+            subtle
+            type="button"
+            disabled={node.disabled || expandDisabled}
+            onClick={handleExpand}
+            aria-label={expanded ? "Collapse node" : "Expand node"}
+            aria-controls={`${treeId}-group-${node.id}`}
+            IconSuffix={disclosureIcon}
           />
+        ) : null}
+
+        <ItemMain>
+          {isRichTreeView ? (
+            <Checkbox
+              tabIndex={-1}
+              checked={checkboxChecked}
+              indeterminate={checkboxIndeterminate}
+              disabled={node.disabled}
+              error={node.invalid}
+              id={`${treeId}-checkbox-${node.id}`}
+              onClick={() => onCheck?.(node.id)}
+              onChange={() => void 0}
+              aria-labelledby={labelId}
+              aria-describedby={node.helpfulMessage ? messageId : undefined}
+            />
+          ) : null}
 
           {resolvedIcon ? (
             <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>
@@ -217,7 +267,7 @@ export const TreeNode = ({
           </LabelButton>
         </ItemMain>
 
-        {node.isParent ? (
+        {showRightDisclosure ? (
           <CollapseButton
             tabIndex={-1}
             subtle
@@ -226,11 +276,7 @@ export const TreeNode = ({
             onClick={handleExpand}
             aria-label={expanded ? "Collapse node" : "Expand node"}
             aria-controls={`${treeId}-group-${node.id}`}
-            IconSuffix={
-              expanded
-                ? IconMinor.ChevronDownSolid
-                : IconMinor.ChevronRightSolid
-            }
+            IconSuffix={disclosureIcon}
           />
         ) : null}
       </ItemWrapper>

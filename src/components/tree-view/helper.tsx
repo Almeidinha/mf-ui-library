@@ -1,9 +1,11 @@
-import { safeArray } from "@helpers";
+import { safeArray } from "helpers/safe-navigation";
+import React from "react";
 
 import {
   CheckboxState,
   FlattenNode,
   LabelAction,
+  SimpleTreeLabelAction,
   TreeNodeData,
   TreeNodeMeta,
 } from "./types";
@@ -18,8 +20,8 @@ type RunLabelActionArgs = {
   id: string;
   isParent: boolean;
   disabled: boolean;
-  labelAction: LabelAction;
-  onCheck: (id: string) => void;
+  labelAction: LabelAction | SimpleTreeLabelAction;
+  onCheck?: (id: string) => void;
   onExpand: (id: string) => void;
   onClick: (id: string) => void;
 };
@@ -285,7 +287,7 @@ export const runLabelAction = ({
   }
 
   if (labelAction === "check") {
-    onCheck(id);
+    onCheck?.(id);
     return;
   }
 
@@ -307,4 +309,11 @@ export const getFirstChildId = (
   parentId: string,
 ): string | undefined => {
   return flatNodes.find((node) => node.parentId === parentId)?.id;
+};
+
+export const hasCustomParentIcons = (
+  parentExpanded?: React.ReactNode,
+  parentCollapsed?: React.ReactNode,
+): boolean => {
+  return Boolean(parentExpanded || parentCollapsed);
 };
