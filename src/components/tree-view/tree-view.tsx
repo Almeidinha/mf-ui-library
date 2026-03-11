@@ -94,6 +94,8 @@ export const TreeView = (props: TreeViewProps) => {
     collapseAllLabel = "Collapse all",
     loadChildren,
     onLoadChildrenError,
+    onLoadChildrenStart,
+    onLoadChildrenEnd,
   } = props;
 
   const treeId = useId();
@@ -106,10 +108,12 @@ export const TreeView = (props: TreeViewProps) => {
 
   const [treeNodes, setTreeNodes] = useState<TreeNodeData[]>(nodes);
   const [loadingNodeIds, setLoadingNodeIds] = useState<string[]>([]);
+  const [failedNodeIds, setFailedNodeIds] = useState<string[]>([]);
 
   useEffect(() => {
     setTreeNodes(nodes);
     setLoadingNodeIds([]);
+    setFailedNodeIds([]);
   }, [nodes]);
 
   const [checkedIds, setCheckedIds] = useControllableListState(
@@ -132,6 +136,10 @@ export const TreeView = (props: TreeViewProps) => {
   const loadingNodeIdSet = useMemo(
     () => new Set(loadingNodeIds),
     [loadingNodeIds],
+  );
+  const failedNodeIdSet = useMemo(
+    () => new Set(failedNodeIds),
+    [failedNodeIds],
   );
 
   const visibleIds = useMemo(
@@ -235,15 +243,21 @@ export const TreeView = (props: TreeViewProps) => {
       const sourceNode = findTreeNode(treeNodes, id);
 
       if (sourceNode) {
+        setFailedNodeIds((prev) => prev.filter((nodeId) => nodeId !== id));
         setLoadingNodeIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+        onLoadChildrenStart?.(sourceNode);
 
         try {
           const loadedChildren = await loadChildren(sourceNode);
 
           setTreeNodes((prev) => updateNodeChildren(prev, id, loadedChildren));
+          onLoadChildrenEnd?.(sourceNode, "success");
         } catch (error) {
+          setFailedNodeIds((prev) =>
+            prev.includes(id) ? prev : [...prev, id],
+          );
           onLoadChildrenError?.(sourceNode, error);
-          setLoadingNodeIds((prev) => prev.filter((nodeId) => nodeId !== id));
+          onLoadChildrenEnd?.(sourceNode, "error");
           return;
         } finally {
           setLoadingNodeIds((prev) => prev.filter((nodeId) => nodeId !== id));
@@ -438,6 +452,7 @@ export const TreeView = (props: TreeViewProps) => {
         : undefined;
       const focused = effectiveFocusedId === node.id;
       const isLoading = loadingNodeIdSet.has(node.id);
+      const hasLoadError = failedNodeIdSet.has(node.id);
 
       return (
         <TreeNode
@@ -450,6 +465,7 @@ export const TreeView = (props: TreeViewProps) => {
           showChildCount={showChildCount}
           focused={focused}
           isLoading={isLoading}
+          hasLoadError={hasLoadError}
           tabIndex={focused ? 0 : -1}
           describedById={
             node.helpfulMessage ? `${treeId}-message-${node.id}` : undefined

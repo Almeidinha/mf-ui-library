@@ -11,10 +11,6 @@ export type TreeNodeData = {
   disabled?: boolean;
   invalid?: boolean;
   icon?: ReactNode;
-  /**
-   * Marks the node as expandable even when children are not yet loaded.
-   * Useful for lazy-loading trees.
-   */
   hasChildren?: boolean;
   children?: TreeNodeData[];
 };
@@ -64,12 +60,15 @@ export type ClickNodePayload = {
   label: string;
 };
 
+export type LoadChildrenEndResult = "success" | "error";
+
 export type RenderNodeArgs = {
   node: TreeNodeMeta;
   expanded: boolean;
   checkState?: CheckboxState;
   focused: boolean;
   isLoading: boolean;
+  hasLoadError: boolean;
 };
 
 export type TreeIcons = {
@@ -101,11 +100,13 @@ type BaseTreeViewProps = {
   expandAllLabel?: string;
   collapseAllLabel?: string;
 
-  /**
-   * Lazy loading
-   */
   loadChildren?: (node: TreeNodeData) => Promise<TreeNodeData[]>;
   onLoadChildrenError?: (node: TreeNodeData, error: unknown) => void;
+  onLoadChildrenStart?: (node: TreeNodeData) => void;
+  onLoadChildrenEnd?: (
+    node: TreeNodeData,
+    result: LoadChildrenEndResult,
+  ) => void;
 };
 
 export type RichTreeViewProps = BaseTreeViewProps & {
@@ -135,6 +136,7 @@ export type TreeItemProps = {
   showChildCount: boolean;
   focused: boolean;
   isLoading: boolean;
+  hasLoadError: boolean;
   tabIndex: number;
   describedById?: string;
   children?: ReactNode;

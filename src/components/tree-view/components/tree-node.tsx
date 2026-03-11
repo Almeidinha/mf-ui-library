@@ -4,7 +4,7 @@ import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { Spinner } from "components/spinner";
 import { Label } from "components/typography";
-import { Surface } from "foundation/colors";
+import { Focused, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import React from "react";
 import styled, { css } from "styled-components";
@@ -24,6 +24,7 @@ const ItemWrapper = styled(Flex)<{
   $focused: boolean;
   $disabled: boolean;
   $level: number;
+  $hasLoadError: boolean;
 }>`
   align-items: center;
   padding: ${Padding.xxs};
@@ -40,12 +41,12 @@ const ItemWrapper = styled(Flex)<{
           ? Surface.Selected.Hover
           : Surface.Default.Hover};
       }
-    `}
 
-  ${({ $disabled }) =>
-    $disabled &&
-    css`
-      cursor: not-allowed;
+      &:focus-visible {
+        outline: 2px solid ${Focused.Default};
+        outline-offset: -2px;
+        border-radius: 4px;
+      }
     `}
 `;
 
@@ -113,6 +114,7 @@ export const TreeNode = ({
   showChildCount,
   focused,
   isLoading,
+  hasLoadError,
   tabIndex,
   describedById,
   children,
@@ -138,6 +140,7 @@ export const TreeNode = ({
   const rowId = `${treeId}-row-${node.id}`;
   const labelId = `${treeId}-label-${node.id}`;
   const messageId = describedById ?? `${treeId}-message-${node.id}`;
+  const errorMessageId = `${treeId}-load-error-${node.id}`;
 
   const displayText =
     showChildCount && node.isParent
@@ -195,6 +198,7 @@ export const TreeNode = ({
     checkState,
     focused,
     isLoading,
+    hasLoadError,
   }) ?? <Label>{displayText}</Label>;
 
   const disclosureIcon = expanded
@@ -206,10 +210,17 @@ export const TreeNode = ({
       role="treeitem"
       id={treeItemId}
       aria-labelledby={labelId}
-      aria-describedby={node.helpfulMessage ? messageId : undefined}
+      aria-describedby={
+        node.helpfulMessage
+          ? messageId
+          : hasLoadError
+            ? errorMessageId
+            : undefined
+      }
       aria-disabled={node.disabled || undefined}
       aria-expanded={node.isParent ? expanded : undefined}
       aria-busy={isLoading || undefined}
+      aria-invalid={hasLoadError || undefined}
       aria-checked={
         isRichTreeView
           ? checkState === CheckboxState.INDETERMINATE
@@ -227,6 +238,7 @@ export const TreeNode = ({
         $level={node.level}
         $focused={focused}
         $disabled={node.disabled}
+        $hasLoadError={hasLoadError}
         tabIndex={tabIndex}
         onFocus={() => onFocus(node.id)}
         onKeyDown={(event) => onKeyDown(event, node.id)}
@@ -301,17 +313,23 @@ export const TreeNode = ({
         )}
       </ItemWrapper>
 
-      {node.helpfulMessage ? (
+      {node.helpfulMessage !== null && (
         <HelpfulMessage subdued id={messageId} $level={node.level}>
           {node.helpfulMessage}
         </HelpfulMessage>
-      ) : null}
+      )}
 
-      {node.isParent && expanded ? (
+      {hasLoadError && (
+        <HelpfulMessage subdued id={errorMessageId} $level={node.level}>
+          Failed to load. Try expanding again.
+        </HelpfulMessage>
+      )}
+
+      {node.isParent && expanded && (
         <ChildGroup role="group" id={`${treeId}-group-${node.id}`}>
           {children}
         </ChildGroup>
-      ) : null}
+      )}
     </ListItem>
   );
 };

@@ -3,7 +3,12 @@ import { IconMinor } from "components/icon";
 import { useArgs } from "storybook/internal/preview-api";
 
 import { TreeView } from "./tree-view";
-import { RichTreeViewProps, TreeNodeData, TreeViewProps } from "./types";
+import {
+  LoadChildrenEndResult,
+  SimpleTreeViewProps,
+  TreeNodeData,
+  TreeViewProps,
+} from "./types";
 
 const multilevel: TreeNodeData[] = [
   {
@@ -505,12 +510,12 @@ import { TreeView } from "./index";
     },
     renderNodeContent: {
       description:
-        "Custom renderer for the node row content. Receives loading/focus/expanded state and, in rich mode, the checkbox state.",
+        "Custom renderer for the node row content. Receives loading, load-error, focus, and expanded state and, in rich mode, the checkbox state.",
       control: { disable: true },
       table: {
         type: {
           summary:
-            "(args: { node: TreeNodeMeta; expanded: boolean; checkState?: CheckboxState; focused: boolean; isLoading: boolean }) => ReactNode",
+            "(args: { node: TreeNodeMeta; expanded: boolean; checkState?: CheckboxState; focused: boolean; isLoading: boolean; hasLoadError: boolean }) => ReactNode",
         },
         defaultValue: { summary: "undefined" },
       },
@@ -566,6 +571,26 @@ import { TreeView } from "./index";
       table: {
         type: {
           summary: "(node: TreeNodeData, error: unknown) => void",
+        },
+      },
+    },
+    onLoadChildrenStart: {
+      description:
+        "Called right before `loadChildren` starts for a lazy node. Useful for analytics, logging, or external loading indicators.",
+      action: "loadChildrenStart",
+      table: {
+        type: {
+          summary: "(node: TreeNodeData) => void",
+        },
+      },
+    },
+    onLoadChildrenEnd: {
+      description:
+        "Called after lazy loading finishes, with either `success` or `error`.",
+      action: "loadChildrenEnd",
+      table: {
+        type: {
+          summary: "(node: TreeNodeData, result: 'success' | 'error') => void",
         },
       },
     },
@@ -658,9 +683,14 @@ export const LazyTree: Story = {
     icons: undefined,
   },
   render: function Render(args) {
-    const [, updateArgs] = useArgs<RichTreeViewProps>();
-    const { onExpand, onLoadChildrenError, ...restArgs } =
-      args as RichTreeViewProps;
+    const [, updateArgs] = useArgs<SimpleTreeViewProps>();
+    const {
+      onExpand,
+      onLoadChildrenError,
+      onLoadChildrenStart,
+      onLoadChildrenEnd,
+      ...restArgs
+    } = args as SimpleTreeViewProps;
 
     return (
       <div style={{ width: 360 }}>
@@ -679,14 +709,21 @@ export const LazyTree: Story = {
 
             return lazyChildrenMap[node.id] ?? [];
           }}
+          onLoadChildrenStart={(node) => {
+            onLoadChildrenStart?.(node);
+          }}
           onLoadChildrenError={(node, error) => {
             onLoadChildrenError?.(node, error);
             console.error(`Failed to load children for ${node.label}`, error);
           }}
-          renderNodeContent={({ node, isLoading }) => (
+          onLoadChildrenEnd={(node, result: LoadChildrenEndResult) => {
+            onLoadChildrenEnd?.(node, result);
+          }}
+          renderNodeContent={({ node, isLoading, hasLoadError }) => (
             <span>
               {node.label}
               {isLoading ? " loading..." : ""}
+              {hasLoadError ? " failed to load" : ""}
             </span>
           )}
         />
@@ -697,7 +734,7 @@ export const LazyTree: Story = {
     docs: {
       description: {
         story:
-          "Expanding `Engineering` or `Design` loads children asynchronously on first open. Expanding `Operations` triggers `onLoadChildrenError` so you can verify the failure path as well.",
+          "Expanding `Engineering` or `Design` loads children asynchronously on first open. Expanding `Operations` triggers `onLoadChildrenStart`, `onLoadChildrenError`, and `onLoadChildrenEnd('error')`, and the node stays retryable with an inline error state.",
       },
     },
   },
