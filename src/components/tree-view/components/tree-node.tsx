@@ -26,7 +26,6 @@ const ItemWrapper = styled(Flex)<{
   $level: number;
 }>`
   align-items: center;
-  gap: 8px;
   padding: ${Padding.xxs};
   padding-left: ${({ $level }) => 24 * ($level - 1)}px;
   border-radius: 4px;
@@ -90,14 +89,14 @@ const CollapseButton = styled(Button)`
   }
 `;
 
-const HelpfulMessage = styled(Label)`
+const HelpfulMessage = styled(Label)<{ $level: number }>`
   display: block;
-  margin-left: ${Margin.xl};
+  margin-left: ${({ $level }) => $level * 24}px;
   user-select: none;
 `;
 
 const ChildGroup = styled.ol`
-  margin: ${Margin.xs} 0 0 0;
+  margin: ${Margin.xxs} 0 0 0;
   padding: ${Padding.none};
   list-style: none;
   display: flex;
@@ -268,9 +267,7 @@ export const TreeNode = ({
             />
           )}
 
-          {resolvedIcon !== null && (
-            <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>
-          )}
+          {resolvedIcon && <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>}
 
           <LabelButton
             tabIndex={-1}
@@ -305,7 +302,7 @@ export const TreeNode = ({
       </ItemWrapper>
 
       {node.helpfulMessage ? (
-        <HelpfulMessage subdued id={messageId}>
+        <HelpfulMessage subdued id={messageId} $level={node.level}>
           {node.helpfulMessage}
         </HelpfulMessage>
       ) : null}
