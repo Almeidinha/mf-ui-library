@@ -3,194 +3,249 @@ import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { Label } from "components/typography";
-import { Surface } from "foundation/colors";
+import { Focused, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
-import { FC, PropsWithChildren } from "helpers/generic-types";
-import { maybeRender } from "helpers/nothing";
-import { is } from "helpers/safe-navigation";
-import React, { ReactNode } from "react";
+import React from "react";
 import styled, { css } from "styled-components";
 
-import { CheckboxState, TreeNodeProps } from "../types";
+import { runLabelAction } from "../helper";
+import { CheckboxState, TreeItemProps } from "../types";
 
-const ListItem = styled.li<{ disabled: boolean }>`
-  & ol {
-    margin-top: ${Margin.xs};
-  }
-  ${({ disabled }) =>
-    is(disabled) &&
+const ListItem = styled.li<{ $disabled: boolean }>`
+  ${({ $disabled }) =>
+    $disabled &&
     css`
       opacity: 0.75;
+    `}
+`;
+
+const ItemWrapper = styled(Flex)<{ $focused: boolean; $disabled: boolean }>`
+  align-items: center;
+  gap: 8px;
+  padding: ${Padding.xxxs} ${Padding.xxs};
+  border-radius: 6px;
+  background: ${({ $focused }) =>
+    $focused ? Surface.Default.Default : "transparent"};
+
+  ${({ $focused }) =>
+    $focused &&
+    css`
+      outline: 2px solid ${Focused.Default};
+      outline-offset: 2px;
+    `}
+
+  ${({ $disabled }) =>
+    $disabled &&
+    css`
       cursor: not-allowed;
     `}
 `;
 
-const ItemWrapper = styled(Flex)`
+const ItemMain = styled.div`
+  display: flex;
   align-items: center;
-  padding: ${Padding.xxxs} ${Padding.none};
   gap: 8px;
-  flex: none;
-  order: 0;
-  align-self: stretch;
-  flex-grow: 0;
+  flex: 1;
+  min-width: 0;
 `;
 
-const ClickableLabel = styled(Label)<{ $isParent: boolean }>`
+const LabelButton = styled.button<{ $interactive: boolean }>`
+  all: unset;
   flex: 1;
-  cursor: ${({ $isParent }) => ($isParent ? "pointer" : "initial")};
+  min-width: 0;
+  cursor: ${({ $interactive }) => ($interactive ? "pointer" : "default")};
+
   &:hover {
     background: ${Surface.Default.Default};
   }
+`;
 
-  &:focus {
-    outline: 0;
-    background: ${Surface.Default.Default};
-  }
+const NodeIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
 `;
 
 const CollapseButton = styled(Button)`
-  align-self: baseline;
-  top: 10px;
+  align-self: center;
   border: 0;
-  cursor: pointer;
   padding: ${Padding.none};
   gap: 0;
-  width: 8px;
-  margin-left: auto;
-  right: 8px;
-  &:active {
-    outline: none;
-  }
-`;
-
-const InputWrapper = styled(Flex)`
-  gap: 8px;
+  min-width: 20px;
 `;
 
 const HelpfulMessage = styled(Label)`
+  display: block;
   margin-left: ${Margin.xl};
   user-select: none;
 `;
 
-export const TreeNode: FC<PropsWithChildren<TreeNodeProps>> = (props) => {
-  const { value, label, expanded } = props;
+const ChildGroup = styled.ol`
+  margin: ${Margin.xs} 0 0 0;
+  padding-left: ${Padding.l};
+  list-style: none;
+`;
 
-  const handleCheck = (): void => {
-    const { onCheck } = props;
-    onCheck({ label, value, checked: getCheckState({ toggle: true }) });
+export const TreeNode = ({
+  treeId,
+  node,
+  expanded,
+  checkState,
+  expandDisabled,
+  showChildCount,
+  focused,
+  tabIndex,
+  describedById,
+  children,
+  defaultIcons,
+  onCheck,
+  onExpand,
+  onClick,
+  onFocus,
+  onKeyDown,
+  renderNodeContent,
+  labelAction,
+}: TreeItemProps) => {
+  const checkboxChecked =
+    checkState === CheckboxState.INDETERMINATE
+      ? undefined
+      : checkState === CheckboxState.CHECKED;
+
+  const checkboxIndeterminate =
+    checkState === CheckboxState.INDETERMINATE ? true : undefined;
+
+  const treeItemId = `${treeId}-treeitem-${node.id}`;
+  const rowId = `${treeId}-row-${node.id}`;
+  const labelId = `${treeId}-label-${node.id}`;
+  const messageId = describedById ?? `${treeId}-message-${node.id}`;
+
+  const displayText =
+    showChildCount && node.isParent
+      ? `${node.label} (${node.childCount})`
+      : node.label;
+
+  const resolvedIcon = node.icon
+    ? node.icon
+    : node.isLeaf
+      ? defaultIcons?.leaf
+      : expanded
+        ? defaultIcons?.parentExpanded
+        : defaultIcons?.parentCollapsed;
+
+  const handleLabelClick = () => {
+    runLabelAction({
+      id: node.id,
+      isParent: node.isParent,
+      disabled: node.disabled,
+      labelAction,
+      onCheck,
+      onExpand,
+      onClick,
+    });
   };
 
-  const handleClick = (): void => {
-    const { onClick, isParent, expandDisabled } = props;
+  const handleExpand = (event?: React.MouseEvent) => {
+    event?.stopPropagation();
 
-    if (isParent && !expandDisabled) {
-      handleOnExpand();
+    if (node.disabled || expandDisabled || !node.isParent) {
+      return;
     }
-    onClick({ label, value, checked: getCheckState({ toggle: false }) });
+
+    onExpand(node.id);
   };
 
-  const handleOnExpand = (): void => {
-    const { onExpand } = props;
-    onExpand({ value, label, expanded: !is(expanded) });
-  };
-
-  const getCheckState = ({ toggle }: { toggle: boolean }): boolean => {
-    const { checkState } = props;
-
-    if (checkState === Number(CheckboxState.UNCHECKED) && toggle) {
-      return true;
-    }
-
-    if (checkState === Number(CheckboxState.CHECKED) && !toggle) {
-      return true;
-    }
-
-    if (checkState === Number(CheckboxState.INDETERMINATE)) {
-      return true;
-    }
-
-    return false;
-  };
-
-  const renderCollapseButton = (): ReactNode => {
-    const { expandDisabled, isParent } = props;
-
-    return maybeRender(
-      isParent,
-      <CollapseButton
-        subtle
-        disabled={expandDisabled}
-        onClick={handleOnExpand}
-        IconSuffix={
-          expanded ? IconMinor.ChevronUpSolid : IconMinor.ChevronDownSolid
-        }
-      />,
-    );
-  };
-
-  const renderCheckboxLabel = () => {
-    const {
-      checkState,
-      disabled,
-      treeId,
-      childCount,
-      isParent,
-      invalid,
-      showChildCount,
-      helpfulMessage,
-    } = props;
-
-    const inputId = `${treeId}-${String(value).split(" ").join("_")}`;
-
-    const displayText =
-      showChildCount && isParent ? `${label} (${childCount})` : label;
-
-    const checked =
-      checkState === Number(CheckboxState.INDETERMINATE)
-        ? undefined
-        : checkState === Number(CheckboxState.CHECKED);
-
-    return (
-      <React.Fragment>
-        <div>
-          <InputWrapper center>
-            <Checkbox
-              checked={checked}
-              indeterminate
-              disabled={disabled}
-              error={invalid}
-              id={`input-${inputId}`}
-              onClick={handleCheck}
-              onChange={() => void 0}
-            />
-            <ClickableLabel
-              $isParent={props.isParent}
-              key={1}
-              onClick={handleClick}
-              role="link"
-              tabIndex={0}
-            >
-              {displayText}
-            </ClickableLabel>
-          </InputWrapper>
-          {maybeRender(
-            helpfulMessage,
-            <HelpfulMessage subdued id={`error-${inputId}`}>
-              {helpfulMessage}
-            </HelpfulMessage>,
-          )}
-        </div>
-        {renderCollapseButton()}
-      </React.Fragment>
-    );
-  };
-
-  const { disabled } = props;
+  const content = renderNodeContent?.({
+    node,
+    expanded,
+    checkState,
+    focused,
+  }) ?? <Label>{displayText}</Label>;
 
   return (
-    <ListItem role="treeitem" disabled={disabled}>
-      <ItemWrapper center>{renderCheckboxLabel()}</ItemWrapper>
-      {expanded && props.children}
+    <ListItem
+      role="treeitem"
+      id={treeItemId}
+      aria-labelledby={labelId}
+      aria-describedby={node.helpfulMessage ? messageId : undefined}
+      aria-disabled={node.disabled || undefined}
+      aria-expanded={node.isParent ? expanded : undefined}
+      aria-checked={
+        checkState === CheckboxState.INDETERMINATE
+          ? "mixed"
+          : checkState === CheckboxState.CHECKED
+      }
+      aria-level={node.level}
+      aria-posinset={node.posInSet}
+      aria-setsize={node.setSize}
+      $disabled={node.disabled}
+    >
+      <ItemWrapper
+        id={rowId}
+        $focused={focused}
+        $disabled={node.disabled}
+        tabIndex={tabIndex}
+        onFocus={() => onFocus(node.id)}
+        onKeyDown={(event) => onKeyDown(event, node.id)}
+      >
+        <ItemMain>
+          <Checkbox
+            tabIndex={-1}
+            checked={checkboxChecked}
+            indeterminate={checkboxIndeterminate}
+            disabled={node.disabled}
+            error={node.invalid}
+            id={`${treeId}-checkbox-${node.id}`}
+            onClick={() => onCheck(node.id)}
+            onChange={() => void 0}
+            aria-labelledby={labelId}
+            aria-describedby={node.helpfulMessage ? messageId : undefined}
+          />
+
+          {resolvedIcon ? (
+            <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>
+          ) : null}
+
+          <LabelButton
+            tabIndex={-1}
+            id={labelId}
+            type="button"
+            $interactive={!node.disabled}
+            onClick={handleLabelClick}
+          >
+            {content}
+          </LabelButton>
+        </ItemMain>
+
+        {node.isParent ? (
+          <CollapseButton
+            tabIndex={-1}
+            subtle
+            type="button"
+            disabled={node.disabled || expandDisabled}
+            onClick={handleExpand}
+            aria-label={expanded ? "Collapse node" : "Expand node"}
+            aria-controls={`${treeId}-group-${node.id}`}
+            IconSuffix={
+              expanded
+                ? IconMinor.ChevronDownSolid
+                : IconMinor.ChevronRightSolid
+            }
+          />
+        ) : null}
+      </ItemWrapper>
+
+      {node.helpfulMessage ? (
+        <HelpfulMessage subdued id={messageId}>
+          {node.helpfulMessage}
+        </HelpfulMessage>
+      ) : null}
+
+      {node.isParent && expanded ? (
+        <ChildGroup role="group" id={`${treeId}-group-${node.id}`}>
+          {children}
+        </ChildGroup>
+      ) : null}
     </ListItem>
   );
 };

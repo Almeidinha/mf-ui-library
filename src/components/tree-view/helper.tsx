@@ -1,212 +1,310 @@
-import { defaultTo, is, isDefined, isEmpty, isNil, safeArray } from "@helpers";
+import { safeArray } from "@helpers";
 
-import { CheckboxState, FlattenNodeProps, NodeProps } from "./types";
+import {
+  CheckboxState,
+  FlattenNode,
+  LabelAction,
+  TreeNodeData,
+  TreeNodeMeta,
+} from "./types";
+
+type FlattenContext = {
+  level: number;
+  parentId?: string;
+  siblingCount: number;
+};
+
+type RunLabelActionArgs = {
+  id: string;
+  isParent: boolean;
+  disabled: boolean;
+  labelAction: LabelAction;
+  onCheck: (id: string) => void;
+  onExpand: (id: string) => void;
+  onClick: (id: string) => void;
+};
 
 export const flattenNodes = (
-  flattenList: FlattenNodeProps[],
-  nodes: NodeProps[],
-  parent?: NodeProps,
-  depth = 0,
-): void => {
-  safeArray(nodes).forEach((node, index) => {
-    const isParent = nodeHasChildren(node);
+  nodes: TreeNodeData[],
+  context: FlattenContext = { level: 1, siblingCount: nodes.length },
+): FlattenNode[] => {
+  const flat: FlattenNode[] = [];
 
-    flattenList.push({
+  safeArray(nodes).forEach((node, index) => {
+    const children = safeArray(node.children);
+    const isParent = children.length > 0;
+
+    const flattenedNode: FlattenNode = {
+      id: node.id,
       label: node.label,
-      value: node.value,
-      children: node.children,
-      parent,
-      isChild: isDefined(parent) && isDefined(parent.value),
+      helpfulMessage: node.helpfulMessage,
+      disabled: Boolean(node.disabled),
+      invalid: Boolean(node.invalid),
+      icon: node.icon,
       isParent,
       isLeaf: !isParent,
-      disabled: getDisabledState(node, parent),
-      treeDepth: depth,
+      level: context.level,
       index,
-      checked: false,
-      checkState: 0,
-      expanded: false,
-    });
-    flattenNodes(flattenList, safeArray(node.children), node, depth + 1);
-  });
-};
+      posInSet: index + 1,
+      setSize: context.siblingCount,
+      childCount: children.length,
+      parentId: context.parentId,
+      children,
+    };
 
-export const getNode = (
-  nodes: FlattenNodeProps[],
-  value: string,
-): FlattenNodeProps | undefined => {
-  return nodes.find((node) => node.value === value);
-};
+    flat.push(flattenedNode);
 
-const nodeHasChildren = (node: NodeProps): boolean => {
-  return (
-    isDefined(node.children) &&
-    Array.isArray(node.children) &&
-    !isEmpty(node.children)
-  );
-};
-
-const getDisabledState = (node: NodeProps, parent?: NodeProps): boolean => {
-  if (isDefined(parent) && is(parent.disabled)) {
-    return true;
-  }
-
-  return is(node.disabled);
-};
-
-export const deserializeList = (
-  flatNodes: FlattenNodeProps[],
-  lists: {
-    checked: string[];
-    expanded: string[];
-  },
-): void => {
-  flatNodes.forEach((flatNode) => {
-    if (lists.checked.includes(flatNode.value)) {
-      flatNode.checked = true;
-
-      if (flatNode.isParent) {
-        checkAllChildren(flatNodes, flatNode);
-      }
-    }
-    if (lists.expanded.includes(flatNode.value)) {
-      flatNode.expanded = true;
+    if (isParent) {
+      flat.push(
+        ...flattenNodes(children, {
+          level: context.level + 1,
+          parentId: node.id,
+          siblingCount: children.length,
+        }),
+      );
     }
   });
+
+  return flat;
 };
 
-const checkAllChildren = (
-  flatNodes: FlattenNodeProps[],
-  flatNode: FlattenNodeProps,
-): void => {
-  defaultTo(flatNode.children, []).forEach((node: NodeProps) => {
-    const _flatoNode = getNode(flatNodes, node.value);
-    if (isDefined(_flatoNode)) {
-      _flatoNode.checked = true;
-    }
-  });
+export const createNodeMap = (
+  nodes: FlattenNode[],
+): Map<string, FlattenNode> => {
+  return new Map(nodes.map((node) => [node.id, node]));
 };
 
-export const serializeList = (
-  flatNodes: FlattenNodeProps[],
-  key: string,
+export const getDescendantIds = (
+  nodeMap: Map<string, FlattenNode>,
+  id: string,
 ): string[] => {
-  const list: string[] = [];
+  const descendants: string[] = [];
 
-  flatNodes.forEach((node: FlattenNodeProps) => {
-    if (key === "expanded") {
-      if (node.expanded) {
-        list.push(node.value);
-      }
-    }
+  const visit = (parentId: string) => {
+    const parent = nodeMap.get(parentId);
 
-    if (key === "checked") {
-      if (node.checked) {
-        list.push(node.value);
-      }
-    }
-  });
-
-  return list;
-};
-
-export const expandAllNodes = (
-  flatNodes: FlattenNodeProps[],
-  expand: boolean,
-): void => {
-  flatNodes.forEach((node: FlattenNodeProps) => {
-    if (node.isParent) {
-      node.expanded = expand;
-    }
-  });
-};
-
-export const toggleChecked = (
-  flatNodes: FlattenNodeProps[],
-  node: NodeProps,
-  isChecked: boolean,
-): void => {
-  const flatNode = getNode(flatNodes, node.value);
-
-  if (isNil(flatNode)) {
-    return;
-  }
-
-  if (flatNode.isLeaf) {
-    if (is(node.disabled)) {
+    if (!parent) {
       return;
     }
 
-    toggleNode(flatNodes, node.value, "checked", isChecked);
-  } else {
-    if (isDefined(flatNode.children) && flatNode.children.length === 0) {
-      toggleNode(flatNodes, node.value, "checked", isChecked);
-    }
-
-    safeArray(flatNode.children).forEach((child: NodeProps) => {
-      toggleChecked(flatNodes, child, isChecked);
+    parent.children.forEach((child) => {
+      descendants.push(child.id);
+      visit(child.id);
     });
-  }
+  };
+
+  visit(id);
+
+  return descendants;
 };
 
-export const toggleNode = (
-  flatNodes: FlattenNodeProps[],
-  nodeValue: string,
-  key: string,
-  toggleValue: boolean,
-): void => {
-  const node = flatNodes.find(
-    (_node: FlattenNodeProps) => _node.value === nodeValue,
-  );
+export const getLeafDescendantIds = (
+  nodeMap: Map<string, FlattenNode>,
+  id: string,
+): string[] => {
+  return getDescendantIds(nodeMap, id).filter((descendantId) => {
+    const descendant = nodeMap.get(descendantId);
+    return descendant?.isLeaf;
+  });
+};
 
-  if (isDefined(node)) {
-    key === "checked"
-      ? (node.checked = toggleValue)
-      : (node.expanded = toggleValue);
+export const getAncestorIds = (
+  nodeMap: Map<string, FlattenNode>,
+  id: string,
+): string[] => {
+  const ancestors: string[] = [];
+  let current = nodeMap.get(id);
+
+  while (current?.parentId) {
+    ancestors.push(current.parentId);
+    current = nodeMap.get(current.parentId);
   }
+
+  return ancestors;
+};
+
+export const getVisibleNodeIds = (
+  flatNodes: FlattenNode[],
+  expandedSet: Set<string>,
+  nodeMap: Map<string, FlattenNode>,
+): string[] => {
+  return flatNodes
+    .filter((node) => {
+      const ancestors = getAncestorIds(nodeMap, node.id);
+      return ancestors.every((ancestorId) => expandedSet.has(ancestorId));
+    })
+    .map((node) => node.id);
+};
+
+export const isNodeExpanded = (
+  expandedSet: Set<string>,
+  id: string,
+): boolean => {
+  return expandedSet.has(id);
 };
 
 export const getNodeCheckState = (
-  flattenNodeList: FlattenNodeProps[],
-  node: NodeProps,
+  nodeMap: Map<string, FlattenNode>,
+  checkedSet: Set<string>,
+  id: string,
 ): CheckboxState => {
-  const flatNode = getNode(flattenNodeList, node.value);
+  const node = nodeMap.get(id);
 
-  if (
-    is(flatNode?.isLeaf) ||
-    (isDefined(node.children) && node.children.length === 0)
-  ) {
-    return is(flatNode?.checked)
-      ? CheckboxState.CHECKED
-      : CheckboxState.UNCHECKED;
+  if (!node) {
+    return CheckboxState.UNCHECKED;
   }
 
-  if (is(isEveryChildChecked(flattenNodeList, node))) {
+  if (node.isLeaf) {
+    return checkedSet.has(id) ? CheckboxState.CHECKED : CheckboxState.UNCHECKED;
+  }
+
+  const leafDescendantIds = getLeafDescendantIds(nodeMap, id);
+
+  if (leafDescendantIds.length === 0) {
+    return CheckboxState.UNCHECKED;
+  }
+
+  const checkedLeafCount = leafDescendantIds.filter((leafId) =>
+    checkedSet.has(leafId),
+  ).length;
+
+  if (checkedLeafCount === 0) {
+    return CheckboxState.UNCHECKED;
+  }
+
+  if (checkedLeafCount === leafDescendantIds.length) {
     return CheckboxState.CHECKED;
   }
 
-  if (is(isSomeChildChecked(flattenNodeList, node))) {
-    return CheckboxState.INDETERMINATE;
+  return CheckboxState.INDETERMINATE;
+};
+
+export const toggleCheckedState = (
+  nodeMap: Map<string, FlattenNode>,
+  checkedSet: Set<string>,
+  id: string,
+): Set<string> => {
+  const next = new Set(checkedSet);
+  const node = nodeMap.get(id);
+
+  if (!node || node.disabled) {
+    return next;
   }
 
-  return CheckboxState.UNCHECKED;
+  const currentState = getNodeCheckState(nodeMap, checkedSet, id);
+  const shouldCheck = currentState !== CheckboxState.CHECKED;
+
+  if (node.isLeaf) {
+    if (shouldCheck) {
+      next.add(id);
+    } else {
+      next.delete(id);
+    }
+
+    return next;
+  }
+
+  const targetLeafIds = getLeafDescendantIds(nodeMap, id);
+
+  targetLeafIds.forEach((leafId) => {
+    const leafNode = nodeMap.get(leafId);
+
+    if (!leafNode || leafNode.disabled) {
+      return;
+    }
+
+    if (shouldCheck) {
+      next.add(leafId);
+    } else {
+      next.delete(leafId);
+    }
+  });
+
+  return next;
 };
 
-const isEveryChildChecked = (
-  flattenNodeList: FlattenNodeProps[],
-  node: NodeProps,
-): boolean => {
-  return safeArray(node.children).every((child: NodeProps) => {
-    const _node = getNode(flattenNodeList, child.value);
-    return isDefined(_node) && _node.checkState === 1;
-  });
+export const toggleExpandedState = (
+  nodeMap: Map<string, FlattenNode>,
+  expandedSet: Set<string>,
+  id: string,
+): Set<string> => {
+  const next = new Set(expandedSet);
+  const node = nodeMap.get(id);
+
+  if (!node || !node.isParent || node.disabled) {
+    return next;
+  }
+
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
+
+  return next;
 };
 
-const isSomeChildChecked = (
-  flattenNodeList: FlattenNodeProps[],
-  node: NodeProps,
-): boolean => {
-  return safeArray(node.children).some((child: NodeProps) => {
-    const _node = getNode(flattenNodeList, child.value);
-    return isDefined(_node) && _node.checkState > 0;
-  });
+export const getExpandableNodeIds = (flatNodes: FlattenNode[]): string[] => {
+  return flatNodes.filter((node) => node.isParent).map((node) => node.id);
+};
+
+export const toIdList = (set: Set<string>): string[] => {
+  return Array.from(set);
+};
+
+export const toNodeMeta = (node: FlattenNode): TreeNodeMeta => {
+  return {
+    id: node.id,
+    label: node.label,
+    helpfulMessage: node.helpfulMessage,
+    disabled: node.disabled,
+    invalid: node.invalid,
+    icon: node.icon,
+    isParent: node.isParent,
+    isLeaf: node.isLeaf,
+    level: node.level,
+    index: node.index,
+    posInSet: node.posInSet,
+    setSize: node.setSize,
+    childCount: node.childCount,
+    parentId: node.parentId,
+  };
+};
+
+export const runLabelAction = ({
+  id,
+  isParent,
+  disabled,
+  labelAction,
+  onCheck,
+  onExpand,
+  onClick,
+}: RunLabelActionArgs): void => {
+  if (disabled) {
+    return;
+  }
+
+  if (labelAction === "check") {
+    onCheck(id);
+    return;
+  }
+
+  if (labelAction === "expand") {
+    if (isParent) {
+      onExpand(id);
+      return;
+    }
+
+    onClick(id);
+    return;
+  }
+
+  onClick(id);
+};
+
+export const getFirstChildId = (
+  flatNodes: FlattenNode[],
+  parentId: string,
+): string | undefined => {
+  return flatNodes.find((node) => node.parentId === parentId)?.id;
 };

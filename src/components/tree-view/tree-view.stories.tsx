@@ -1,75 +1,71 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { IconMinor } from "components/icon";
 import { useArgs } from "storybook/internal/preview-api";
 
 import { TreeView } from "./tree-view";
-import {
-  CheckNodeProps,
-  ExpandNodeProps,
-  NodeProps,
-  TreeViewProps,
-} from "./types";
+import { TreeNodeData, TreeViewProps } from "./types";
 
-const multilevel: NodeProps[] = [
+const multilevel: TreeNodeData[] = [
   {
-    value: "item 1",
+    id: "item 1",
     label: "item_1",
     children: [
       {
-        value: "item 1.1",
+        id: "item 1.1",
         label: "item_1.1",
         children: [
           {
-            value: "item 1.1.1",
+            id: "item 1.1.1",
             label: "item_1.1.1",
           },
           {
-            value: "item 1.1.2",
+            id: "item 1.1.2",
             label: "item_1.1.2",
           },
           {
-            value: "item 1.1.3",
+            id: "item 1.1.3",
             label: "item_1.1.3",
           },
           {
-            value: "item 1.1.4",
+            id: "item 1.1.4",
             label: "item_1.1.4",
           },
           {
-            value: "item 1.1.5",
+            id: "item 1.1.5",
             label: "item_1.1.5",
           },
         ],
       },
       {
-        value: "item 1.2",
+        id: "item 1.2",
         label: "item_1.2",
       },
       {
-        value: "item 1.3",
+        id: "item 1.3",
         label: "item_1.3",
       },
       {
-        value: "item 1.4",
+        id: "item 1.4",
         label: "item_1.4",
         children: [
           {
-            value: "item 1.4.1",
+            id: "item 1.4.1",
             label: "item_1.4.1",
           },
           {
-            value: "item 1.4.2",
+            id: "item 1.4.2",
             label: "item_1.4.2",
           },
           {
-            value: "item 1.4.3",
+            id: "item 1.4.3",
             label: "item_1.4.3",
             children: [
               {
-                value: "item 1.4.3.1",
+                id: "item 1.4.3.1",
                 label: "item_1.4.3.1",
               },
               {
-                value: "item 1.4.3.2",
+                id: "item 1.4.3.2",
                 label: "item_1.4.3.2",
               },
             ],
@@ -79,27 +75,27 @@ const multilevel: NodeProps[] = [
     ],
   },
   {
-    value: "item 2",
+    id: "item 2",
     label: "item_2",
     children: [
       {
-        value: "item 2.1",
+        id: "item 2.1",
         label: "item_2.1",
       },
       {
-        value: "item 2.2",
+        id: "item 2.2",
         label: "item_2.2",
       },
       {
-        value: "item 2.3",
+        id: "item 2.3",
         label: "item_2.3",
         children: [
           {
-            value: "item 2.3.1",
+            id: "item 2.3.1",
             label: "item_2.3.1",
           },
           {
-            value: "item 2.3.2",
+            id: "item 2.3.2",
             label: "item_2.3.2",
           },
         ],
@@ -107,139 +103,140 @@ const multilevel: NodeProps[] = [
     ],
   },
   {
-    value: "item 3",
+    id: "item 3",
     label: "item_3",
     children: [
       {
-        value: "item 3.1",
+        id: "item 3.1",
         label: "item_3.1",
       },
       {
-        value: "item 3.2",
+        id: "item 3.2",
         label: "item_3.2",
       },
       {
-        value: "item 3.3",
+        id: "item 3.3",
         label: "item_3.3",
       },
       {
-        value: "item 3.4",
+        id: "item 3.4",
         label: "item_3.4",
       },
       {
-        value: "item 3.5",
+        id: "item 3.5",
         label: "item_3.5",
       },
     ],
   },
   {
-    value: "item 4",
+    id: "item 4",
     label: "item_4",
   },
   {
-    value: "item 5",
+    id: "item 5",
     label: "item_5",
   },
   {
-    value: "item 6",
+    id: "item 6",
     label: "item_6",
   },
 ];
 
-const countryNodes: NodeProps[] = [
+const countryNodes: TreeNodeData[] = [
   {
-    value: "south_america",
+    id: "south_america",
     label: "South America",
     children: [
       {
-        value: "brasil",
+        id: "brasil",
         label: "Brasil",
       },
       {
-        value: "argentina",
+        id: "argentina",
         label: "Argentina",
       },
       {
-        value: "uruguay",
+        id: "uruguay",
         label: "Uruguay",
       },
       {
-        value: "peru",
+        id: "peru",
         label: "Peru",
       },
       {
-        value: "chile",
+        id: "chile",
         label: "Chile",
       },
       {
-        value: "venezuela",
+        id: "venezuela",
         label: "Venezuela",
       },
     ],
   },
   {
-    value: "north_america",
+    id: "north_america",
     label: "North America",
     children: [
       {
-        value: "canada",
+        id: "canada",
         label: "Canada",
       },
       {
-        value: "usa",
+        id: "usa",
         label: "USA",
       },
       {
-        value: "mexico",
+        id: "mexico",
         label: "Mexico",
       },
     ],
   },
   {
-    value: "europe",
+    id: "europe",
     label: "Europe",
     children: [
       {
-        value: "uk",
+        id: "uk",
         label: "United Kingdom",
       },
       {
-        value: "france",
+        id: "france",
         label: "France",
       },
       {
-        value: "portugal",
+        id: "portugal",
         label: "Portugal",
       },
       {
-        value: "spain",
+        id: "spain",
         label: "Spain",
       },
       {
-        value: "ireland",
+        id: "ireland",
         label: "Ireland",
       },
     ],
   },
   {
-    value: "africa",
+    id: "africa",
     label: "Africa",
     children: [
       {
-        value: "somalia",
+        id: "somalia",
         label: "Somalia",
       },
       {
-        value: "uganda",
+        id: "uganda",
         label: "Uganda",
       },
       {
-        value: "egypt",
+        id: "egypt",
         label: "Egypt",
       },
     ],
   },
 ];
+
 const meta = {
   title: "Components/TreeView",
   component: TreeView,
@@ -255,10 +252,18 @@ const meta = {
     useCardContainer: true,
     showChildCount: true,
     expandDisabled: false,
-    onCheck: (checked: string[], node?: CheckNodeProps) =>
+    showExpandAllControls: true,
+    expandAllLabel: "Open all",
+    collapseAllLabel: "Close all",
+    icons: {
+      parentExpanded: <IconMinor.Eye />,
+      parentCollapsed: <IconMinor.EyeSlash />,
+      leaf: <IconMinor.CircleInfo />,
+    },
+    onCheck: (checked, node) =>
       console.log("Checked: ", checked, "Node: ", node),
-    onClick: (node: CheckNodeProps) => console.log("Clicked node: ", node),
-    onExpand: (expanded: string[], node?: ExpandNodeProps) =>
+    onNodeClick: (node) => console.log("Clicked node: ", node),
+    onExpand: (expanded, node) =>
       console.log("Expanded: ", expanded, "Node: ", node),
   },
   argTypes: {},
@@ -273,7 +278,25 @@ export const Primary: Story = {
     return (
       <TreeView
         {...args}
-        onCheck={(checked) => updateArgs({ checkedList: checked })}
+        onCheck={(nextChecked) => updateArgs({ checkedList: nextChecked })}
+        onExpand={(nextExpanded) => updateArgs({ expanded: nextExpanded })}
+      />
+    );
+  },
+};
+
+export const Uncontrolled: Story = {
+  render: function Render() {
+    return (
+      <TreeView
+        nodes={multilevel}
+        onCheck={(checked, node) =>
+          console.log("Checked: ", checked, "Node: ", node)
+        }
+        onExpand={(expanded, node) =>
+          console.log("Expanded: ", expanded, "Node: ", node)
+        }
+        onNodeClick={(node) => console.log("Clicked node: ", node)}
       />
     );
   },

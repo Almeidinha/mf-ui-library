@@ -1,46 +1,40 @@
 import { Margin, Padding } from "@foundations";
-import {
-  defaultTo,
-  FC,
-  is,
-  isDefined,
-  isEmpty,
-  maybeRender,
-  Nothing,
-  PropsWithChildren,
-} from "@helpers";
 import { Card } from "components/card";
-import { JSX, useMemo, useState } from "react";
+import { Button } from "components/molecules/button";
+import React, { JSX, useId, useMemo, useState } from "react";
 import styled from "styled-components";
 
 import { TreeNode } from "./components/tree-node";
 import {
-  deserializeList,
+  createNodeMap,
   flattenNodes,
-  getNode,
+  getExpandableNodeIds,
+  getFirstChildId,
   getNodeCheckState,
-  serializeList,
-  toggleChecked,
-  toggleNode,
+  getVisibleNodeIds,
+  isNodeExpanded,
+  runLabelAction,
+  toggleCheckedState,
+  toggleExpandedState,
+  toIdList,
+  toNodeMeta,
 } from "./helper";
 import {
-  CheckNodeProps,
-  ExpandNodeProps,
-  FlattenNodeProps,
-  NodeProps,
+  CheckboxState,
+  CheckNodePayload,
+  ClickNodePayload,
+  ExpandNodePayload,
+  FlattenNode,
   TreeViewProps,
 } from "./types";
 
-const ParentNode = styled.ol`
+const RootTree = styled.ol`
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin: ${Margin.none};
   padding-left: ${Padding.none};
-  list-style-type: none;
-  & ol {
-    padding-left: ${Padding.l};
-  }
+  list-style: none;
 `;
 
 const Container = styled.div<{ $useCardContainer: boolean }>`
@@ -50,134 +44,394 @@ const Container = styled.div<{ $useCardContainer: boolean }>`
     $useCardContainer ? Padding.none : Padding.xs};
 `;
 
-export const TreeView: FC<PropsWithChildren<TreeViewProps>> = (props) => {
-  const {
-    checkedList = [],
-    expanded = [],
-    title,
-    nodes,
-    className,
-    showChildCount = false,
-    useCardContainer = true,
-  } = props;
+const Controls = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: ${Padding.s};
+`;
 
-  const [expandedList, setExpandedList] = useState<string[]>(expanded);
-  const treeId = new Date().getTime().toString();
+function useControllableListState(
+  controlledValue: string[] | undefined,
+  defaultValue: string[] | undefined,
+) {
+  const [uncontrolledValue, setUncontrolledValue] = useState<string[]>(
+    defaultValue ?? [],
+  );
 
-  const flattenNodeList: FlattenNodeProps[] = useMemo(() => {
-    const _nodeList: FlattenNodeProps[] = [];
-    flattenNodes(_nodeList, nodes);
+  const isControlled = controlledValue !== undefined;
+  const value = isControlled ? controlledValue : uncontrolledValue;
 
-    deserializeList(_nodeList, {
-      checked: checkedList,
-      expanded: expandedList,
+  const setValue = (next: string[]) => {
+    if (!isControlled) {
+      setUncontrolledValue(next);
+    }
+  };
+
+  return [value, setValue] as const;
+}
+
+export const TreeView = ({
+  nodes,
+  className,
+  title,
+  ariaLabel,
+  useCardContainer = true,
+  showChildCount = false,
+  expandDisabled = false,
+  checkedList,
+  defaultCheckedList = [],
+  expanded,
+  defaultExpanded = [],
+  onCheck,
+  onExpand,
+  onNodeClick,
+  onNodeFocus,
+  renderNodeContent,
+  icons,
+  showExpandAllControls = false,
+  expandAllLabel = "Expand all",
+  collapseAllLabel = "Collapse all",
+  labelAction = "expand",
+}: TreeViewProps) => {
+  const treeId = useId();
+
+  const [checkedIds, setCheckedIds] = useControllableListState(
+    checkedList,
+    defaultCheckedList,
+  );
+  const [expandedIds, setExpandedIds] = useControllableListState(
+    expanded,
+    defaultExpanded,
+  );
+
+  const flatNodes = useMemo<FlattenNode[]>(() => flattenNodes(nodes), [nodes]);
+  const nodeMap = useMemo(() => createNodeMap(flatNodes), [flatNodes]);
+
+  const checkedSet = useMemo(() => new Set(checkedIds), [checkedIds]);
+  const expandedSet = useMemo(() => new Set(expandedIds), [expandedIds]);
+
+  const visibleIds = useMemo(
+    () => getVisibleNodeIds(flatNodes, expandedSet, nodeMap),
+    [flatNodes, expandedSet, nodeMap],
+  );
+
+  const expandableIds = useMemo(
+    () => getExpandableNodeIds(flatNodes),
+    [flatNodes],
+  );
+
+  const allExpanded =
+    expandableIds.length > 0 &&
+    expandableIds.every((id) => expandedSet.has(id));
+
+  const childrenByParentId = useMemo(() => {
+    const map = new Map<string | undefined, FlattenNode[]>();
+
+    flatNodes.forEach((node) => {
+      const key = node.parentId;
+      const current = map.get(key) ?? [];
+      current.push(node);
+      map.set(key, current);
     });
 
-    return _nodeList;
-  }, [nodes, checkedList, expandedList]);
+    return map;
+  }, [flatNodes]);
 
-  const handleOnCheck = (nodeInfo: CheckNodeProps): void => {
-    const { onCheck } = props;
+  const firstVisibleId = visibleIds[0];
+  const [focusedId, setFocusedId] = useState<string | undefined>(undefined);
+  const effectiveFocusedId =
+    focusedId && visibleIds.includes(focusedId) ? focusedId : firstVisibleId;
 
-    toggleChecked(flattenNodeList, nodeInfo, nodeInfo.checked);
-    if (isDefined(onCheck)) {
-      onCheck(serializeList(flattenNodeList, "checked"), { ...nodeInfo });
-    }
+  const emitCheck = (payload: CheckNodePayload, nextCheckedIds: string[]) => {
+    onCheck?.(nextCheckedIds, payload);
   };
 
-  const handleOnExpand = (nodeInfo: ExpandNodeProps): void => {
-    const { onExpand } = props;
-
-    toggleNode(flattenNodeList, nodeInfo.value, "expanded", nodeInfo.expanded);
-    if (isDefined(onExpand)) {
-      onExpand(serializeList(flattenNodeList, "expanded"), { ...nodeInfo });
-    }
-    setExpandedList(serializeList(flattenNodeList, "expanded"));
+  const emitExpand = (
+    payload: ExpandNodePayload,
+    nextExpandedIds: string[],
+  ) => {
+    onExpand?.(nextExpandedIds, payload);
   };
 
-  const onNodeClick = (nodeInfo: CheckNodeProps): void => {
-    const { onClick } = props;
-    const node = getNode(flattenNodeList, nodeInfo.value);
-    if (isDefined(onClick)) {
-      onClick({ ...node, ...nodeInfo });
-    }
+  const emitClick = (payload: ClickNodePayload) => {
+    onNodeClick?.(payload);
   };
 
-  const renderTreeNodes = (
-    nodeList: NodeProps[],
-    parent?: NodeProps,
-  ): JSX.Element => {
-    const { expandDisabled = false } = props;
+  const handleCheck = (id: string) => {
+    const node = nodeMap.get(id);
 
-    const treeNodes = nodeList.map((node: NodeProps) => {
-      const flatNode = getNode(flattenNodeList, node.value);
+    if (!node || node.disabled) {
+      return;
+    }
 
-      const children = is(flatNode?.isParent) ? (
-        renderTreeNodes(defaultTo(node.children, []), node)
-      ) : (
-        <Nothing key={node.value} />
-      );
+    const nextCheckedSet = toggleCheckedState(nodeMap, checkedSet, id);
+    const nextCheckedIds = toIdList(nextCheckedSet);
+    const nextState = getNodeCheckState(nodeMap, nextCheckedSet, id);
 
-      if (isDefined(flatNode)) {
-        flatNode.checkState = getNodeCheckState(flattenNodeList, node);
+    setCheckedIds(nextCheckedIds);
+
+    emitCheck(
+      {
+        id: node.id,
+        label: node.label,
+        checked: nextState === CheckboxState.CHECKED,
+      },
+      nextCheckedIds,
+    );
+  };
+
+  const handleExpand = (id: string) => {
+    const node = nodeMap.get(id);
+
+    if (!node || node.disabled || !node.isParent || expandDisabled) {
+      return;
+    }
+
+    const nextExpandedSet = toggleExpandedState(nodeMap, expandedSet, id);
+    const nextExpandedIds = toIdList(nextExpandedSet);
+    const nextExpanded = nextExpandedSet.has(id);
+
+    setExpandedIds(nextExpandedIds);
+
+    emitExpand(
+      {
+        id: node.id,
+        label: node.label,
+        expanded: nextExpanded,
+      },
+      nextExpandedIds,
+    );
+  };
+
+  const handleLabelAction = (id: string) => {
+    const node = nodeMap.get(id);
+
+    if (!node) {
+      return;
+    }
+
+    runLabelAction({
+      id,
+      isParent: node.isParent,
+      disabled: node.disabled,
+      labelAction,
+      onCheck: handleCheck,
+      onExpand: handleExpand,
+      onClick: handleClick,
+    });
+  };
+
+  const handleExpandAll = () => {
+    if (expandDisabled) {
+      return;
+    }
+
+    const nextExpandedIds = expandableIds;
+    setExpandedIds(nextExpandedIds);
+    onExpand?.(nextExpandedIds);
+  };
+
+  const handleCollapseAll = () => {
+    const nextExpandedIds: string[] = [];
+    setExpandedIds(nextExpandedIds);
+    onExpand?.(nextExpandedIds);
+  };
+
+  const handleClick = (id: string) => {
+    const node = nodeMap.get(id);
+
+    if (!node || node.disabled) {
+      return;
+    }
+
+    setFocusedId(id);
+
+    emitClick({
+      id: node.id,
+      label: node.label,
+    });
+  };
+
+  const handleFocus = (id: string) => {
+    const node = nodeMap.get(id);
+
+    if (!node) {
+      return;
+    }
+
+    setFocusedId(id);
+
+    onNodeFocus?.({
+      id: node.id,
+      label: node.label,
+    });
+  };
+
+  const focusById = (id: string | undefined) => {
+    if (!id) {
+      return;
+    }
+
+    setFocusedId(id);
+
+    requestAnimationFrame(() => {
+      const element = document.getElementById(`${treeId}-row-${id}`);
+      if (element instanceof HTMLElement) {
+        element.focus();
       }
+    });
+  };
 
-      const parentExpanded =
-        isDefined(parent) && isDefined(parent.value)
-          ? getNode(flattenNodeList, parent.value)?.expanded
-          : true;
+  const handleKeyDown = (event: React.KeyboardEvent, id: string) => {
+    const currentIndex = visibleIds.indexOf(id);
+    const node = nodeMap.get(id);
 
-      if (!is(parentExpanded)) {
-        return <Nothing key={node.value} />;
-      }
+    if (!node) {
+      return;
+    }
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        focusById(visibleIds[currentIndex + 1] ?? id);
+        break;
+
+      case "ArrowUp":
+        event.preventDefault();
+        focusById(visibleIds[currentIndex - 1] ?? id);
+        break;
+
+      case "Home":
+        event.preventDefault();
+        focusById(visibleIds[0]);
+        break;
+
+      case "End":
+        event.preventDefault();
+        focusById(visibleIds[visibleIds.length - 1]);
+        break;
+
+      case "ArrowRight":
+        event.preventDefault();
+
+        if (
+          node.isParent &&
+          !isNodeExpanded(expandedSet, id) &&
+          !expandDisabled
+        ) {
+          handleExpand(id);
+          return;
+        }
+
+        if (node.isParent && isNodeExpanded(expandedSet, id)) {
+          focusById(getFirstChildId(flatNodes, id));
+        }
+        break;
+
+      case "ArrowLeft":
+        event.preventDefault();
+
+        if (node.isParent && isNodeExpanded(expandedSet, id)) {
+          handleExpand(id);
+          return;
+        }
+
+        if (node.parentId) {
+          focusById(node.parentId);
+        }
+        break;
+
+      case "Enter":
+        event.preventDefault();
+        handleLabelAction(id);
+        break;
+
+      case " ":
+        event.preventDefault();
+        handleCheck(id);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const renderTreeNodes = (parentId?: string): JSX.Element[] => {
+    const siblingNodes = childrenByParentId.get(parentId) ?? [];
+
+    return siblingNodes.map((node) => {
+      const expanded = isNodeExpanded(expandedSet, node.id);
+      const checkState = getNodeCheckState(nodeMap, checkedSet, node.id);
+      const focused = effectiveFocusedId === node.id;
 
       return (
         <TreeNode
-          key={node.value}
-          checkState={defaultTo(flatNode?.checkState, 0)}
-          disabled={is(flatNode?.disabled)}
-          expandDisabled={expandDisabled}
-          expanded={is(flatNode?.expanded)}
-          label={node.label}
-          isLeaf={is(flatNode?.isLeaf)}
-          isParent={is(flatNode?.isParent)}
+          key={node.id}
           treeId={treeId}
-          invalid={defaultTo(node.invalid, false)}
-          value={node.value}
+          node={toNodeMeta(node)}
+          expanded={expanded}
+          checkState={checkState}
+          expandDisabled={expandDisabled}
           showChildCount={showChildCount}
-          childCount={defaultTo(flatNode?.children?.length, 0)}
-          helpfulMessage={node.helpfulMessage}
-          onClick={onNodeClick}
-          onCheck={handleOnCheck}
-          onExpand={handleOnExpand}
+          focused={focused}
+          tabIndex={focused ? 0 : -1}
+          describedById={
+            node.helpfulMessage ? `${treeId}-message-${node.id}` : undefined
+          }
+          defaultIcons={icons}
+          onCheck={handleCheck}
+          onExpand={handleExpand}
+          onClick={handleClick}
+          onFocus={handleFocus}
+          onKeyDown={handleKeyDown}
+          renderNodeContent={renderNodeContent}
+          labelAction={labelAction}
         >
-          {children}
+          {node.isParent && expanded ? renderTreeNodes(node.id) : null}
         </TreeNode>
       );
     });
-
-    return (
-      <ParentNode role="tree" className="tree-view">
-        {treeNodes}
-      </ParentNode>
-    );
   };
 
-  const renderTree = (): JSX.Element => {
-    return useCardContainer ? (
-      <Card heading={title}>
-        <Card.Section>
-          <Container className={className} id={treeId} $useCardContainer>
-            {renderTreeNodes(nodes)}
-          </Container>
-        </Card.Section>
-      </Card>
-    ) : (
-      <Container className={className} id={treeId} $useCardContainer={false}>
-        {renderTreeNodes(nodes)}
-      </Container>
-    );
-  };
+  if (!nodes.length) {
+    return null;
+  }
 
-  return maybeRender(!isEmpty(nodes), renderTree());
+  const tree = (
+    <Container className={className} $useCardContainer={useCardContainer}>
+      {showExpandAllControls ? (
+        <Controls>
+          <Button
+            type="button"
+            subtle
+            disabled={expandDisabled || allExpanded}
+            onClick={handleExpandAll}
+          >
+            {expandAllLabel}
+          </Button>
+
+          <Button
+            type="button"
+            subtle
+            disabled={expandableIds.length === 0 || expandedIds.length === 0}
+            onClick={handleCollapseAll}
+          >
+            {collapseAllLabel}
+          </Button>
+        </Controls>
+      ) : null}
+
+      <RootTree role="tree" aria-label={ariaLabel ?? title ?? "Tree view"}>
+        {renderTreeNodes(undefined)}
+      </RootTree>
+    </Container>
+  );
+
+  return useCardContainer ? (
+    <Card heading={title}>
+      <Card.Section>{tree}</Card.Section>
+    </Card>
+  ) : (
+    tree
+  );
 };

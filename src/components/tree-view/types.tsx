@@ -1,66 +1,15 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
-export type NodeProps = {
+export type LabelAction = "expand" | "check" | "select";
+
+export type TreeNodeData = {
+  id: string;
   label: string;
-  value: string;
   helpfulMessage?: string;
   disabled?: boolean;
   invalid?: boolean;
-  children?: NodeProps[];
-};
-
-export type FlattenNodeProps = NodeProps & {
-  parent?: NodeProps;
-  isChild: boolean;
-  isParent: boolean;
-  isLeaf: boolean;
-  treeDepth: number;
-  index: number;
-  checked: boolean;
-  checkState: number;
-  expanded: boolean;
-};
-
-export type TreeViewProps = {
-  checkedList: string[];
-  nodes: NodeProps[];
-  expanded?: string[];
-  className?: string;
-  title?: string;
-  useCardContainer?: boolean;
-  showChildCount?: boolean;
-  expandDisabled?: boolean;
-  onCheck: (checked: string[], node?: CheckNodeProps) => void;
-  onClick?: (node: CheckNodeProps) => void;
-  onExpand?: (expanded: string[], node?: ExpandNodeProps) => void;
-};
-
-export type TreeNodeProps = {
-  checkState: number;
-  disabled: boolean;
-  expanded: boolean;
-  isParent: boolean;
-  isLeaf: boolean;
-  expandDisabled: boolean;
-  label: string;
-  value: string;
-  children: ReactNode;
-  treeId: string;
-  invalid: boolean;
-  childCount: number;
-  showChildCount: boolean;
-  helpfulMessage?: string;
-  onCheck: (node: CheckNodeProps) => void;
-  onClick: (node: CheckNodeProps) => void;
-  onExpand: (node: ExpandNodeProps) => void;
-};
-
-export type CheckNodeProps = NodeProps & {
-  checked: boolean;
-};
-
-export type ExpandNodeProps = NodeProps & {
-  expanded: boolean;
+  icon?: ReactNode;
+  children?: TreeNodeData[];
 };
 
 export enum CheckboxState {
@@ -68,3 +17,105 @@ export enum CheckboxState {
   CHECKED,
   INDETERMINATE,
 }
+
+export type TreeNodeMeta = {
+  id: string;
+  label: string;
+  helpfulMessage?: string;
+  disabled: boolean;
+  invalid: boolean;
+  isParent: boolean;
+  isLeaf: boolean;
+  level: number;
+  index: number;
+  posInSet: number;
+  setSize: number;
+  childCount: number;
+  parentId?: string;
+  icon?: ReactNode;
+};
+
+export type FlattenNode = TreeNodeMeta & {
+  children: TreeNodeData[];
+};
+
+export type CheckNodePayload = {
+  id: string;
+  label: string;
+  checked: boolean;
+};
+
+export type ExpandNodePayload = {
+  id: string;
+  label: string;
+  expanded: boolean;
+};
+
+export type ClickNodePayload = {
+  id: string;
+  label: string;
+};
+
+export type RenderNodeArgs = {
+  node: TreeNodeMeta;
+  expanded: boolean;
+  checkState: CheckboxState;
+  focused: boolean;
+};
+
+export type TreeIcons = {
+  parentExpanded?: ReactNode;
+  parentCollapsed?: ReactNode;
+  leaf?: ReactNode;
+};
+
+export type TreeViewProps = {
+  nodes: TreeNodeData[];
+  className?: string;
+  title?: string;
+  ariaLabel?: string;
+  useCardContainer?: boolean;
+  showChildCount?: boolean;
+  expandDisabled?: boolean;
+
+  checkedList?: string[];
+  defaultCheckedList?: string[];
+
+  expanded?: string[];
+  defaultExpanded?: string[];
+
+  onCheck?: (checkedIds: string[], node: CheckNodePayload) => void;
+  onExpand?: (expandedIds: string[], node?: ExpandNodePayload) => void;
+  onNodeClick?: (node: ClickNodePayload) => void;
+  onNodeFocus?: (node: ClickNodePayload) => void;
+
+  renderNodeContent?: (args: RenderNodeArgs) => ReactNode;
+
+  icons?: TreeIcons;
+  showExpandAllControls?: boolean;
+  expandAllLabel?: string;
+  collapseAllLabel?: string;
+
+  labelAction?: LabelAction;
+};
+
+export type TreeItemProps = {
+  treeId: string;
+  node: TreeNodeMeta;
+  expanded: boolean;
+  checkState: CheckboxState;
+  expandDisabled: boolean;
+  showChildCount: boolean;
+  focused: boolean;
+  tabIndex: number;
+  describedById?: string;
+  children?: ReactNode;
+  defaultIcons?: TreeIcons;
+  onCheck: (id: string) => void;
+  onExpand: (id: string) => void;
+  onClick: (id: string) => void;
+  onFocus: (id: string) => void;
+  onKeyDown: (event: React.KeyboardEvent, id: string) => void;
+  renderNodeContent?: (args: RenderNodeArgs) => ReactNode;
+  labelAction: LabelAction;
+};
