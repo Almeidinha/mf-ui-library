@@ -1,5 +1,5 @@
 import { safeArray } from "helpers/safe-navigation";
-import React from "react";
+import type { ReactNode } from "react";
 
 import {
   CheckboxState,
@@ -34,7 +34,8 @@ export const flattenNodes = (
 
   safeArray(nodes).forEach((node, index) => {
     const children = safeArray(node.children);
-    const isParent = children.length > 0;
+    const hasChildren = Boolean(node.hasChildren) || children.length > 0;
+    const isParent = hasChildren;
 
     const flattenedNode: FlattenNode = {
       id: node.id,
@@ -43,6 +44,7 @@ export const flattenNodes = (
       disabled: Boolean(node.disabled),
       invalid: Boolean(node.invalid),
       icon: node.icon,
+      hasChildren,
       isParent,
       isLeaf: !isParent,
       level: context.level,
@@ -56,7 +58,7 @@ export const flattenNodes = (
 
     flat.push(flattenedNode);
 
-    if (isParent) {
+    if (children.length > 0) {
       flat.push(
         ...flattenNodes(children, {
           level: context.level + 1,
@@ -74,6 +76,56 @@ export const createNodeMap = (
   nodes: FlattenNode[],
 ): Map<string, FlattenNode> => {
   return new Map(nodes.map((node) => [node.id, node]));
+};
+
+export const findTreeNode = (
+  nodes: TreeNodeData[],
+  id: string,
+): TreeNodeData | undefined => {
+  for (const node of nodes) {
+    if (node.id === id) {
+      return node;
+    }
+
+    const children = safeArray(node.children);
+
+    if (children.length > 0) {
+      const found = findTreeNode(children, id);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+export const updateNodeChildren = (
+  nodes: TreeNodeData[],
+  parentId: string,
+  children: TreeNodeData[],
+): TreeNodeData[] => {
+  return nodes.map((node) => {
+    if (node.id === parentId) {
+      return {
+        ...node,
+        hasChildren: children.length > 0,
+        children,
+      };
+    }
+
+    const nestedChildren = safeArray(node.children);
+
+    if (nestedChildren.length === 0) {
+      return node;
+    }
+
+    return {
+      ...node,
+      children: updateNodeChildren(nestedChildren, parentId, children),
+    };
+  });
 };
 
 export const getDescendantIds = (
@@ -262,6 +314,7 @@ export const toNodeMeta = (node: FlattenNode): TreeNodeMeta => {
     disabled: node.disabled,
     invalid: node.invalid,
     icon: node.icon,
+    hasChildren: node.hasChildren,
     isParent: node.isParent,
     isLeaf: node.isLeaf,
     level: node.level,
@@ -312,8 +365,8 @@ export const getFirstChildId = (
 };
 
 export const hasCustomParentIcons = (
-  parentExpanded?: React.ReactNode,
-  parentCollapsed?: React.ReactNode,
+  parentExpanded?: ReactNode,
+  parentCollapsed?: ReactNode,
 ): boolean => {
   return Boolean(parentExpanded || parentCollapsed);
 };

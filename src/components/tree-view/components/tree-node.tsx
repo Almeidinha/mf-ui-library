@@ -2,6 +2,7 @@ import { Checkbox } from "components/checkbox";
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
+import { Spinner } from "components/spinner";
 import { Label } from "components/typography";
 import { Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
@@ -51,8 +52,8 @@ const ItemWrapper = styled(Flex)<{
 
 const ItemMain = styled.div`
   display: flex;
-  padding-left: ${Padding.xxs};
   align-items: center;
+  padding-left: ${Padding.xxs};
   gap: 8px;
   flex: 1;
   min-width: 0;
@@ -112,6 +113,7 @@ export const TreeNode = ({
   expandDisabled,
   showChildCount,
   focused,
+  isLoading,
   tabIndex,
   describedById,
   children,
@@ -143,21 +145,26 @@ export const TreeNode = ({
       ? `${node.label} (${node.childCount})`
       : node.label;
 
-  const resolvedIcon = node.icon
-    ? node.icon
-    : node.isLeaf
-      ? defaultIcons?.leaf
-      : expanded
-        ? defaultIcons?.parentExpanded
-        : defaultIcons?.parentCollapsed;
+  const hasCustomIcons = hasCustomParentIcons(
+    defaultIcons?.parentExpanded,
+    defaultIcons?.parentCollapsed,
+  );
+
+  const resolvedIcon =
+    isLoading && node.isParent && hasCustomIcons ? (
+      <Spinner aria-hidden />
+    ) : node.icon ? (
+      node.icon
+    ) : node.isLeaf ? (
+      defaultIcons?.leaf
+    ) : expanded ? (
+      defaultIcons?.parentExpanded
+    ) : (
+      defaultIcons?.parentCollapsed
+    );
 
   const showLeftDisclosure =
-    !isRichTreeView &&
-    node.isParent &&
-    !hasCustomParentIcons(
-      defaultIcons?.parentExpanded,
-      defaultIcons?.parentCollapsed,
-    );
+    !isRichTreeView && node.isParent && !hasCustomIcons;
 
   const showRightDisclosure = isRichTreeView && node.isParent;
 
@@ -165,7 +172,7 @@ export const TreeNode = ({
     runLabelAction({
       id: node.id,
       isParent: node.isParent,
-      disabled: node.disabled,
+      disabled: node.disabled || isLoading,
       labelAction,
       onCheck,
       onExpand,
@@ -176,7 +183,7 @@ export const TreeNode = ({
   const handleExpand = (event?: React.MouseEvent) => {
     event?.stopPropagation();
 
-    if (node.disabled || expandDisabled || !node.isParent) {
+    if (node.disabled || isLoading || expandDisabled || !node.isParent) {
       return;
     }
 
@@ -188,6 +195,7 @@ export const TreeNode = ({
     expanded,
     checkState,
     focused,
+    isLoading,
   }) ?? <Label>{displayText}</Label>;
 
   const disclosureIcon = expanded
@@ -202,6 +210,7 @@ export const TreeNode = ({
       aria-describedby={node.helpfulMessage ? messageId : undefined}
       aria-disabled={node.disabled || undefined}
       aria-expanded={node.isParent ? expanded : undefined}
+      aria-busy={isLoading || undefined}
       aria-checked={
         isRichTreeView
           ? checkState === CheckboxState.INDETERMINATE
@@ -223,21 +232,28 @@ export const TreeNode = ({
         onFocus={() => onFocus(node.id)}
         onKeyDown={(event) => onKeyDown(event, node.id)}
       >
-        {showLeftDisclosure ? (
+        {showLeftDisclosure && (
           <CollapseButton
             tabIndex={-1}
             subtle
+            loading={isLoading}
             type="button"
-            disabled={node.disabled || expandDisabled}
+            disabled={node.disabled || isLoading || expandDisabled}
             onClick={handleExpand}
-            aria-label={expanded ? "Collapse node" : "Expand node"}
+            aria-label={
+              isLoading
+                ? "Loading children"
+                : expanded
+                  ? "Collapse node"
+                  : "Expand node"
+            }
             aria-controls={`${treeId}-group-${node.id}`}
             IconSuffix={disclosureIcon}
           />
-        ) : null}
+        )}
 
         <ItemMain>
-          {isRichTreeView ? (
+          {isRichTreeView && (
             <Checkbox
               tabIndex={-1}
               checked={checkboxChecked}
@@ -250,35 +266,42 @@ export const TreeNode = ({
               aria-labelledby={labelId}
               aria-describedby={node.helpfulMessage ? messageId : undefined}
             />
-          ) : null}
+          )}
 
-          {resolvedIcon ? (
+          {resolvedIcon !== null && (
             <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>
-          ) : null}
+          )}
 
           <LabelButton
             tabIndex={-1}
             id={labelId}
             type="button"
-            $interactive={!node.disabled}
+            $interactive={!node.disabled && !isLoading}
             onClick={handleLabelClick}
           >
             {content}
           </LabelButton>
         </ItemMain>
 
-        {showRightDisclosure ? (
+        {showRightDisclosure && (
           <CollapseButton
             tabIndex={-1}
             subtle
             type="button"
-            disabled={node.disabled || expandDisabled}
+            loading={isLoading}
+            disabled={node.disabled || isLoading || expandDisabled}
             onClick={handleExpand}
-            aria-label={expanded ? "Collapse node" : "Expand node"}
+            aria-label={
+              isLoading
+                ? "Loading children"
+                : expanded
+                  ? "Collapse node"
+                  : "Expand node"
+            }
             aria-controls={`${treeId}-group-${node.id}`}
             IconSuffix={disclosureIcon}
           />
-        ) : null}
+        )}
       </ItemWrapper>
 
       {node.helpfulMessage ? (

@@ -1,12 +1,13 @@
 import { Margin, Padding } from "@foundations";
 import { Card } from "components/card";
 import { Button } from "components/molecules/button";
-import React, { JSX, useId, useMemo, useState } from "react";
+import React, { JSX, useEffect, useId, useMemo, useState } from "react";
 import styled from "styled-components";
 
 import { TreeNode } from "./components/tree-node";
 import {
   createNodeMap,
+  findTreeNode,
   flattenNodes,
   getExpandableNodeIds,
   getFirstChildId,
@@ -18,6 +19,7 @@ import {
   toggleExpandedState,
   toIdList,
   toNodeMeta,
+  updateNodeChildren,
 } from "./helper";
 import {
   CheckboxState,
@@ -25,6 +27,7 @@ import {
   ClickNodePayload,
   ExpandNodePayload,
   FlattenNode,
+  TreeNodeData,
   TreeViewProps,
 } from "./types";
 
@@ -70,36 +73,44 @@ function useControllableListState(
   return [value, setValue] as const;
 }
 
-export const TreeView = ({
-  nodes,
-  className,
-  title,
-  ariaLabel,
-  useCardContainer = true,
-  showChildCount = false,
-  expandDisabled = false,
-  expanded,
-  defaultExpanded = [],
-  onExpand,
-  onNodeClick,
-  onNodeFocus,
-  renderNodeContent,
-  icons,
-  showExpandAllControls = false,
-  expandAllLabel = "Expand all",
-  collapseAllLabel = "Collapse all",
-  labelAction,
-  isRichTreeView = true,
-  ...rest
-}: TreeViewProps) => {
+export const TreeView = (props: TreeViewProps) => {
+  const {
+    nodes,
+    className,
+    title,
+    ariaLabel,
+    useCardContainer = true,
+    showChildCount = false,
+    expandDisabled = false,
+    expanded,
+    defaultExpanded = [],
+    onExpand,
+    onNodeClick,
+    onNodeFocus,
+    renderNodeContent,
+    icons,
+    showExpandAllControls = false,
+    expandAllLabel = "Expand all",
+    collapseAllLabel = "Collapse all",
+    loadChildren,
+    onLoadChildrenError,
+  } = props;
+
   const treeId = useId();
-  const isRich = isRichTreeView !== false;
+  const isRich = props.isRichTreeView !== false;
 
-  const checkedList = isRich ? rest.checkedList : undefined;
-  const defaultCheckedList = isRich ? rest.defaultCheckedList : undefined;
-  const onCheck = isRich ? rest.onCheck : undefined;
+  const checkedList = isRich ? props.checkedList : undefined;
+  const defaultCheckedList = isRich ? props.defaultCheckedList : undefined;
+  const onCheck = isRich ? props.onCheck : undefined;
+  const resolvedLabelAction = props.labelAction ?? "expand";
 
-  const resolvedLabelAction = labelAction ?? (isRich ? "expand" : "expand");
+  const [treeNodes, setTreeNodes] = useState<TreeNodeData[]>(nodes);
+  const [loadingNodeIds, setLoadingNodeIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    setTreeNodes(nodes);
+    setLoadingNodeIds([]);
+  }, [nodes]);
 
   const [checkedIds, setCheckedIds] = useControllableListState(
     checkedList,
@@ -110,11 +121,18 @@ export const TreeView = ({
     defaultExpanded,
   );
 
-  const flatNodes = useMemo<FlattenNode[]>(() => flattenNodes(nodes), [nodes]);
+  const flatNodes = useMemo<FlattenNode[]>(
+    () => flattenNodes(treeNodes),
+    [treeNodes],
+  );
   const nodeMap = useMemo(() => createNodeMap(flatNodes), [flatNodes]);
 
   const checkedSet = useMemo(() => new Set(checkedIds), [checkedIds]);
   const expandedSet = useMemo(() => new Set(expandedIds), [expandedIds]);
+  const loadingNodeIdSet = useMemo(
+    () => new Set(loadingNodeIds),
+    [loadingNodeIds],
+  );
 
   const visibleIds = useMemo(
     () => getVisibleNodeIds(flatNodes, expandedSet, nodeMap),
@@ -193,11 +211,44 @@ export const TreeView = ({
     );
   };
 
-  const handleExpand = (id: string) => {
+  const handleExpand = async (id: string) => {
     const node = nodeMap.get(id);
 
-    if (!node || node.disabled || !node.isParent || expandDisabled) {
+    if (
+      !node ||
+      node.disabled ||
+      loadingNodeIdSet.has(id) ||
+      !node.isParent ||
+      expandDisabled
+    ) {
       return;
+    }
+
+    const isExpanded = expandedSet.has(id);
+
+    if (
+      !isExpanded &&
+      loadChildren &&
+      node.hasChildren &&
+      node.children.length === 0
+    ) {
+      const sourceNode = findTreeNode(treeNodes, id);
+
+      if (sourceNode) {
+        setLoadingNodeIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+
+        try {
+          const loadedChildren = await loadChildren(sourceNode);
+
+          setTreeNodes((prev) => updateNodeChildren(prev, id, loadedChildren));
+        } catch (error) {
+          onLoadChildrenError?.(sourceNode, error);
+          setLoadingNodeIds((prev) => prev.filter((nodeId) => nodeId !== id));
+          return;
+        } finally {
+          setLoadingNodeIds((prev) => prev.filter((nodeId) => nodeId !== id));
+        }
+      }
     }
 
     const nextExpandedSet = toggleExpandedState(nodeMap, expandedSet, id);
@@ -257,10 +308,12 @@ export const TreeView = ({
     runLabelAction({
       id,
       isParent: node.isParent,
-      disabled: node.disabled,
+      disabled: node.disabled || loadingNodeIdSet.has(id),
       labelAction: resolvedLabelAction,
       onCheck: isRich ? handleCheck : undefined,
-      onExpand: handleExpand,
+      onExpand: (nodeId) => {
+        void handleExpand(nodeId);
+      },
       onClick: handleClick,
     });
   };
@@ -289,6 +342,7 @@ export const TreeView = ({
 
     requestAnimationFrame(() => {
       const element = document.getElementById(`${treeId}-row-${id}`);
+
       if (element instanceof HTMLElement) {
         element.focus();
       }
@@ -332,7 +386,7 @@ export const TreeView = ({
           !isNodeExpanded(expandedSet, id) &&
           !expandDisabled
         ) {
-          handleExpand(id);
+          void handleExpand(id);
           return;
         }
 
@@ -345,7 +399,7 @@ export const TreeView = ({
         event.preventDefault();
 
         if (node.isParent && isNodeExpanded(expandedSet, id)) {
-          handleExpand(id);
+          void handleExpand(id);
           return;
         }
 
@@ -383,6 +437,7 @@ export const TreeView = ({
         ? getNodeCheckState(nodeMap, checkedSet, node.id)
         : undefined;
       const focused = effectiveFocusedId === node.id;
+      const isLoading = loadingNodeIdSet.has(node.id);
 
       return (
         <TreeNode
@@ -394,13 +449,16 @@ export const TreeView = ({
           expandDisabled={expandDisabled}
           showChildCount={showChildCount}
           focused={focused}
+          isLoading={isLoading}
           tabIndex={focused ? 0 : -1}
           describedById={
             node.helpfulMessage ? `${treeId}-message-${node.id}` : undefined
           }
           defaultIcons={icons}
           onCheck={isRich ? handleCheck : undefined}
-          onExpand={handleExpand}
+          onExpand={(nodeId) => {
+            void handleExpand(nodeId);
+          }}
           onClick={handleClick}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
@@ -414,7 +472,7 @@ export const TreeView = ({
     });
   };
 
-  if (!nodes.length) {
+  if (!treeNodes.length) {
     return null;
   }
 

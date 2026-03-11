@@ -1,4 +1,5 @@
-import React, { ReactNode } from "react";
+import type { ReactNode } from "react";
+import React from "react";
 
 export type LabelAction = "expand" | "check" | "select";
 export type SimpleTreeLabelAction = Exclude<LabelAction, "check">;
@@ -10,6 +11,11 @@ export type TreeNodeData = {
   disabled?: boolean;
   invalid?: boolean;
   icon?: ReactNode;
+  /**
+   * Marks the node as expandable even when children are not yet loaded.
+   * Useful for lazy-loading trees.
+   */
+  hasChildren?: boolean;
   children?: TreeNodeData[];
 };
 
@@ -25,6 +31,7 @@ export type TreeNodeMeta = {
   helpfulMessage?: string;
   disabled: boolean;
   invalid: boolean;
+  hasChildren: boolean;
   isParent: boolean;
   isLeaf: boolean;
   level: number;
@@ -62,6 +69,7 @@ export type RenderNodeArgs = {
   expanded: boolean;
   checkState?: CheckboxState;
   focused: boolean;
+  isLoading: boolean;
 };
 
 export type TreeIcons = {
@@ -92,6 +100,12 @@ type BaseTreeViewProps = {
   showExpandAllControls?: boolean;
   expandAllLabel?: string;
   collapseAllLabel?: string;
+
+  /**
+   * Lazy loading
+   */
+  loadChildren?: (node: TreeNodeData) => Promise<TreeNodeData[]>;
+  onLoadChildrenError?: (node: TreeNodeData, error: unknown) => void;
 };
 
 export type RichTreeViewProps = BaseTreeViewProps & {
@@ -120,6 +134,7 @@ export type TreeItemProps = {
   expandDisabled: boolean;
   showChildCount: boolean;
   focused: boolean;
+  isLoading: boolean;
   tabIndex: number;
   describedById?: string;
   children?: ReactNode;

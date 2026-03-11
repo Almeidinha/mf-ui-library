@@ -3,7 +3,7 @@ import { IconMinor } from "components/icon";
 import { useArgs } from "storybook/internal/preview-api";
 
 import { TreeView } from "./tree-view";
-import { TreeNodeData, TreeViewProps } from "./types";
+import { RichTreeViewProps, TreeNodeData, TreeViewProps } from "./types";
 
 const multilevel: TreeNodeData[] = [
   {
@@ -237,6 +237,78 @@ const countryNodes: TreeNodeData[] = [
   },
 ];
 
+const lazyNodes: TreeNodeData[] = [
+  {
+    id: "engineering",
+    label: "Engineering",
+    hasChildren: true,
+    helpfulMessage: "Children are loaded on demand.",
+  },
+  {
+    id: "design",
+    label: "Design",
+    hasChildren: true,
+  },
+  {
+    id: "operations",
+    label: "Operations",
+    hasChildren: true,
+  },
+];
+
+const lazyChildrenMap: Record<string, TreeNodeData[]> = {
+  engineering: [
+    {
+      id: "frontend",
+      label: "Frontend",
+      hasChildren: true,
+    },
+    {
+      id: "backend",
+      label: "Backend",
+    },
+    {
+      id: "platform",
+      label: "Platform",
+    },
+  ],
+  frontend: [
+    {
+      id: "design-system",
+      label: "Design System",
+    },
+    {
+      id: "customer-portal",
+      label: "Customer Portal",
+    },
+  ],
+  design: [
+    {
+      id: "brand",
+      label: "Brand",
+    },
+    {
+      id: "product-design",
+      label: "Product Design",
+    },
+  ],
+  operations: [
+    {
+      id: "support",
+      label: "Support",
+    },
+    {
+      id: "finance",
+      label: "Finance",
+    },
+  ],
+};
+
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
 const meta = {
   title: "Components/TreeView",
   component: TreeView,
@@ -246,6 +318,7 @@ const meta = {
       description: {
         component: `
 Tree View displays hierarchical data with optional checkbox selection and keyboard navigation.
+It supports both rich trees with selection controls and simpler navigation-only trees. Parents can also lazy-load their children on first expansion.
 
 ## How to use
 
@@ -259,6 +332,12 @@ import { TreeView } from "./index";
   onExpand={(expandedIds, node) => console.log(expandedIds, node)}
 />
 \`\`\`
+
+### Variants
+
+- Rich tree: default mode with checkboxes and \`labelAction="check" | "expand" | "select"\`.
+- Simple tree: set \`isRichTreeView={false}\` to remove checkboxes and allow only \`expand\` or \`select\` label actions.
+- Lazy tree: mark nodes with \`hasChildren\` and provide \`loadChildren\` to fetch descendants on demand.
 
 ### Accessibility
 
@@ -290,10 +369,19 @@ import { TreeView } from "./index";
   argTypes: {
     nodes: {
       description:
-        "Tree data. Each node must have a unique `id` and a `label`. Parents use `children`.",
+        "Tree data. Each node must have a unique `id` and a `label`. Use `children` for eager trees and `hasChildren` for lazy parents.",
       control: { disable: true },
       table: {
         type: { summary: "TreeNodeData[]" },
+      },
+    },
+    isRichTreeView: {
+      description:
+        "Controls the tree mode. `true` (default) renders a rich tree with checkboxes. `false` renders a simpler navigation tree without checkbox selection.",
+      control: { type: "boolean" },
+      table: {
+        type: { summary: "boolean" },
+        defaultValue: { summary: "true" },
       },
     },
     className: {
@@ -343,7 +431,7 @@ import { TreeView } from "./index";
     },
     checkedList: {
       description:
-        "Controlled list of checked leaf node ids. Provide this to fully control checked state.",
+        "Controlled list of checked leaf node ids. Only available in rich tree mode.",
       control: { type: "object" },
       table: {
         type: { summary: "string[]" },
@@ -352,7 +440,7 @@ import { TreeView } from "./index";
     },
     defaultCheckedList: {
       description:
-        "Initial checked ids when uncontrolled (i.e., when `checkedList` is undefined).",
+        "Initial checked ids when uncontrolled. Only available in rich tree mode.",
       control: { type: "object" },
       table: {
         type: { summary: "string[]" },
@@ -379,7 +467,7 @@ import { TreeView } from "./index";
     },
     onCheck: {
       description:
-        "Called after a check/uncheck interaction. Only leaf nodes are tracked as checked ids.",
+        "Called after a check/uncheck interaction. Only leaf nodes are tracked as checked ids. Only available in rich tree mode.",
       action: "check",
       table: {
         type: {
@@ -417,12 +505,12 @@ import { TreeView } from "./index";
     },
     renderNodeContent: {
       description:
-        "Custom renderer for the node row content. Use this to add custom icons, badges, or extra text based on node state.",
+        "Custom renderer for the node row content. Receives loading/focus/expanded state and, in rich mode, the checkbox state.",
       control: { disable: true },
       table: {
         type: {
           summary:
-            "(args: { node: TreeNodeMeta; expanded: boolean; checkState: CheckboxState; focused: boolean }) => ReactNode",
+            "(args: { node: TreeNodeMeta; expanded: boolean; checkState?: CheckboxState; focused: boolean; isLoading: boolean }) => ReactNode",
         },
         defaultValue: { summary: "undefined" },
       },
@@ -460,9 +548,30 @@ import { TreeView } from "./index";
         defaultValue: { summary: "Collapse all" },
       },
     },
+    loadChildren: {
+      description:
+        "Async loader called the first time an expanded lazy node (`hasChildren: true` with no loaded `children`) is opened.",
+      control: { disable: true },
+      table: {
+        type: {
+          summary: "(node: TreeNodeData) => Promise<TreeNodeData[]>",
+        },
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onLoadChildrenError: {
+      description:
+        "Called when `loadChildren` rejects for a node, allowing the parent app to surface an error.",
+      action: "loadChildrenError",
+      table: {
+        type: {
+          summary: "(node: TreeNodeData, error: unknown) => void",
+        },
+      },
+    },
     labelAction: {
       description:
-        "Defines what happens when clicking a node label. `expand` toggles parent expansion (or clicks leaf), `check` toggles check, `select` triggers click.",
+        "Defines what happens when clicking a node label. In rich trees: `expand`, `check`, or `select`. In simple trees: `expand` or `select`.",
       options: ["expand", "check", "select"],
       control: { type: "radio" },
       table: {
@@ -534,5 +643,62 @@ export const SimpleTree: Story = {
         />
       </div>
     );
+  },
+};
+
+export const LazyTree: Story = {
+  args: {
+    nodes: lazyNodes,
+    title: "Team structure",
+    expanded: [],
+    isRichTreeView: false,
+    showExpandAllControls: false,
+    showChildCount: true,
+    labelAction: "expand",
+    icons: undefined,
+  },
+  render: function Render(args) {
+    const [, updateArgs] = useArgs<RichTreeViewProps>();
+    const { onExpand, onLoadChildrenError, ...restArgs } =
+      args as RichTreeViewProps;
+
+    return (
+      <div style={{ width: 360 }}>
+        <TreeView
+          {...restArgs}
+          onExpand={(nextExpanded, node) => {
+            updateArgs({ expanded: nextExpanded });
+            onExpand?.(nextExpanded, node);
+          }}
+          loadChildren={async (node) => {
+            await wait(700);
+
+            if (node.id === "operations") {
+              throw new Error("Failed to load operations children");
+            }
+
+            return lazyChildrenMap[node.id] ?? [];
+          }}
+          onLoadChildrenError={(node, error) => {
+            onLoadChildrenError?.(node, error);
+            console.error(`Failed to load children for ${node.label}`, error);
+          }}
+          renderNodeContent={({ node, isLoading }) => (
+            <span>
+              {node.label}
+              {isLoading ? " loading..." : ""}
+            </span>
+          )}
+        />
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Expanding `Engineering` or `Design` loads children asynchronously on first open. Expanding `Operations` triggers `onLoadChildrenError` so you can verify the failure path as well.",
+      },
+    },
   },
 };
