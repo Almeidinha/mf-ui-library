@@ -29,3 +29,6 @@ export * from "./tabs";
 export * from "./text-area";
 export * from "./thumbnail";
 export * from "./toast";
+export * from "./tooltip";
+export * from "./tree-view";
+export * from "./transitions";

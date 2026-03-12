@@ -1,5 +1,6 @@
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
+import { Slide } from "components/transitions";
 import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { If } from "helpers/nothing";
@@ -204,29 +205,31 @@ const OptionMultiLevelExpandedComponentImpl = <T,>({
 
       <If is={isExpanded === true && hasChildren}>
         {createPortal(
-          <PortalMenuFrame
-            $top={pos.top}
-            $left={pos.left}
-            $width={width}
-            $maxHeight={pos.maxHeight}
-          >
-            {safeArray(option?.options).map((subOption) => (
-              <OptionMultiLevelExpandedComponent<T>
-                key={getOptionKey(subOption.value)}
-                option={subOption}
-                labelComponent={CustomLabel}
-                height={height}
-                width={width}
-                selectedValues={selectedValues}
-                onSelect={onSelect}
-                onExpand={onExpand}
-                onReturn={onReturn}
-                getOptionKey={getOptionKey}
-                expandedKeys={expandedKeys}
-                containerRef={containerRef}
-              />
-            ))}
-          </PortalMenuFrame>,
+          <Slide in={isExpanded} direction="right" mountOnEnter unmountOnExit>
+            <PortalMenuFrame
+              $top={pos.top}
+              $left={pos.left}
+              $width={width}
+              $maxHeight={pos.maxHeight}
+            >
+              {safeArray(option?.options).map((subOption) => (
+                <OptionMultiLevelExpandedComponent<T>
+                  key={getOptionKey(subOption.value)}
+                  option={subOption}
+                  labelComponent={CustomLabel}
+                  height={height}
+                  width={width}
+                  selectedValues={selectedValues}
+                  onSelect={onSelect}
+                  onExpand={onExpand}
+                  onReturn={onReturn}
+                  getOptionKey={getOptionKey}
+                  expandedKeys={expandedKeys}
+                  containerRef={containerRef}
+                />
+              ))}
+            </PortalMenuFrame>
+          </Slide>,
           document.body,
         )}
       </If>

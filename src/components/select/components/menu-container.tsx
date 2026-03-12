@@ -1,6 +1,6 @@
 import { Borders, Surface } from "foundation/colors";
 import { Padding } from "foundation/spacing";
-import { FC } from "helpers/generic-types";
+import { forwardRef } from "helpers/generic-types";
 import styled from "styled-components";
 
 import { IMenuContainerProps, menuPositionType } from "../types";
@@ -35,8 +35,6 @@ const MenuWrapper = styled.div<IMenuWrapperProps>`
     border: 1px solid ${Borders.Default.Subdued};
     background-color: ${Surface.Default.Default};
     border-radius: 6px;
-    opacity: 0;
-    transition: opacity 0.1s ease;
     padding: ${Padding.xxs};
 
     &:focus {
@@ -60,32 +58,42 @@ const MenuWrapper = styled.div<IMenuWrapperProps>`
   }
 `;
 
-export const MenuContainer: FC<IMenuContainerProps> = ({
-  onClick,
-  children,
-  label,
-  menuHeight,
-  menuPosition,
-  labelPosition,
-  invalid,
-  className,
-}: IMenuContainerProps) => {
-  const composeClassName = ["select-menu", className]
-    .filter((c) => c)
-    .join(" ");
+export const MenuContainer = forwardRef<HTMLDivElement, IMenuContainerProps>(
+  function MenuContainer(
+    {
+      onClick,
+      children,
+      label,
+      menuHeight,
+      menuPosition,
+      labelPosition,
+      invalid,
+      className,
+      style,
+      ...rest
+    },
+    ref,
+  ) {
+    const composeClassName = ["select-menu", className]
+      .filter((c) => c)
+      .join(" ");
 
-  return (
-    <MenuWrapper
-      $label={label}
-      $menuHeight={menuHeight}
-      $menuPosition={menuPosition}
-      $labelPosition={labelPosition}
-      $invalid={invalid}
-      data-role="menu"
-      className={composeClassName}
-      onClick={onClick}
-    >
-      {children}
-    </MenuWrapper>
-  );
-};
+    return (
+      <MenuWrapper
+        ref={ref}
+        $label={label}
+        $menuHeight={menuHeight}
+        $menuPosition={menuPosition}
+        $labelPosition={labelPosition}
+        $invalid={invalid}
+        data-role="menu"
+        className={composeClassName}
+        onClick={onClick}
+        style={style}
+        {...rest}
+      >
+        {children}
+      </MenuWrapper>
+    );
+  },
+);

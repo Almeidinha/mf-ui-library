@@ -1,11 +1,11 @@
+import { Slide } from "components/transitions";
 import {
   defaultTo,
   is,
   isDefined,
   isNil,
-  maybeRender,
   safeArray,
-} from "@helpers";
+} from "helpers/safe-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FixedSizeList } from "react-window";
 
@@ -23,8 +23,6 @@ import { defaultGetOptionKey } from "../utils";
 import { EmptyOptionItem, SelectLabel } from "./helpers";
 import { MenuContainer } from "./menu-container";
 import { MenuRow, MenuRowWithMultiLevels } from "./menu-row";
-
-type FixedSizeListOuterEl = HTMLDivElement;
 
 // eslint-disable-next-line comma-spacing
 export const Menu = <T,>(props: MenuComponentProps<T>) => {
@@ -47,6 +45,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     className,
     options: propOptions,
     onSelect,
+    getOptionKey = defaultGetOptionKey,
   } = props;
 
   const [options, setOptions] = useState<IOption<T>[]>(() =>
@@ -54,9 +53,6 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
   );
 
   const listRef = useRef<FixedSizeList>(null);
-  const outerRef = useRef<FixedSizeListOuterEl | null>(null);
-
-  const getOptionKey = props.getOptionKey ?? defaultGetOptionKey;
 
   const height = Math.min(
     Math.max(options.length * rowHeight, rowHeight) + 10,
@@ -71,28 +67,17 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     if (!is(open)) {
       return;
     }
+
     if (!listRef.current) {
       return;
     }
+
     if (selectedIndex === undefined || selectedIndex < 0) {
       return;
     }
 
     listRef.current.scrollToItem(selectedIndex, "center");
   }, [open, selectedIndex]);
-
-  useEffect(() => {
-    const el = outerRef.current;
-    if (!el) {
-      return;
-    }
-
-    if (is(open) && options.length > 0) {
-      el.style.opacity = "1";
-    } else {
-      el.style.opacity = "0";
-    }
-  }, [open, options.length]);
 
   const handleSelect = useCallback(
     (nextValue: T, option: IOption<T>) => {
@@ -129,9 +114,11 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     if (is(multi) && Array.isArray(value)) {
       return value;
     }
+
     if (isNil(value) || Array.isArray(value)) {
       return [];
     }
+
     return [value];
   }, [value, multi]);
 
@@ -186,7 +173,6 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
         className="menu-list"
         style={{ position: "absolute" }}
         ref={listRef}
-        outerRef={outerRef}
         width="100%"
         height={height}
         itemSize={rowHeight}
@@ -198,17 +184,23 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     );
   };
 
-  return maybeRender(
-    open,
-    <MenuContainer
-      className={className}
-      invalid={invalid}
-      label={label}
-      menuHeight={height}
-      menuPosition={menuPosition}
-      labelPosition={labelPosition}
+  return (
+    <Slide
+      in={open}
+      direction={menuPosition === "top" ? "up" : "down"}
+      mountOnEnter
+      unmountOnExit
     >
-      {renderList()}
-    </MenuContainer>,
+      <MenuContainer
+        className={className}
+        invalid={invalid}
+        label={label}
+        menuHeight={height}
+        menuPosition={menuPosition}
+        labelPosition={labelPosition}
+      >
+        {renderList()}
+      </MenuContainer>
+    </Slide>
   );
 };

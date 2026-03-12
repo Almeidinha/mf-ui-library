@@ -1,5 +1,6 @@
 import { Nothing } from "@helpers";
 import { IOption } from "components/select";
+import { Slide } from "components/transitions";
 import { useRepositionOnScroll } from "hooks";
 import React, {
   useCallback,
@@ -179,24 +180,32 @@ export const PortalMenu = ({
   };
 
   return createPortal(
-    <PortalFrame ref={panelRef} $top={pos.top} $left={pos.left} $width={width}>
-      <MenuListExpanded
-        options={items}
-        value={[]}
-        emptyText={emptyText ?? ""}
-        multi={multi ?? true}
-        menuHeight={computedMenuHeight}
-        invalid={invalid ?? false}
-        open={open}
-        search={search ?? ""}
-        label={label ?? ""}
-        menuTitle={menuTitle ?? ""}
-        multiLevel={multiLevel ?? true}
-        getOptionKey={getOptionKey}
-        onSelect={handleSelect}
-        width={width}
-      />
-    </PortalFrame>,
+    <Slide in={open} mountOnEnter unmountOnExit>
+      <PortalFrame
+        ref={panelRef}
+        $top={pos.top}
+        $left={pos.left}
+        $width={width}
+      >
+        <MenuListExpanded
+          options={items}
+          value={[]}
+          emptyText={emptyText ?? ""}
+          multi={multi ?? true}
+          menuHeight={computedMenuHeight}
+          invalid={invalid ?? false}
+          open={open}
+          search={search ?? ""}
+          label={label ?? ""}
+          menuTitle={menuTitle ?? ""}
+          multiLevel={multiLevel ?? true}
+          getOptionKey={getOptionKey}
+          onSelect={handleSelect}
+          width={width}
+        />
+      </PortalFrame>
+    </Slide>,
+
     document.body,
   );
 };

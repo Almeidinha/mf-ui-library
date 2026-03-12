@@ -1,6 +1,6 @@
 import { FC } from "@helpers";
 import { IconListMajor, IconNames } from "components/icon/icon-list";
-import React, { CSSProperties } from "react";
+import React, { CSSProperties, HTMLAttributes } from "react";
 
 type SelectIconType = (typeof IconListMajor)[IconNames];
 
@@ -117,7 +117,7 @@ export type IValueProps<T> = {
   customIcon?: SelectIconType;
 };
 
-export interface IMenuContainerProps {
+export interface IMenuContainerProps extends HTMLAttributes<HTMLDivElement> {
   className?: string;
   menuTop?: number;
   menuHeight?: RectSize;

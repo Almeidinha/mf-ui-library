@@ -8,11 +8,11 @@ export const Nothing: FC = () => null;
 
 export const isNothing = isReactElementOfType(Nothing);
 
-export function maybeRender<T>(prop: T, JSX: ReactNode) {
+export function maybeRender<T>(prop: T, Node: ReactNode) {
   return isNil(prop) || false === Boolean(prop) || isNothing(prop) ? (
     <Nothing />
   ) : (
-    JSX
+    Node
   );
 }
 
