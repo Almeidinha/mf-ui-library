@@ -1,3 +1,4 @@
+import { useMergedRefs } from "hooks/useMergedRefs";
 import {
   cloneElement,
   CSSProperties,
@@ -8,7 +9,7 @@ import {
 
 import { BaseTransitionProps, TransitionStatus } from "./types";
 import { useTransitionState } from "./use-transition-state";
-import { mergeRefs, mergeStyles, normalizeEasing } from "./utils";
+import { mergeStyles, normalizeEasing } from "./utils";
 
 type StyleResolverArgs = {
   status: TransitionStatus;
@@ -17,6 +18,11 @@ type StyleResolverArgs = {
 type TransitionProps = BaseTransitionProps & {
   getStyles: (args: StyleResolverArgs) => CSSProperties;
   transitionProperty?: string;
+};
+
+type TransitionChildProps = {
+  ref?: Ref<HTMLElement>;
+  style?: CSSProperties;
 };
 
 function getCurrentEasing(
@@ -63,16 +69,13 @@ export const Transition = forwardRef<HTMLElement, TransitionProps>(
         onExited,
       });
 
+    const child = children as ReactElement<TransitionChildProps>;
+
+    const mergedRef = useMergedRefs(child.props.ref, forwardedRef);
+
     if (!isMounted) {
       return null;
     }
-
-    const child = children as ReactElement & {
-      ref?: Ref<HTMLElement>;
-      props: {
-        style?: CSSProperties;
-      };
-    };
 
     const easingByMode = normalizeEasing(easing);
 
@@ -97,8 +100,8 @@ export const Transition = forwardRef<HTMLElement, TransitionProps>(
       ? { transitionDuration: "0ms" }
       : {};
 
-    return cloneElement(child, {
-      ref: mergeRefs(child.ref, forwardedRef),
+    return cloneElement<TransitionChildProps>(child, {
+      ref: mergedRef,
       style: mergeStyles(
         child.props.style,
         baseTransitionStyle,

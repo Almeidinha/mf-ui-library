@@ -1,7 +1,7 @@
+import { useMergedRefs } from "hooks/useMergedRefs";
 import {
   CSSProperties,
   forwardRef,
-  ReactElement,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -10,12 +10,7 @@ import {
 
 import { CollapseProps } from "./types";
 import { useTransitionState } from "./use-transition-state";
-import {
-  mergeRefs,
-  normalizeEasing,
-  normalizeTimeout,
-  toCssUnit,
-} from "./utils";
+import { normalizeEasing, normalizeTimeout, toCssUnit } from "./utils";
 
 function getContentSize(
   element: HTMLElement | null,
@@ -75,6 +70,8 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
     const [contentSize, setContentSize] = useState(0);
     const [inlineSize, setInlineSize] = useState<string>(collapsedSizeCss);
 
+    const mergedRef = useMergedRefs(wrapperRef, forwardedRef);
+
     useLayoutEffect(() => {
       const node = innerRef.current;
       if (!node) {
@@ -106,6 +103,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       const expanded = `${contentSize}px`;
 
       if (status === "pre-enter") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setInlineSize(collapsedSizeCss);
         return;
       }
@@ -162,11 +160,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
         : {};
 
     return (
-      <div
-        ref={mergeRefs(wrapperRef, forwardedRef)}
-        style={wrapperStyle}
-        aria-hidden={!inProp}
-      >
+      <div ref={mergedRef} style={wrapperStyle} aria-hidden={!inProp}>
         <div ref={innerRef} style={innerStyle}>
           {children}
         </div>

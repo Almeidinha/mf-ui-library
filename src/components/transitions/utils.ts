@@ -1,4 +1,4 @@
-import { CSSProperties, Ref } from "react";
+import { CSSProperties } from "react";
 
 import { TransitionEasing, TransitionTimeout } from "./types";
 
@@ -37,28 +37,16 @@ export function normalizeEasing(easing: TransitionEasing = "ease-in-out") {
 export function mergeStyles(
   ...styles: Array<CSSProperties | undefined>
 ): CSSProperties {
-  return Object.assign({}, ...styles);
-}
+  return styles.reduce<CSSProperties>((mergedStyles, style) => {
+    if (!style) {
+      return mergedStyles;
+    }
 
-export function mergeRefs<T>(...refs: Array<Ref<T> | undefined>) {
-  return (value: T | null) => {
-    refs.forEach((ref) => {
-      if (!ref) {
-        return;
-      }
-
-      if (typeof ref === "function") {
-        ref(value);
-        return;
-      }
-
-      try {
-        (ref as { current: T | null }).current = value;
-      } catch {
-        // noop
-      }
-    });
-  };
+    return {
+      ...mergedStyles,
+      ...style,
+    };
+  }, {});
 }
 
 export function toCssUnit(value: number | string) {

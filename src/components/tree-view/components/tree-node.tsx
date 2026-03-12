@@ -3,6 +3,7 @@ import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { Spinner } from "components/spinner";
+import { Collapse } from "components/transitions";
 import { Label } from "components/typography";
 import { Focused, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
@@ -328,11 +329,11 @@ export const TreeNode = ({
         </HelpfulMessage>
       </If>
 
-      <If is={is(node.isParent && expanded)}>
+      <Collapse in={is(node.isParent && expanded)}>
         <ChildGroup role="group" id={`${treeId}-group-${node.id}`}>
           {children}
         </ChildGroup>
-      </If>
+      </Collapse>
     </ListItem>
   );
 };
