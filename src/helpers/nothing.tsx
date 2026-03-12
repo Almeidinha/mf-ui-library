@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { ReactNode } from "react";
 
 import { FC, PropsWithChildren } from "./generic-types";
 import { isReactElementOfType } from "./isReactElementOfType";
@@ -8,7 +8,7 @@ export const Nothing: FC = () => null;
 
 export const isNothing = isReactElementOfType(Nothing);
 
-export function maybeRender<T>(prop: T, JSX: JSX.Element) {
+export function maybeRender<T>(prop: T, JSX: ReactNode) {
   return isNil(prop) || false === Boolean(prop) || isNothing(prop) ? (
     <Nothing />
   ) : (
@@ -22,5 +22,5 @@ interface IIfProps<T> {
 
 // eslint-disable-next-line comma-spacing
 export const If = <T,>({ is, children }: PropsWithChildren<IIfProps<T>>) => {
-  return maybeRender<T>(is, <>{children}</>);
+  return maybeRender<T>(is, children);
 };

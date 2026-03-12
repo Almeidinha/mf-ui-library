@@ -35,14 +35,16 @@ interface IRadioGroupProps {
   handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const RadioGroup = (props: IRadioGroupProps) => {
+const RadioGroup = ({
+  options,
+  name,
+  selected,
+  handleChange,
+}: IRadioGroupProps) => {
   return (
     <>
-      {props.options.map((option: IRadioOption, index: number) => {
-        const shortenedOptionLabel = defaultTo(props.name, "").replace(
-          /\s+/g,
-          "",
-        );
+      {options.map((option: IRadioOption, index: number) => {
+        const shortenedOptionLabel = defaultTo(name, "").replace(/\s+/g, "");
         const optionId = `radio-option-${index}-${shortenedOptionLabel}`;
 
         return (
@@ -51,10 +53,10 @@ const RadioGroup = (props: IRadioGroupProps) => {
             label={option.label}
             key={optionId}
             id={optionId}
-            name={props.name}
+            name={name}
             disabled={option.disabled}
-            checked={option.value === props.selected}
-            onChange={props.handleChange}
+            checked={option.value === selected}
+            onChange={handleChange}
           />
         );
       })}
@@ -62,15 +64,14 @@ const RadioGroup = (props: IRadioGroupProps) => {
   );
 };
 
-export const ChoiceList: FC<IOptionGroup> = (props: IOptionGroup) => {
-  const {
-    options,
-    selected,
-    name,
-    className,
-    direction = "vertical",
-    onChange,
-  } = props;
+export const ChoiceList: FC<IOptionGroup> = ({
+  options,
+  selected,
+  name,
+  className,
+  direction = "vertical",
+  onChange,
+}: IOptionGroup) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value);
   };

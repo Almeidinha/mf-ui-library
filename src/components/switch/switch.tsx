@@ -2,6 +2,7 @@ import { Body } from "components/typography";
 import { Surface } from "foundation/colors";
 import { Margin } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
+import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
 import React, { InputHTMLAttributes, useId } from "react";
 import styled from "styled-components";
@@ -113,14 +114,14 @@ export const Switch: FC<SwitchProps> = ({
 
   return (
     <Container htmlFor={inputId}>
-      {hasText && (
+      <If is={hasText}>
         <TextContainer>
           {isDefined(label) && <Body>{label}</Body>}
           {isDefined(helpText) && (
             <HelpTextContainer subdued>{helpText}</HelpTextContainer>
           )}
         </TextContainer>
-      )}
+      </If>
 
       <SwitchControl>
         <HiddenInput

@@ -26,16 +26,21 @@ interface ILabeledInputProps extends PropsWithChildren {
   htmlFor?: string;
 }
 
-export const LabeledInput: FC<ILabeledInputProps> = (props) => {
-  const { label, helpText, errors, className, htmlFor } = props;
-
+export const LabeledInput: FC<ILabeledInputProps> = ({
+  label,
+  helpText,
+  errors,
+  className,
+  htmlFor,
+  children,
+}) => {
   return (
     <HTMLLabel className={className}>
       <label htmlFor={htmlFor}>
         <If is={label}>
           <LabelText>{label}</LabelText>
         </If>
-        {props.children}
+        {children}
       </label>
       {safeArray(errors).map((e) => (
         <ErrorMessage key={e.message} message={e.message} />

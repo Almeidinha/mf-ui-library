@@ -5,7 +5,7 @@ import { Body, Label } from "components/typography";
 import { Borders, Focused, Icons, Surface, Text } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
-import { maybeRender, Nothing } from "helpers/nothing";
+import { If, maybeRender, Nothing } from "helpers/nothing";
 import {
   defaultTo,
   is,
@@ -198,31 +198,37 @@ const SearchSpan = styled.span<{ $canSearch: boolean }>`
 `;
 
 // eslint-disable-next-line comma-spacing
-const ValueImpl = <T,>(props: IValueProps<T>) => {
+const ValueImpl = <T,>({
+  options = [],
+  value,
+  disabled,
+  clearable,
+  open,
+  multi,
+  maxLength,
+  multiLevel,
+  focused,
+  invalid,
+  errors,
+  label,
+  searchable,
+  labelPosition = labelPositionType.TOP,
+  iconPosition,
+  customIcon,
+  labelId,
+  placeholder,
+  labelComponent,
+  onOptionRemove,
+  onClick,
+  onClear,
+  onSearchBlur,
+  onInputChange,
+  onSearch,
+  onSearchFocus,
+  getOptionKey = defaultGetOptionKey,
+}: IValueProps<T>) => {
   const searchRef = useRef<HTMLSpanElement>(null);
   const [searchText, setSearchText] = useState("");
-
-  const {
-    options = [],
-    value,
-    disabled,
-    clearable,
-    open,
-    multi,
-    multiLevel,
-    focused,
-    invalid,
-    errors,
-    label,
-    searchable,
-    labelPosition = labelPositionType.TOP,
-    iconPosition,
-    customIcon,
-    labelId,
-  } = props;
-
-  const getOptionKey =
-    props.getOptionKey ?? (defaultGetOptionKey as (v: T) => string);
 
   const valueOptions = useMemo(() => {
     return getValueOptions(options, value, multi, multiLevel, getOptionKey);
@@ -247,37 +253,37 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
     if (is(searchable)) {
       focusSearch();
     }
-    props.onClick();
-  }, [disabled, searchable, focusSearch, props]);
+    onClick();
+  }, [disabled, searchable, focusSearch, onClick]);
 
-  const onClear = useCallback(
+  const handleOnClear = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
       event.stopPropagation();
-      props.onClear();
+      onClear();
       clearSearch();
     },
-    [props, clearSearch],
+    [onClear, clearSearch],
   );
 
-  const onSearchBlur = useCallback(() => {
+  const handleOnSearchBlur = useCallback(() => {
     clearSearch();
-    props.onSearchBlur?.();
-  }, [clearSearch, props]);
+    onSearchBlur?.();
+  }, [clearSearch, onSearchBlur]);
 
   const emitSearch = useCallback(() => {
     const text = (searchRef.current?.innerText ?? "").trim();
 
     setSearchText(text);
 
-    props.onInputChange?.(text);
-    if (is(props.searchable)) {
-      props.onSearch(text);
+    onInputChange?.(text);
+    if (is(searchable)) {
+      onSearch(text);
     }
-  }, [props]);
+  }, [onInputChange, onSearch, searchable]);
 
   const onBeforeInput = useCallback(
     (event: React.FormEvent<HTMLSpanElement>) => {
-      if (!isDefined(props.maxLength)) {
+      if (!isDefined(maxLength)) {
         return;
       }
 
@@ -296,11 +302,11 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
         typeof nativeEvent.data === "string" ? nativeEvent.data : "";
       const nextLen = current.length + incoming.length;
 
-      if (nextLen > props.maxLength) {
+      if (nextLen > maxLength) {
         event.preventDefault();
       }
     },
-    [props.maxLength],
+    [maxLength],
   );
 
   const onSearchKeyDown = useCallback(
@@ -341,7 +347,7 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
         onInput={emitSearch}
         onKeyDown={onSearchKeyDown}
         onBeforeInput={onBeforeInput}
-        onBlur={onSearchBlur}
+        onBlur={handleOnSearchBlur}
         ref={searchRef}
       />
     );
@@ -357,8 +363,6 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
   };
 
   const renderValues = () => {
-    const { placeholder, labelComponent } = props;
-
     if (is(searchable) && is(open) && !is(multi)) {
       return <Nothing />;
     }
@@ -379,7 +383,7 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
           option={option}
           labelComponent={labelComponent}
           options={valueOptions}
-          onRemove={props.onOptionRemove}
+          onRemove={onOptionRemove}
         />
       ) : (
         <ValueComponentSingle<T>
@@ -407,7 +411,7 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
         onClick={onContainerClick}
         center
         $iconPosition={iconPosition}
-        onFocus={props.onSearchFocus}
+        onFocus={onSearchFocus}
       >
         <ValueWrapper
           $label={label}
@@ -421,21 +425,21 @@ const ValueImpl = <T,>(props: IValueProps<T>) => {
             $multi={multi}
             $hasValue={valueOptions.length > 0}
           >
-            {searchAtStart && renderSearch()}
+            {searchAtStart ? renderSearch() : null}
             {renderValues()}
-            {searchAtEnd && renderSearch()}
+            {searchAtEnd ? renderSearch() : null}
           </ValueLeft>
         </ValueWrapper>
-        {showClearer && (
+        <If is={showClearer}>
           <ClearButton
             tabIndex={-1}
             className="clearer"
-            onClick={onClear}
+            onClick={handleOnClear}
             IconPrefix={IconMinor.Xmark}
             plain
             subtle
           />
-        )}
+        </If>
         <ValueRight className="value-right" center $iconPosition={iconPosition}>
           {isDefined(customIcon) ? (
             customIcon

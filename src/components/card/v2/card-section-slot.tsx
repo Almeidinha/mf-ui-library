@@ -14,7 +14,7 @@ import { HTMLAttributes, useId } from "react";
 import styled from "styled-components";
 
 export const CardHeadingActionSlot: SlotComponent = (props) => {
-  return <>{props.children}</>;
+  return props.children;
 };
 
 CardHeadingActionSlot.__slot = true;
@@ -45,14 +45,12 @@ function joinIds(...ids: Array<string | undefined>) {
   return value || undefined;
 }
 
-export const CardSectionSlot: SlotComponent<ICardSectionProps> = (props) => {
-  const {
-    heading,
-    children: rawChildren,
-    "aria-labelledby": ariaLabelledBy,
-    ...htmlProps
-  } = props;
-
+export const CardSectionSlot: SlotComponent<ICardSectionProps> = ({
+  heading,
+  children: rawChildren,
+  "aria-labelledby": ariaLabelledBy,
+  ...htmlProps
+}) => {
   const reactId = useId();
   const headingAction = getOptionalSlot(CardHeadingActionSlot, rawChildren);
   const children = getOtherChildren(rawChildren);

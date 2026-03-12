@@ -30,14 +30,19 @@ const FlagIcon = styled.i<{ size: FlagSize; code: CountryCodes }>`
   background-position: ${({ size, code }) => getPositionByCode(size, code)};
 `;
 
-export const Flag: FC<FlagIconProps> = (props) => {
+export const Flag: FC<FlagIconProps> = ({
+  style,
+  className,
+  code,
+  ...props
+}) => {
   return (
     <FlagIcon
       role="img"
-      className={props.className}
-      style={props.style}
+      className={className}
+      style={style}
       size={getFlagSize(props)}
-      code={props.code}
+      code={code}
     />
   );
 };

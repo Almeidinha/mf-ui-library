@@ -7,8 +7,11 @@ const CardAlertBanner = styled(AlertBanner)`
   margin: ${Margin.l} ${Margin.l} ${Margin.none} ${Margin.l};
 `;
 
-export const CardAlertBannerSlot: SlotComponent<AlertBannerProps> = (props) => {
-  return <CardAlertBanner {...props}>{props.children}</CardAlertBanner>;
+export const CardAlertBannerSlot: SlotComponent<AlertBannerProps> = ({
+  children,
+  ...props
+}) => {
+  return <CardAlertBanner {...props}>{children}</CardAlertBanner>;
 };
 
 CardAlertBannerSlot.__slot = true;

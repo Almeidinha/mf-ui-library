@@ -58,11 +58,13 @@ const columns: DataTableColumn<PersonRow>[] = [
     fitContent: true,
     getActions: (row: PersonRow) => [
       {
+        key: "edit",
         label: "Edit",
         icon: IconMinor.Pen,
         onClick: () => console.log("Edit action clicked"),
       },
       {
+        key: "delete",
         label: "Delete",
         icon: IconMinor.TrashCan,
         destructive: true,
@@ -70,6 +72,7 @@ const columns: DataTableColumn<PersonRow>[] = [
         onClick: () => console.log("Delete action clicked"),
       },
       {
+        key: "impersonate",
         label: "Impersonate",
         hidden: (r: PersonRow) => !r.isActive,
         onClick: () => console.log("Impersonate action clicked"),

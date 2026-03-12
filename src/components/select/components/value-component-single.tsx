@@ -4,19 +4,23 @@ import { IValueComponentSingleProps, SelectLabelComponent } from "../types";
 import { SelectLabel } from "./helpers";
 
 // eslint-disable-next-line comma-spacing
-const ValueComponentSingleImpl = <T,>(props: IValueComponentSingleProps<T>) => {
-  const { option, labelComponent = SelectLabel } = props;
-
+const ValueComponentSingleImpl = <T,>({
+  option,
+  labelComponent = SelectLabel,
+  className,
+}: IValueComponentSingleProps<T>) => {
   const LabelComponent: SelectLabelComponent<T> = labelComponent;
 
-  const className = ["value-single", props.className].filter(Boolean).join(" ");
+  const composedClassName = ["value-single", className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <LabelComponent
       value={option.value}
       active
       type="value-single"
-      className={className}
+      className={composedClassName}
       default
       disabled={option.disabled}
       label={option.label}

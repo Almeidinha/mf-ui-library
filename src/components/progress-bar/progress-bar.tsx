@@ -1,6 +1,7 @@
 import { Actions, Surface } from "foundation/colors";
 import { FC } from "helpers/generic-types";
 import { clamp } from "helpers/numbers";
+import { is } from "helpers/safe-navigation";
 import styled, { css, keyframes } from "styled-components";
 
 const shimmer = keyframes`
@@ -88,7 +89,7 @@ export const ProgressBar: FC<ProgressBarProps> = ({
       aria-valuetext={`${safeProgress}%`}
       {...rest}
     >
-      <Fill $progress={safeProgress} $pulse={pulse && safeProgress < 100} />
+      <Fill $progress={safeProgress} $pulse={is(pulse && safeProgress < 100)} />
     </Track>
   );
 };

@@ -43,13 +43,16 @@ interface IStepperProps {
   onDownClick?: () => void;
 }
 
-export const Stepper: FC<IStepperProps> = (props: IStepperProps) => {
+export const Stepper: FC<IStepperProps> = ({
+  onUpClick,
+  onDownClick,
+}: IStepperProps) => {
   return (
     <Controls>
-      <ButtonBox onClick={props.onUpClick}>
+      <ButtonBox onClick={onUpClick}>
         <TriangleUp />
       </ButtonBox>
-      <ButtonBox onClick={props.onDownClick}>
+      <ButtonBox onClick={onDownClick}>
         <TriangleDown />
       </ButtonBox>
     </Controls>

@@ -3,7 +3,6 @@ import { Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
 import {
   FocusEvent,
-  Fragment,
   KeyboardEvent,
   memo,
   useCallback,
@@ -157,7 +156,7 @@ const SliderInputsBase: FC<ISliderInputs> = (props) => {
 
   if (type === SliderType.Range) {
     return (
-      <Fragment>
+      <>
         <FieldContainer $align="right">
           <Input
             type="number"
@@ -197,7 +196,7 @@ const SliderInputsBase: FC<ISliderInputs> = (props) => {
             onKeyUp={notifyKeyUp}
           />
         </FieldContainer>
-      </Fragment>
+      </>
     );
   }
 

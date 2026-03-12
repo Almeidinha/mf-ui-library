@@ -2,15 +2,7 @@ import { Center } from "components/layout";
 import { Label } from "components/typography";
 import { Margin, Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
-import {
-  Fragment,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 
 import { BarChartComponent } from "./components/bar-chart";
@@ -148,7 +140,7 @@ const RangeValues = memo((props: RangeValuesProps) => {
           onKeyUp={onKeyUp}
         />
       ) : (
-        <Fragment>
+        <>
           <FieldContainer $align="right">
             <ValueLabel>
               {prefix ? `${prefix} ${safeValues[0]}` : safeValues[0]}
@@ -160,7 +152,7 @@ const RangeValues = memo((props: RangeValuesProps) => {
               {prefix ? `${prefix} ${safeValues[1]}` : safeValues[1]}
             </ValueLabel>
           </FieldContainer>
-        </Fragment>
+        </>
       )}
     </GridContainer>
   );
@@ -168,21 +160,19 @@ const RangeValues = memo((props: RangeValuesProps) => {
 
 RangeValues.displayName = "RangeValues";
 
-export const RangeSlider: FC<RangeSliderProps> = (props) => {
-  const {
-    min = 0,
-    max = 100,
-    values,
-    prefix = "",
-    graphHeight = 100,
-    editable = false,
-    data,
-    maxLabel,
-    minLabel,
-    onChange,
-    onKeyUp,
-  } = props;
-
+export const RangeSlider: FC<RangeSliderProps> = ({
+  min = 0,
+  max = 100,
+  values,
+  prefix = "",
+  graphHeight = 100,
+  editable = false,
+  data,
+  maxLabel,
+  minLabel,
+  onChange,
+  onKeyUp,
+}) => {
   const hasData = Array.isArray(data) && data.length > 0;
 
   const range = useMemo<readonly [number, number]>(() => {

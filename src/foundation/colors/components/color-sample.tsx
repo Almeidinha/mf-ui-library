@@ -52,13 +52,17 @@ interface IColorRectangleProps {
   border?: Hex;
 }
 
-export const ColorRectangle: FC<IColorRectangleProps> = (props) => {
+export const ColorRectangle: FC<IColorRectangleProps> = ({
+  name,
+  hex,
+  border,
+}) => {
   return (
     <div>
-      <RectangularColorSample color={props.hex} border={props.border} />
+      <RectangularColorSample color={hex} border={border} />
       <SpaceBetween>
-        <Caption>{props.name}</Caption>
-        <Caption subdued>{props.hex}</Caption>
+        <Caption>{name}</Caption>
+        <Caption subdued>{hex}</Caption>
       </SpaceBetween>
     </div>
   );
@@ -89,13 +93,18 @@ interface IColorSquareProps {
   border?: Hex;
 }
 
-export const ColorSquare: FC<IColorSquareProps> = (props) => {
+export const ColorSquare: FC<IColorSquareProps> = ({
+  name,
+  colorId,
+  hex,
+  border,
+}) => {
   return (
     <ColorFrame>
-      <SquareColorSample color={props.hex} border={props.border} />
+      <SquareColorSample color={hex} border={border} />
       <Details column>
-        <ColorName strong>{props.name}</ColorName>
-        <ColorId subdued>{props.colorId}</ColorId>
+        <ColorName strong>{name}</ColorName>
+        <ColorId subdued>{colorId}</ColorId>
       </Details>
     </ColorFrame>
   );

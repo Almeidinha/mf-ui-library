@@ -23,11 +23,11 @@ type IInputNumberSlots = InputFieldSlots & {
   Stepper: typeof Stepper;
 };
 
-export const InputNumber: FC<IInputNumberProps, IInputNumberSlots> = (
-  props,
-) => {
-  const { onChange, value, ...inputFieldProps } = props;
-
+export const InputNumber: FC<IInputNumberProps, IInputNumberSlots> = ({
+  onChange,
+  value,
+  ...inputFieldProps
+}) => {
   return (
     <InputField
       {...inputFieldProps}

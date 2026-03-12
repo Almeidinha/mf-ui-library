@@ -96,6 +96,23 @@ export default defineConfig([
       "import/first": "error",
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",
+
+      // Esxtras
+      "react/no-array-index-key": "error",
+      "react/display-name": "error",
+      "react/no-danger": "error",
+      "react/no-unused-prop-types": "error",
+      "react/no-children-prop": "error",
+      "react/jsx-no-useless-fragment": "error",
+      "react/jsx-fragments": ["error", "syntax"],
+      "react/jsx-max-depth": ["error", { max: 5 }],
+      "react/jsx-no-leaked-render": "error",
+      "react/destructuring-assignment": [
+        "error",
+        "always",
+        { ignoreClassFields: true, destructureInSignature: "always" },
+      ],
+      "react/no-unstable-nested-components": "error",
     },
   },
   {

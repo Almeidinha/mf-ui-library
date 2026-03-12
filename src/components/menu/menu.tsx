@@ -27,30 +27,36 @@ const AnchorRef = styled.span`
   height: 0;
 `;
 
-export const Menu = (props: IMenuPros) => {
-  const getOptionKey = props.getOptionKey ?? defaultGetOptionKey;
+export const Menu = ({
+  getOptionKey = defaultGetOptionKey,
+  anchorRef,
+  items,
+  open,
+  placement,
+  onSelect,
+  width,
+}: IMenuPros) => {
   const internalAnchorRef = useRef<HTMLSpanElement | null>(null);
 
   const resolvedAnchorRef = useMemo(
     () =>
-      props.anchorRef ??
-      (internalAnchorRef as React.RefObject<HTMLElement | null>),
-    [props.anchorRef],
+      anchorRef ?? (internalAnchorRef as React.RefObject<HTMLElement | null>),
+    [anchorRef],
   );
 
   return (
     <>
-      <If is={!props.anchorRef}>
+      <If is={!anchorRef}>
         <AnchorRef ref={internalAnchorRef} />
       </If>
       <PortalMenu
-        items={props.items}
-        open={props.open}
-        width={props.width}
+        items={items}
+        open={open}
+        width={width}
         getOptionKey={getOptionKey}
         anchorRef={resolvedAnchorRef}
-        placement={props.placement}
-        onSelect={props.onSelect}
+        placement={placement}
+        onSelect={onSelect}
       />
     </>
   );

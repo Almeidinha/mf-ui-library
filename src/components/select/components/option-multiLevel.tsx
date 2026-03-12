@@ -33,33 +33,41 @@ const ParentLabel = styled.div`
 `;
 
 // eslint-disable-next-line comma-spacing
-const OptionMultiLevelComponentImp = <T,>(
-  props: OptionMultiLevelComponentProps<T>,
-) => {
-  const { active, selected, labelComponent = Label, option, height } = props;
-
+const OptionMultiLevelComponentImp = <T,>({
+  active,
+  selected,
+  labelComponent = Label,
+  option,
+  height,
+  onSelect,
+  onExpand,
+  onReturn,
+  className,
+}: OptionMultiLevelComponentProps<T>) => {
   const SelectLabel: SelectLabelComponent<T> = labelComponent;
 
   const onClick = useCallback(() => {
     if (is(option.isParent)) {
-      props.onReturn?.();
+      onReturn?.();
     } else if (!isNilOrEmpty(option?.options)) {
-      props.onExpand?.(option);
+      onExpand?.(option);
     } else {
-      props.onSelect(option.value, option);
+      onSelect(option.value, option);
     }
-  }, [option, props]);
+  }, [option, onReturn, onExpand, onSelect]);
 
-  const className = [
+  const composeClassName = [
     "option",
-    props.className,
+    className,
     is(selected) ? "selected" : "",
     is(active) ? "active" : "",
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <OptionItem
-      className={className.join(" ")}
+      className={composeClassName}
       data-role="option"
       center
       state={getOptionState(active, selected)}

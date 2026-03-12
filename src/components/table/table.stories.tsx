@@ -575,22 +575,26 @@ const ActionsWrapper = styled(SpaceBetween)`
   border-top-left-radius: 6px;
 `;
 
-const UserCell: FC<{ name: string; email: string }> = function UserCell(props) {
+const UserCell: FC<{ name: string; email: string }> = function UserCell({
+  name,
+  email,
+}) {
   return (
     <>
-      <Body strong>{props.name}</Body>
-      <Body subdued>{props.email}</Body>
+      <Body strong>{name}</Body>
+      <Body subdued>{email}</Body>
     </>
   );
 };
 
-const SchoolCell: FC<{ name: string; country: string }> = function SchoolCell(
-  props,
-) {
+const SchoolCell: FC<{ name: string; country: string }> = function SchoolCell({
+  name,
+  country,
+}) {
   return (
     <>
-      <Body strong>{props.name}</Body>
-      <Body subdued>{props.country}</Body>
+      <Body strong>{name}</Body>
+      <Body subdued>{country}</Body>
     </>
   );
 };

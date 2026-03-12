@@ -104,28 +104,33 @@ const TitleRow = styled(Heading4)`
   padding-left: ${Padding.s};
 `;
 
-type RowProps<T> = MenuComponentProps<T> & {
+type RowProps<T> = Omit<MenuComponentProps<T>, "onSelect" | "open"> & {
   index: number;
   handleClick: (option: IOption<T>) => void;
 };
 
 // eslint-disable-next-line comma-spacing
-const Row = <T,>(props: RowProps<T>) => {
-  const { index, options = [], handleClick, getOptionKey } = props;
-
+const Row = <T,>({
+  index,
+  value,
+  multi,
+  options = [],
+  handleClick,
+  getOptionKey,
+}: RowProps<T>) => {
   const hasIcon = safeArray(options).some((option) =>
     isDefined(option["icon"]),
   );
 
   const currentValue = useMemo<T[]>(() => {
-    if (is(props.multi) && Array.isArray(props.value)) {
-      return props.value;
+    if (is(multi) && Array.isArray(value)) {
+      return value;
     }
-    if (isNil(props.value) || Array.isArray(props.value)) {
+    if (isNil(value) || Array.isArray(value)) {
       return [];
     }
-    return [props.value];
-  }, [props.value, props.multi]);
+    return [value];
+  }, [value, multi]);
 
   const option = options[index];
 
@@ -156,12 +161,24 @@ const Row = <T,>(props: RowProps<T>) => {
 };
 
 // eslint-disable-next-line comma-spacing
-export const MenuList = <T,>(props: MenuComponentProps<T>) => {
-  const { menuHeight = 184 } = props;
+export const MenuList = <T,>({
+  open,
+  value,
+  selectedIndex,
+  rowHeight,
+  multi,
+  menuPosition,
+  menuHeight = 184,
+  options,
+  emptyText,
+  menuTitle,
+  search,
+  onSelect,
+  getOptionKey,
+}: MenuComponentProps<T>) => {
+  const safeOptions = safeArray(options);
 
-  const options = safeArray(props.options);
-
-  const optionsHeight = options.reduce((acc, obj) => {
+  const optionsHeight = safeOptions.reduce((acc, obj) => {
     return acc + (isDefined(obj["helperText"]) ? 72 : 52);
   }, 0);
 
@@ -169,17 +186,15 @@ export const MenuList = <T,>(props: MenuComponentProps<T>) => {
 
   const list = useRef<HTMLDivElement>(null);
 
-  const { open, selectedIndex, rowHeight, menuPosition } = props;
-
   const handleClick = useCallback(
     (option: IOption<T>) => {
       const newValue =
-        Array.isArray(props.value) && is(props.multi)
-          ? [...props.value, option.value]
+        Array.isArray(value) && is(multi)
+          ? [...value, option.value]
           : option.value;
-      props.onSelect(newValue, option);
+      onSelect(newValue, option);
     },
-    [props],
+    [multi, onSelect, value],
   );
 
   useEffect(() => {
@@ -191,8 +206,7 @@ export const MenuList = <T,>(props: MenuComponentProps<T>) => {
     }
   }, [open, selectedIndex, rowHeight]);
 
-  if (options.length === 0) {
-    const { emptyText } = props;
+  if (safeOptions.length === 0) {
     return (
       <EmptyOptionItem $menuPosition={menuPosition}>
         <SelectLabel>
@@ -205,17 +219,19 @@ export const MenuList = <T,>(props: MenuComponentProps<T>) => {
   return (
     <MenuListFrame $height={height} ref={list}>
       {maybeRender(
-        isDefined(props.menuTitle) &&
-          (isNil(props.search) || isEmpty(props.search)),
-        <TitleRow>{props.menuTitle}</TitleRow>,
+        isDefined(menuTitle) && (isNil(search) || isEmpty(search)),
+        <TitleRow>{menuTitle}</TitleRow>,
       )}
 
-      {options.map((_, index) => (
+      {safeOptions.map((option, index) => (
         <Row<T>
-          key={index}
+          key={option.label}
           index={index}
           handleClick={handleClick}
-          {...props}
+          value={value}
+          multi={multi}
+          options={safeOptions}
+          getOptionKey={getOptionKey}
         />
       ))}
     </MenuListFrame>

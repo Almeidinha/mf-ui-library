@@ -1,6 +1,6 @@
 import { Surface } from "foundation/colors";
 import { FC } from "helpers/generic-types";
-import { Fragment, memo } from "react";
+import { memo } from "react";
 import { GetRailProps } from "react-compound-slider";
 import styled from "styled-components";
 
@@ -31,10 +31,10 @@ export const RailComponent: FC<IRailComponent> = memo((props) => {
   const { trackHeight, thumbHeight, getRailProps } = props;
 
   return (
-    <Fragment>
+    <>
       <RailHotSpot $thumbHeight={thumbHeight} {...getRailProps()} />
       <RailContainer $trackHeight={trackHeight} aria-hidden="true" />
-    </Fragment>
+    </>
   );
 });
 

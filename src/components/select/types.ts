@@ -69,13 +69,13 @@ interface SelectCommonProps<T> {
 type SelectSingleProps<T> = SelectCommonProps<T> & {
   multi?: false | undefined;
   value?: T;
-  onChange?(value: T | undefined, option?: IOption<T>): void;
+  onChange?(this: void, value: T | undefined, option?: IOption<T>): void;
 };
 
 type SelectMultiProps<T> = SelectCommonProps<T> & {
   multi: true;
   value?: T[];
-  onChange?(value: T[], option?: IOption<T>): void;
+  onChange?(this: void, value: T[], option?: IOption<T>): void;
 };
 
 export type ISelectProps<T> = SelectSingleProps<T> | SelectMultiProps<T>;
@@ -104,14 +104,14 @@ export type IValueProps<T> = {
   labelPosition?: "top" | "side";
   maxLength?: number;
 
-  onClear(): void;
-  onClick(): void;
-  onSearch(search: string): void;
+  onClear(this: void): void;
+  onClick(this: void): void;
+  onSearch(this: void, search: string): void;
   onSearchFocus(this: void): void;
   onSearchBlur(this: void): void;
 
   getOptionKey?: (value: T) => string;
-  onInputChange?(value: string): void;
+  onInputChange?(this: void, value: string): void;
   onOptionRemove: (value: T) => void;
 
   customIcon?: SelectIconType;
@@ -187,8 +187,8 @@ export type MenuComponentProps<T> = {
 
   getOptionKey: (value: T) => string;
   onSelect(this: void, value: T | T[] | undefined, option?: IOption<T>): void;
-  onExpand?(option: IOption<T>): void;
-  onReturn?(): void;
+  onExpand?(this: void, option: IOption<T>): void;
+  onReturn?(this: void): void;
 };
 
 export interface IPosition {

@@ -162,15 +162,15 @@ interface IHueProps {
   description: string;
 }
 
-const Hue: FC<IHueProps> = (props) => {
+const Hue: FC<IHueProps> = ({ colorName, colorPalette, description }) => {
   return (
     <Layout>
       <Layout.Left>
-        <Layout.HeadingText>{props.colorName}</Layout.HeadingText>
-        <Layout.HelpText subdued>{props.description}</Layout.HelpText>
+        <Layout.HeadingText>{colorName}</Layout.HeadingText>
+        <Layout.HelpText subdued>{description}</Layout.HelpText>
       </Layout.Left>
       <Layout.Right>
-        <Palette colors={props.colorPalette} />
+        <Palette colors={colorPalette} />
       </Layout.Right>
     </Layout>
   );
@@ -187,10 +187,10 @@ interface IPaletteProps {
   colors: ColorPalette;
 }
 
-const Palette: FC<IPaletteProps> = (props) => {
+const Palette: FC<IPaletteProps> = ({ colors }) => {
   return (
     <Grid>
-      {Object.entries(props.colors).map(([name, hex]) => (
+      {Object.entries(colors).map(([name, hex]) => (
         <Cell key={hex}>
           <ColorRectangle name={name} hex={hex} />
         </Cell>

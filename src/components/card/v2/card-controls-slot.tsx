@@ -10,8 +10,10 @@ const ControlsFrame = styled(Flex)`
   padding: ${Padding.none} ${Padding.l} ${Padding.l} ${Padding.l};
 `;
 
-export const CardControlsSlot: SlotComponent<PropsWithChildren> = (props) => {
-  return <ControlsFrame>{props.children}</ControlsFrame>;
+export const CardControlsSlot: SlotComponent<PropsWithChildren> = ({
+  children,
+}) => {
+  return <ControlsFrame>{children}</ControlsFrame>;
 };
 
 CardControlsSlot.__slot = true;

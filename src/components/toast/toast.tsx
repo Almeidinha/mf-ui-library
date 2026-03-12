@@ -304,7 +304,7 @@ export const ToastViewportLayer: FC<ToastViewportLayerProps> = ({
   container,
 }) => {
   if (disablePortal) {
-    return <>{children}</>;
+    return children;
   }
 
   if (typeof document === "undefined") {

@@ -43,14 +43,12 @@ type SubComponents = {
   AlertBanner: typeof CardAlertBannerSlot;
 };
 
-export const Card: FC<ICardProps, SubComponents> = (props) => {
-  const {
-    children,
-    heading,
-    "aria-labelledby": ariaLabelledBy,
-    ...htmlProps
-  } = props;
-
+export const Card: FC<ICardProps, SubComponents> = ({
+  children,
+  heading,
+  "aria-labelledby": ariaLabelledBy,
+  ...htmlProps
+}) => {
   const sections = getSlots(CardSectionSlot, children);
   const controls = getSlot(CardControlsSlot, children);
   const headingAction = getSlot(CardHeadingActionSlot, children);

@@ -84,20 +84,18 @@ const PageSelectorContainer = styled(Select)`
 const clampPage = (p: number, total: number) =>
   Math.min(Math.max(p, FIRST_PAGE), total);
 
-export const Pagination = (props: IPaginationProps) => {
-  const {
-    page = FIRST_PAGE,
-    totalPages: total,
-    onChange,
-    showPageInfo = true,
-    previousLabel,
-    nextLabel,
-    pageSize = DEFAULT_PAGE_SIZE,
-    onPageSizeChange,
-    showPageSizeSelector = false,
-    pageSizeOptions = PAGE_SIZE_OPTIONS,
-  } = props;
-
+export const Pagination = ({
+  page = FIRST_PAGE,
+  totalPages: total,
+  onChange,
+  showPageInfo = true,
+  previousLabel,
+  nextLabel,
+  pageSize = DEFAULT_PAGE_SIZE,
+  onPageSizeChange,
+  showPageSizeSelector = false,
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
+}: IPaginationProps) => {
   const safeTotal = Math.max(total ?? 0, FIRST_PAGE);
   const clampedPage = clampPage(page, safeTotal);
 

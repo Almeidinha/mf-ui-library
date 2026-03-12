@@ -13,12 +13,10 @@ import { Card, ICardProps } from "./card";
 
 const { Layout } = leftRightLayoutGenerator();
 
-const Right: SlotComponent = (props) => <>{props.children}</>;
+const Right: SlotComponent = (props) => props.children;
 Right.__slot = true;
 
-const Controls: SlotComponent<PropsWithChildren> = (props) => (
-  <>{props.children}</>
-);
+const Controls: SlotComponent<PropsWithChildren> = (props) => props.children;
 Controls.__slot = true;
 
 type SubComponents = {
@@ -31,11 +29,13 @@ interface ILeftRightCardProps extends ICardProps {
   className?: string;
 }
 
-export const LeftRightCard: FC<ILeftRightCardProps, SubComponents> = (
-  props,
-) => {
-  const { children, heading, helpText, className, ...cardProps } = props;
-
+export const LeftRightCard: FC<ILeftRightCardProps, SubComponents> = ({
+  children,
+  heading,
+  helpText,
+  className,
+  ...cardProps
+}) => {
   const reactId = useId();
   const right = getOptionalSlot(Right, children);
   const controls = getOptionalSlot(Controls, children);

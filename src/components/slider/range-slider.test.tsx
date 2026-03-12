@@ -31,7 +31,11 @@ describe("Slider / RangeSlider Tests", () => {
     10, 11, 11, 12, 19, 10, 12, 12, 11, 13, 14, 15, 16, 12, 17, 13, 19, 18,
   ];
 
-  const ControlledRangeSlider = (props: {
+  const ControlledRangeSlider = ({
+    initialValues,
+    onChange,
+    ...rest
+  }: {
     editable?: boolean;
     prefix?: string;
     min?: number;
@@ -39,7 +43,6 @@ describe("Slider / RangeSlider Tests", () => {
     initialValues: [number, number];
     onChange?: (values: number[]) => void;
   }) => {
-    const { initialValues, onChange, ...rest } = props;
     const [values, setValues] = useState<[number, number]>(initialValues);
 
     return (

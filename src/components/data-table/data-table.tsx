@@ -160,11 +160,11 @@ export function DataTable<T extends Record<string, unknown>>(
 
                       return (
                         <TableBodyCell.Actions
-                          key={String(column.field)}
+                          key={column.field}
                           fitContent={column.fitContent ?? true}
                           style={{ textAlign: getTextAlign(column.align) }}
                         >
-                          {actions.map((action, index) => {
+                          {actions.map((action) => {
                             const isDisabled = resolveActionFlag(
                               action.disabled,
                               row,
@@ -172,7 +172,7 @@ export function DataTable<T extends Record<string, unknown>>(
 
                             return (
                               <TableBodyCell.Action
-                                key={`${String(column.field)}-${index}`}
+                                key={`${String(column.field)}-${action.key}`}
                                 onClick={() => action.onClick(row)}
                                 disabled={isDisabled}
                                 destructive={action.destructive}

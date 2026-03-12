@@ -166,11 +166,9 @@ export const CardHeadingActionExample: Story = {
   args: {
     heading: "Card Heading Action",
     children: (
-      <>
-        <Card.HeadingAction>
-          <Button>Deactivate</Button>
-        </Card.HeadingAction>
-      </>
+      <Card.HeadingAction>
+        <Button>Deactivate</Button>
+      </Card.HeadingAction>
     ),
   },
   argTypes: {

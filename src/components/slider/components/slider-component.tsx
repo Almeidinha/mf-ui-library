@@ -1,5 +1,5 @@
 import { FC } from "helpers/generic-types";
-import { CSSProperties, HTMLAttributes, memo } from "react";
+import { CSSProperties, memo } from "react";
 import {
   Handles,
   Rail,
@@ -11,22 +11,6 @@ import { SliderType } from "../types";
 import { HandleComponent } from "./handle";
 import { RailComponent } from "./rail";
 import { TrackComponent } from "./track";
-
-type SliderItem = {
-  id: string;
-  value: number;
-  percent: number;
-};
-
-type GetRailProps = () => HTMLAttributes<HTMLDivElement>;
-type GetHandleProps = (id: string) => HTMLAttributes<HTMLDivElement>;
-type GetTrackProps = () => HTMLAttributes<HTMLDivElement>;
-
-type TrackItem = {
-  id: string;
-  source: SliderItem;
-  target: SliderItem;
-};
 
 interface IProps {
   domain: readonly [number, number];
@@ -47,17 +31,15 @@ const sliderStyle: CSSProperties = {
 const trackHeight = 4;
 const thumbHeight = 16;
 
-const SliderComponentBase: FC<IProps> = (props) => {
-  const {
-    domain,
-    values,
-    type,
-    onChange,
-    onUpdate,
-    getHandleAriaLabel,
-    getHandleAriaValueText,
-  } = props;
-
+const SliderComponentBase: FC<IProps> = ({
+  domain,
+  values,
+  type,
+  onChange,
+  onUpdate,
+  getHandleAriaLabel,
+  getHandleAriaValueText,
+}) => {
   const mode = type === SliderType.Range ? 3 : 2;
 
   const handleOnChange = (newValues: ReadonlyArray<number>): void => {
@@ -81,7 +63,7 @@ const SliderComponentBase: FC<IProps> = (props) => {
       onUpdate={onUpdate}
     >
       <Rail>
-        {({ getRailProps }: { getRailProps: GetRailProps }) => (
+        {({ getRailProps }) => (
           <RailComponent
             trackHeight={trackHeight}
             thumbHeight={thumbHeight}
@@ -91,13 +73,7 @@ const SliderComponentBase: FC<IProps> = (props) => {
       </Rail>
 
       <Handles>
-        {({
-          handles,
-          getHandleProps,
-        }: {
-          handles: SliderItem[];
-          getHandleProps: GetHandleProps;
-        }) => (
+        {({ handles, getHandleProps }) => (
           <div className="slider-handles">
             {handles.map((handle, index) => (
               <HandleComponent
@@ -115,13 +91,7 @@ const SliderComponentBase: FC<IProps> = (props) => {
       </Handles>
 
       <Tracks left={type === SliderType.Single} right={false}>
-        {({
-          tracks,
-          getTrackProps,
-        }: {
-          tracks: TrackItem[];
-          getTrackProps: GetTrackProps;
-        }) => (
+        {({ tracks, getTrackProps }) => (
           <div className="slider-tracks">
             {tracks.map(({ id, source, target }) => (
               <TrackComponent

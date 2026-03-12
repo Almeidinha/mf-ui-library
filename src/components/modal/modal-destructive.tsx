@@ -1,5 +1,7 @@
 import { Button } from "components/molecules/button";
 import { Gap, Padding } from "foundation/spacing";
+import { If } from "helpers/nothing";
+import { isDefined } from "helpers/safe-navigation";
 import styled from "styled-components";
 
 import { ModalBase, ModalBaseProps } from "./modal-base";
@@ -47,11 +49,11 @@ export function ModalDestructive({
       <ModalFooter>
         <CustomButton onClick={onClose}>{closeButtonLabel}</CustomButton>
 
-        {primaryButtonLabel && (
+        <If is={isDefined(primaryButtonLabel)}>
           <CustomButton primary destructive onClick={onPrimaryAction}>
             {primaryButtonLabel}
           </CustomButton>
-        )}
+        </If>
       </ModalFooter>
     </ModalBase>
   );

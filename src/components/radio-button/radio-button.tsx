@@ -113,10 +113,15 @@ export type RadioButtonProps = Omit<
   label: string | ReactNode;
 };
 
-export const RadioButton: FC<RadioButtonProps> = (props) => {
-  const { className, label, disabled, onChange, checked, id, ...htmlProps } =
-    props;
-
+export const RadioButton: FC<RadioButtonProps> = ({
+  className,
+  label,
+  disabled,
+  onChange,
+  checked,
+  id,
+  ...htmlProps
+}) => {
   return (
     <Label htmlFor={id} $disabled={is(disabled)} className={className}>
       <Radio

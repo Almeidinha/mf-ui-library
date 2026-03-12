@@ -39,8 +39,8 @@ export const DISPLAY = styled.div.withConfig({
   ${Typography.Display};
 `;
 
-export const Display: FC<ITextComponentProps> = (props) => {
-  return <DISPLAY {...toTransientProps(props)}>{props.children}</DISPLAY>;
+export const Display: FC<ITextComponentProps> = ({ children, ...props }) => {
+  return <DISPLAY {...toTransientProps(props)}>{children}</DISPLAY>;
 };
 
 export const HEADING1 = styled.div.withConfig({
@@ -51,8 +51,8 @@ export const HEADING1 = styled.div.withConfig({
   margin-bottom: ${Margin.l};
 `;
 
-export const Heading1: FC<ITextComponentProps> = (props) => {
-  return <HEADING1 {...toTransientProps(props)}>{props.children}</HEADING1>;
+export const Heading1: FC<ITextComponentProps> = ({ children, ...props }) => {
+  return <HEADING1 {...toTransientProps(props)}>{children}</HEADING1>;
 };
 
 export const HEADING2 = styled.div.withConfig({
@@ -63,8 +63,8 @@ export const HEADING2 = styled.div.withConfig({
   margin-bottom: ${Margin.m};
 `;
 
-export const Heading2: FC<ITextComponentProps> = (props) => {
-  return <HEADING2 {...toTransientProps(props)}>{props.children}</HEADING2>;
+export const Heading2: FC<ITextComponentProps> = ({ children, ...props }) => {
+  return <HEADING2 {...toTransientProps(props)}>{children}</HEADING2>;
 };
 
 export const HEADING3 = styled.div.withConfig({
@@ -75,8 +75,8 @@ export const HEADING3 = styled.div.withConfig({
   margin-bottom: ${Margin.l};
 `;
 
-export const Heading3: FC<ITextComponentProps> = (props) => {
-  return <HEADING3 {...toTransientProps(props)}>{props.children}</HEADING3>;
+export const Heading3: FC<ITextComponentProps> = ({ children, ...props }) => {
+  return <HEADING3 {...toTransientProps(props)}>{children}</HEADING3>;
 };
 
 export const HEADING4 = styled.div.withConfig({
@@ -87,8 +87,8 @@ export const HEADING4 = styled.div.withConfig({
   margin-bottom: ${Margin.m};
 `;
 
-export const Heading4: FC<ITextComponentProps> = (props) => {
-  return <HEADING4 {...toTransientProps(props)}>{props.children}</HEADING4>;
+export const Heading4: FC<ITextComponentProps> = ({ children, ...props }) => {
+  return <HEADING4 {...toTransientProps(props)}>{children}</HEADING4>;
 };
 
 export const BODY_LARGE = styled.div.withConfig({
@@ -97,8 +97,11 @@ export const BODY_LARGE = styled.div.withConfig({
   ${Typography.BodyLarge};
 `;
 
-export const BodyLarge: FC<ITextComponentProps & BodyProps> = (props) => {
-  return <BODY_LARGE {...toTransientProps(props)}>{props.children}</BODY_LARGE>;
+export const BodyLarge: FC<ITextComponentProps & BodyProps> = ({
+  children,
+  ...props
+}) => {
+  return <BODY_LARGE {...toTransientProps(props)}>{children}</BODY_LARGE>;
 };
 
 export const BODY = styled.div.withConfig({
@@ -107,8 +110,11 @@ export const BODY = styled.div.withConfig({
   ${Typography.Body};
 `;
 
-export const Body: FC<ITextComponentProps & BodyProps> = (props) => {
-  return <BODY {...toTransientProps(props)}>{props.children}</BODY>;
+export const Body: FC<ITextComponentProps & BodyProps> = ({
+  children,
+  ...props
+}) => {
+  return <BODY {...toTransientProps(props)}>{children}</BODY>;
 };
 
 export const CAPTION = styled.div.withConfig({
@@ -117,8 +123,8 @@ export const CAPTION = styled.div.withConfig({
   ${Typography.Caption};
 `;
 
-export const Caption: FC<ITextComponentProps> = (props) => {
-  return <CAPTION {...toTransientProps(props)}>{props.children}</CAPTION>;
+export const Caption: FC<ITextComponentProps> = ({ children, ...props }) => {
+  return <CAPTION {...toTransientProps(props)}>{children}</CAPTION>;
 };
 
 export const LABEL = styled.div.withConfig({
@@ -127,8 +133,11 @@ export const LABEL = styled.div.withConfig({
   ${Typography.Label};
 `;
 
-export const Label: FC<ITextComponentProps & LabelProps> = (props) => {
-  return <LABEL {...toTransientProps(props)}>{props.children}</LABEL>;
+export const Label: FC<ITextComponentProps & LabelProps> = ({
+  children,
+  ...props
+}) => {
+  return <LABEL {...toTransientProps(props)}>{children}</LABEL>;
 };
 
 export const LINK = styled.div.withConfig({
@@ -137,6 +146,9 @@ export const LINK = styled.div.withConfig({
   ${Typography.Link};
 `;
 
-export const Link: FC<ITextComponentProps & BodyProps> = (props) => {
-  return <LINK {...toTransientProps(props)}>{props.children}</LINK>;
+export const Link: FC<ITextComponentProps & BodyProps> = ({
+  children,
+  ...props
+}) => {
+  return <LINK {...toTransientProps(props)}>{children}</LINK>;
 };

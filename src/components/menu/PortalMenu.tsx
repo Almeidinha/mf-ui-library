@@ -59,18 +59,25 @@ const PortalFrame = styled.div<{
   width: ${({ $width }) => ($width ? `${$width}px` : "auto")};
 `;
 
-export const PortalMenu = (props: PortalMenuProps) => {
-  const {
-    items,
-    open,
-    anchorRef,
-    placement = "bottom-start",
-    offset = 4,
-    width,
-    viewportPadding = 4,
-    onSelect,
-  } = props;
-
+export const PortalMenu = ({
+  items,
+  open,
+  anchorRef,
+  placement = "bottom-start",
+  offset = 4,
+  width,
+  menuHeight,
+  emptyText,
+  multi,
+  invalid,
+  search,
+  label,
+  menuTitle,
+  multiLevel,
+  getOptionKey,
+  viewportPadding = 4,
+  onSelect,
+}: PortalMenuProps) => {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [measured, setMeasured] = useState<{
     width: number;
@@ -84,8 +91,8 @@ export const PortalMenu = (props: PortalMenuProps) => {
 
   const computedMenuHeight = useMemo(() => {
     const h = items.length * ROW_HEIGHT + 4;
-    return props.menuHeight ?? h;
-  }, [items.length, props.menuHeight]);
+    return menuHeight ?? h;
+  }, [items.length, menuHeight]);
 
   const updatePosition = useCallback(() => {
     if (!open) {
@@ -176,16 +183,16 @@ export const PortalMenu = (props: PortalMenuProps) => {
       <MenuListExpanded
         options={items}
         value={[]}
-        emptyText={props.emptyText ?? ""}
-        multi={props.multi ?? true}
+        emptyText={emptyText ?? ""}
+        multi={multi ?? true}
         menuHeight={computedMenuHeight}
-        invalid={props.invalid ?? false}
+        invalid={invalid ?? false}
         open={open}
-        search={props.search ?? ""}
-        label={props.label ?? ""}
-        menuTitle={props.menuTitle ?? ""}
-        multiLevel={props.multiLevel ?? true}
-        getOptionKey={props.getOptionKey}
+        search={search ?? ""}
+        label={label ?? ""}
+        menuTitle={menuTitle ?? ""}
+        multiLevel={multiLevel ?? true}
+        getOptionKey={getOptionKey}
         onSelect={handleSelect}
         width={width}
       />

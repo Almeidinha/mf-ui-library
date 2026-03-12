@@ -143,31 +143,37 @@ export const Docs: Story = {
       <>
         <Heading3>Large Icons</Heading3>
         <Table>
-          {icons.map((icon, index) => (
-            <Row key={index}>
-              <Column>
-                <Wrapper onClick={() => copy(`<Icon.${getObjectKey(icon)} />`)}>
-                  <Span>Copy me!</Span>
-                  {renderIcon(icon)}
-                  <Body>{getObjectKey(icon)}</Body>
-                </Wrapper>
-              </Column>
-            </Row>
-          ))}
+          {icons.map((icon) => {
+            const iconName = getObjectKey(icon);
+            return (
+              <Row key={iconName}>
+                <Column>
+                  <Wrapper onClick={() => copy(`<Icon.${iconName} />`)}>
+                    <Span>Copy me!</Span>
+                    {renderIcon(icon)}
+                    <Body>{getObjectKey(icon)}</Body>
+                  </Wrapper>
+                </Column>
+              </Row>
+            );
+          })}
         </Table>
         <Heading3 style={{ marginTop: Margin.xl }}>Minor Icons</Heading3>
         <Table>
-          {minorIcons.map((icon, index) => (
-            <Row key={index}>
-              <Column>
-                <Wrapper onClick={() => copy(`<Icon.${getObjectKey(icon)} />`)}>
-                  <Span>Copy me!</Span>
-                  {renderIcon(icon)}
-                  <Body>{getObjectKey(icon)}</Body>
-                </Wrapper>
-              </Column>
-            </Row>
-          ))}
+          {minorIcons.map((icon) => {
+            const iconName = getObjectKey(icon);
+            return (
+              <Row key={iconName}>
+                <Column>
+                  <Wrapper onClick={() => copy(`<Icon.${iconName} />`)}>
+                    <Span>Copy me!</Span>
+                    {renderIcon(icon)}
+                    <Body>{iconName}</Body>
+                  </Wrapper>
+                </Column>
+              </Row>
+            );
+          })}
         </Table>
       </>
     );

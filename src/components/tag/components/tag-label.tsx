@@ -36,13 +36,13 @@ interface IProps extends HTMLAttributes<HTMLLabelElement>, PropsWithChildren {
   disabled?: boolean;
 }
 
-export const TagLabel: FC<IProps> = (props) => {
-  const disabled = is(props.disabled);
-  const closable = is(props.closable);
+export const TagLabel: FC<IProps> = ({ disabled, closable, children }) => {
+  const isDisabled = is(disabled);
+  const isClosable = is(closable);
 
   return (
-    <LabelFrame $disabled={disabled} $closable={closable}>
-      <LabelText $disabled={disabled}>{props.children}</LabelText>
+    <LabelFrame $disabled={isDisabled} $closable={isClosable}>
+      <LabelText $disabled={isDisabled}>{children}</LabelText>
     </LabelFrame>
   );
 };

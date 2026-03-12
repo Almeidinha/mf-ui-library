@@ -105,25 +105,22 @@ export function datePickerFactory<T>({
   toDate: (obj: T) => Date;
   empty: (obj: T) => boolean;
 }): FC<IDatePickerProps<T>, IDatePickerSlots> {
-  const ConcreteDatePicker: FC<IDatePickerProps<T>, IDatePickerSlots> = (
-    props,
-  ) => {
-    const {
-      value: valueProp,
-      defaultValue,
-      onChange: onChangeProp,
-      onOpenChange,
-      isAvailable = () => true,
-      isOpen,
-      defaultOpen,
-      format,
-      children,
-      min,
-      max,
-      disabled,
-      ...HTMLInputProps
-    } = props;
-
+  const ConcreteDatePicker: FC<IDatePickerProps<T>, IDatePickerSlots> = ({
+    value: valueProp,
+    defaultValue,
+    onChange: onChangeProp,
+    onOpenChange,
+    isAvailable = () => true,
+    isOpen,
+    defaultOpen,
+    format,
+    children,
+    min,
+    max,
+    label,
+    disabled,
+    ...HTMLInputProps
+  }) => {
     const calendarId = React.useId();
 
     const [value, onChange] = useInputControllableState<T>({
@@ -193,7 +190,7 @@ export function datePickerFactory<T>({
             value={displayValue}
             onChange={() => undefined}
             onClick={() => setOpen(!is(open))}
-            label={props.label}
+            label={label}
             $disabled={Boolean(disabled)}
           >
             <InputField.Icon>
@@ -205,10 +202,10 @@ export function datePickerFactory<T>({
           <div
             role="dialog"
             id={calendarId}
-            aria-label={props.label ?? "Choose date"}
+            aria-label={label ?? "Choose date"}
           >
             <Calendar
-              readOnly={isDefined(props.value) && isNil(props.onChange)}
+              readOnly={isDefined(value) && isNil(onChangeProp)}
               renderButton={renderArrows}
               mapDays={(day) => ({
                 disabled: !isAvailable({

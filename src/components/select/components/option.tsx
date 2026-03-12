@@ -12,40 +12,41 @@ export type OptionComponentProps<T> = {
   active?: boolean;
   selected?: boolean;
   height?: number;
-  search?: string;
+  //search?: string;
   className?: string;
   labelComponent?: SelectLabelComponent<T>;
   onSelect: (value: T, option: IOption<T>) => void;
-  multi?: boolean;
+  //multi?: boolean;
 };
 
 // eslint-disable-next-line comma-spacing
-const OptionComponentImpl = <T,>(props: OptionComponentProps<T>) => {
-  const {
-    active,
-    selected,
-    labelComponent = Label,
-    option,
-    height,
-    onSelect,
-  } = props;
-
+const OptionComponentImpl = <T,>({
+  active,
+  selected,
+  labelComponent = Label,
+  option,
+  height,
+  onSelect,
+  className,
+}: OptionComponentProps<T>) => {
   const SelectLabel: SelectLabelComponent<T> = labelComponent;
 
   const onClick = useCallback(() => {
     onSelect(option.value, option);
   }, [onSelect, option]);
 
-  const className = [
+  const composedClassName = [
     "option",
-    props.className,
+    className,
     is(selected) ? "selected" : "",
     is(active) ? "active" : "",
-  ].filter(Boolean);
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <OptionItem
-      className={className.join(" ")}
+      className={composedClassName}
       data-role="option"
       center
       state={getOptionState(active, selected)}

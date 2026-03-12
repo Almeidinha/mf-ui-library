@@ -7,6 +7,7 @@ export type DataTableAlign = "left" | "center" | "right";
 export type DataTableRowKey<T> = keyof T | ((row: T) => React.Key);
 
 export type DataTableAction<T extends Record<string, unknown>> = {
+  key: string;
   label: ReactNode;
   onClick: (row: T) => void;
 

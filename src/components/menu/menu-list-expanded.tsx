@@ -58,17 +58,26 @@ function buildPathIndex<T>(
 }
 
 // eslint-disable-next-line comma-spacing
-export const MenuListExpanded = <T,>(
-  props: MenuComponentProps<T> & { width?: number },
-) => {
-  const baseOptions = useMemo(() => safeArray(props.options), [props.options]);
-
-  const { value, getOptionKey } = props;
+export const MenuListExpanded = <T,>({
+  options,
+  value,
+  multi,
+  labelComponent,
+  rowHeight,
+  width,
+  menuHeight,
+  selectedIndex,
+  onExpand,
+  onSelect,
+  onReturn,
+  getOptionKey,
+}: MenuComponentProps<T> & { width?: number }) => {
+  const baseOptions = useMemo(() => safeArray(options), [options]);
 
   const height = useMemo(() => {
     const fallback = baseOptions.length * ROW_HEIGHT + 2;
-    return props.menuHeight ?? fallback;
-  }, [props.menuHeight, baseOptions.length]);
+    return menuHeight ?? fallback;
+  }, [menuHeight, baseOptions.length]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -93,32 +102,32 @@ export const MenuListExpanded = <T,>(
   const handleOnExpand = useCallback(
     (option: IOption<T>) => {
       expandAlongOption(option);
-      props.onExpand?.(option);
+      onExpand?.(option);
     },
-    [expandAlongOption, props],
+    [expandAlongOption, onExpand],
   );
 
   const handleOnSelect = useCallback(
     (value: T, option: IOption<T>) => {
       expandAlongOption(option);
-      props.onSelect(value, option);
+      onSelect(value, option);
     },
-    [expandAlongOption, props],
+    [expandAlongOption, onSelect],
   );
 
   const selectedValues = useMemo<T[]>(() => {
-    if (props.multi && Array.isArray(value)) {
+    if (multi && Array.isArray(value)) {
       return value;
     }
     if (value === undefined || value === null || Array.isArray(value)) {
       return [];
     }
     return [value];
-  }, [value, props.multi]);
+  }, [value, multi]);
 
   const handleOnReturn = useCallback(() => {
-    props.onReturn?.();
-  }, [props]);
+    onReturn?.();
+  }, [onReturn]);
 
   return (
     <MenuListFrame ref={containerRef} height={height}>
@@ -126,11 +135,11 @@ export const MenuListExpanded = <T,>(
         <OptionMultiLevelExpandedComponent
           key={getOptionKey(opt.value)}
           option={baseOptions[index]}
-          labelComponent={props.labelComponent}
-          height={props.rowHeight}
-          width={props.width}
+          labelComponent={labelComponent}
+          height={rowHeight}
+          width={width}
           selectedValues={selectedValues}
-          selected={props.selectedIndex === index}
+          selected={selectedIndex === index}
           onSelect={handleOnSelect}
           onExpand={handleOnExpand}
           onReturn={handleOnReturn}

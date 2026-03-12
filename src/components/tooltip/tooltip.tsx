@@ -1,6 +1,9 @@
-import { Padding, Surface } from "@foundations";
-import { FC, isDefined } from "@helpers";
 import { Caption } from "components/typography";
+import { Surface } from "foundation/colors";
+import { Padding } from "foundation/spacing";
+import { FC } from "helpers/generic-types";
+import { If } from "helpers/nothing";
+import { isDefined } from "helpers/safe-navigation";
 import {
   CSSProperties,
   FocusEvent,
@@ -249,7 +252,7 @@ export const Tooltip: FC<TooltipProps> = ({
     >
       {children}
 
-      {isOpen && (
+      <If is={isOpen}>
         <TooltipContainer $position={position} $width={width}>
           <TooltipBox
             id={id}
@@ -261,7 +264,7 @@ export const Tooltip: FC<TooltipProps> = ({
             {content}
           </TooltipBox>
         </TooltipContainer>
-      )}
+      </If>
     </TooltipWrapper>
   );
 };

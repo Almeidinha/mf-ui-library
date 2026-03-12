@@ -134,14 +134,12 @@ const getNextThreeStateValue = (
 };
 
 const CheckboxImpl = (
-  props: CheckboxProps,
+  { error, disabled, checked, ...rest }: CheckboxProps,
   forwardedRef: React.Ref<HTMLInputElement>,
 ) => {
-  const { error, disabled, checked, ...rest } = props;
-
   const internalRef = useRef<HTMLInputElement>(null);
   const mergedRef = useMergedRefs(internalRef, forwardedRef);
-  const isThreeState = isThreeStateProps(props);
+  const isThreeState = isThreeStateProps(rest);
 
   useEffect(() => {
     const element = internalRef.current;
@@ -154,17 +152,17 @@ const CheckboxImpl = (
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (disabled || !isDefined(props.onChange)) {
+      if (disabled || !isDefined(rest.onChange)) {
         return;
       }
 
-      if (isThreeStateProps(props)) {
-        props.onChange(getNextThreeStateValue(props.checked));
+      if (isThreeState) {
+        rest.onChange(getNextThreeStateValue(checked));
       } else {
-        props.onChange(e.target.checked);
+        rest.onChange(e.target.checked);
       }
     },
-    [disabled, props],
+    [disabled, rest, isThreeState, checked],
   );
 
   const ariaChecked: React.AriaAttributes["aria-checked"] = isThreeState

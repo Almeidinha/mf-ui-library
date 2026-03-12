@@ -32,19 +32,10 @@ const Container = styled.div<{ disabled?: boolean }>`
  */
 // eslint-disable-next-line comma-spacing
 const SelectImpl = <T,>(
-  props: ISelectProps<T>,
-  selectRef: React.ForwardedRef<HTMLDivElement>,
-) => {
-  const [open, setOpen] = useState<boolean>(false);
-  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(
-    undefined,
-  );
-  const [search, setSearch] = useState<string | undefined>(undefined);
-  const [focused, setFocused] = useState<boolean>(false);
-
-  const {
+  {
     className,
     id,
+    options,
     style,
     clearable,
     placeholder,
@@ -61,36 +52,47 @@ const SelectImpl = <T,>(
     menuTitle,
     menuPosition,
     label,
+    maxLength,
     labelPosition,
     customIcon,
     multiLevel,
     ariaLabel,
     searchable,
+    iconPosition,
     ariaLabelledBy,
     ariaDescribedBy,
+    getOptionKey = defaultGetOptionKey,
     onOpen,
     onClose,
+    onChange,
+    onSearch,
     onInputChange,
     filterBehavior: filterResults = (searchValue: string, option: IOption<T>) =>
       option.label.toLowerCase().includes(searchValue.toLowerCase()),
-  } = props;
+  }: ISelectProps<T>,
+  selectRef: React.ForwardedRef<HTMLDivElement>,
+) => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(
+    undefined,
+  );
+  const [search, setSearch] = useState<string | undefined>(undefined);
+  const [focused, setFocused] = useState<boolean>(false);
 
   const value = is(multi) ? defaultTo(selectValue, []) : selectValue;
 
-  const getOptionKey = props.getOptionKey ?? defaultGetOptionKey;
-  const iconPosition = props.iconPosition;
   const labelId = id
     ? `${id}-label`
     : `label-${label?.replace(/\s+/g, "-").toLocaleLowerCase()}`;
 
-  const options = useMemo((): IOption<T>[] => {
-    const base = defaultTo(props.options, []);
+  const baseOptions = useMemo((): IOption<T>[] => {
+    const base = defaultTo(options, []);
     if (!isDefined(search) || search === "") {
       return base;
     }
 
     return safeArray(base).filter((option) => filterResults(search, option));
-  }, [props.options, search, filterResults]);
+  }, [options, search, filterResults]);
 
   const openMenu = useCallback(() => {
     setOpen(true);
@@ -101,13 +103,13 @@ const SelectImpl = <T,>(
     setSelectedIndex(
       singleValue === undefined
         ? undefined
-        : options.findIndex(
+        : baseOptions.findIndex(
             (o) => getOptionKey(o.value) === getOptionKey(singleValue),
           ),
     );
 
     onOpen?.();
-  }, [value, search, options, getOptionKey, onOpen]);
+  }, [value, search, baseOptions, getOptionKey, onOpen]);
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -130,17 +132,17 @@ const SelectImpl = <T,>(
   const onOptionSelect = useCallback(
     (nextValue: T | undefined | T[], option?: IOption<T>) => {
       const callOnChangeSingle = (v: T | undefined, opt?: IOption<T>) => {
-        if (props.multi === true) {
+        if (multi === true) {
           return;
         }
-        props.onChange?.(v, opt);
+        onChange?.(v, opt);
       };
 
       const callOnChangeMulti = (v: T[], opt?: IOption<T>) => {
-        if (props.multi !== true) {
+        if (multi !== true) {
           return;
         }
-        props.onChange?.(v, opt);
+        onChange?.(v, opt);
       };
 
       if (is(multi)) {
@@ -153,7 +155,7 @@ const SelectImpl = <T,>(
 
       closeMenu();
     },
-    [multi, props, closeMenu],
+    [multi, closeMenu, onChange],
   );
 
   const toggleMenu = useCallback((): void => {
@@ -166,7 +168,7 @@ const SelectImpl = <T,>(
 
   const getNewSelectedIndex = useCallback(
     (key: string): number | undefined => {
-      if (options.length === 0) {
+      if (baseOptions.length === 0) {
         return undefined;
       }
       if (isNil(selectedIndex)) {
@@ -178,17 +180,17 @@ const SelectImpl = <T,>(
       if (key === keys.ARROW_UP) {
         next = next - 1;
         if (next < 0) {
-          next = options.length - 1;
+          next = baseOptions.length - 1;
         }
       }
 
       if (key === keys.ARROW_DOWN) {
-        next = next === options.length - 1 ? 0 : next + 1;
+        next = next === baseOptions.length - 1 ? 0 : next + 1;
       }
 
       return next;
     },
-    [options.length, selectedIndex],
+    [baseOptions.length, selectedIndex],
   );
 
   function onKeyDown(e: React.KeyboardEvent): void {
@@ -227,7 +229,7 @@ const SelectImpl = <T,>(
         if (selectedIndex === undefined) {
           return;
         }
-        const option = options[selectedIndex];
+        const option = baseOptions[selectedIndex];
         if (!isDefined(option)) {
           return;
         }
@@ -262,11 +264,11 @@ const SelectImpl = <T,>(
     onOptionSelect(is(multi) ? [] : undefined);
   }
 
-  function onSearch(searchValue: string): void {
+  function handleOnSearch(searchValue: string): void {
     setSearch(searchValue);
     setOpen(true);
     setSelectedIndex(0);
-    props.onSearch?.(searchValue);
+    onSearch?.(searchValue);
   }
 
   function onSearchFocus() {
@@ -317,7 +319,7 @@ const SelectImpl = <T,>(
         disabled={disabled}
         multi={multi}
         focused={focused}
-        options={props.options}
+        options={options}
         placeholder={placeholder}
         invalid={invalid}
         errors={errors}
@@ -328,19 +330,19 @@ const SelectImpl = <T,>(
         labelComponent={labelComponent}
         onClear={onClear}
         onClick={toggleMenu}
-        onSearch={onSearch}
+        onSearch={handleOnSearch}
         onSearchFocus={onSearchFocus}
         onSearchBlur={onSearchBlur}
         onOptionRemove={onOptionRemove}
         onInputChange={onInputChange}
-        maxLength={props.maxLength}
+        maxLength={maxLength}
         customIcon={customIcon}
         multiLevel={multiLevel}
         labelId={labelId}
       />
       <Menu
         open={open}
-        options={options}
+        options={baseOptions}
         value={value}
         multi={multi}
         invalid={invalid}

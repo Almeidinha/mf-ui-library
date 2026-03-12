@@ -40,16 +40,14 @@ interface IHandleComponent {
   ariaValueText?: string;
 }
 
-const HandleComponentBase: FC<IHandleComponent> = (props) => {
-  const {
-    domain,
-    handle,
-    thumbHeight,
-    getHandleProps,
-    ariaLabel,
-    ariaValueText,
-  } = props;
-
+const HandleComponentBase: FC<IHandleComponent> = ({
+  domain,
+  handle,
+  thumbHeight,
+  getHandleProps,
+  ariaLabel,
+  ariaValueText,
+}) => {
   const [min, max] = domain;
 
   return (

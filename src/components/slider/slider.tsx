@@ -40,17 +40,15 @@ const clamp = (value: number, min: number, max: number): number => {
   return Math.min(Math.max(value, min), max);
 };
 
-export const Slider: FC<SliderProps> = (props) => {
-  const {
-    min = 0,
-    max,
-    value,
-    prefix = "",
-    onChange,
-    editable = false,
-    onKeyUp,
-  } = props;
-
+export const Slider: FC<SliderProps> = ({
+  min = 0,
+  max,
+  value,
+  prefix = "",
+  onChange,
+  editable = false,
+  onKeyUp,
+}) => {
   const domain = useMemo<readonly [number, number]>(() => {
     return [min, max];
   }, [min, max]);

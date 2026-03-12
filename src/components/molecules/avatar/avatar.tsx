@@ -61,8 +61,14 @@ const getInitialsFromName = (name: string): string => {
   return initials;
 };
 
-export const Avatar: FC<AvatarProps> = (props) => {
-  const { name, imageUrl, withLabel, imageLabel = `${name} avatar` } = props;
+export const Avatar: FC<AvatarProps> = ({
+  name,
+  imageUrl,
+  withLabel,
+  imageLabel = `${name} avatar`,
+  className,
+  ...props
+}) => {
   const size = getValuesBySize(props);
   const Text = getNodeToRenderText(props);
 
@@ -71,7 +77,7 @@ export const Avatar: FC<AvatarProps> = (props) => {
   }
 
   return (
-    <Container className={props.className}>
+    <Container className={className}>
       <Circle size={size}>
         {isDefined(imageUrl) && !isEmpty(imageUrl) ? (
           <Image src={imageUrl} alt={imageLabel} />

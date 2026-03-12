@@ -14,7 +14,7 @@ const MenuRowInner = <T,>({ index, style, data }: IMenuRowProps<T>) => {
     labelComponent,
     selectedIndex,
     rowHeight,
-    search,
+    //search,
     onSelect,
     value,
     getOptionKey,
@@ -32,7 +32,7 @@ const MenuRowInner = <T,>({ index, style, data }: IMenuRowProps<T>) => {
           (val) => getOptionKey(val) === getOptionKey(option.value),
         )}
         selected={selectedIndex === index}
-        search={search}
+        //search={search}
         onSelect={onSelect}
       />
     </div>

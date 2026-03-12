@@ -73,38 +73,41 @@ function useControllableListState(
   return [value, setValue] as const;
 }
 
-export const TreeView = (props: TreeViewProps) => {
-  const {
-    nodes,
-    className,
-    title,
-    ariaLabel,
-    useCardContainer = true,
-    showChildCount = false,
-    expandDisabled = false,
-    expanded,
-    defaultExpanded = [],
-    onExpand,
-    onNodeClick,
-    onNodeFocus,
-    renderNodeContent,
-    icons,
-    showExpandAllControls = false,
-    expandAllLabel = "Expand all",
-    collapseAllLabel = "Collapse all",
-    loadChildren,
-    onLoadChildrenError,
-    onLoadChildrenStart,
-    onLoadChildrenEnd,
-  } = props;
-
+export const TreeView = ({
+  nodes,
+  className,
+  title,
+  ariaLabel,
+  useCardContainer = true,
+  showChildCount = false,
+  expandDisabled = false,
+  expanded,
+  defaultExpanded = [],
+  icons,
+  checkedList: propCheckList,
+  defaultCheckedList: propDefaultCheckedList,
+  isRichTreeView,
+  showExpandAllControls = false,
+  expandAllLabel = "Expand all",
+  labelAction,
+  collapseAllLabel = "Collapse all",
+  loadChildren,
+  onExpand,
+  onNodeClick,
+  onNodeFocus,
+  renderNodeContent,
+  onLoadChildrenError,
+  onLoadChildrenStart,
+  onLoadChildrenEnd,
+  onCheck: propOnCheck,
+}: TreeViewProps) => {
   const treeId = useId();
-  const isRich = props.isRichTreeView !== false;
+  const isRich = isRichTreeView !== false;
 
-  const checkedList = isRich ? props.checkedList : undefined;
-  const defaultCheckedList = isRich ? props.defaultCheckedList : undefined;
-  const onCheck = isRich ? props.onCheck : undefined;
-  const resolvedLabelAction = props.labelAction ?? "expand";
+  const checkedList = isRich ? propCheckList : undefined;
+  const defaultCheckedList = isRich ? propDefaultCheckedList : undefined;
+  const onCheck = isRich ? propOnCheck : undefined;
+  const resolvedLabelAction = labelAction ?? "expand";
 
   const [treeNodes, setTreeNodes] = useState<TreeNodeData[]>(nodes);
   const [loadingNodeIds, setLoadingNodeIds] = useState<string[]>([]);

@@ -3,6 +3,8 @@ import { Button } from "components/molecules/button";
 import { Heading2 } from "components/typography";
 import { Borders, Focused, Surface } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
+import { If } from "helpers/nothing";
+import { isDefined } from "helpers/safe-navigation";
 import { ReactNode, useId } from "react";
 import styled from "styled-components";
 
@@ -100,7 +102,7 @@ export function Modal({
       aria-labelledby={title ? titleId : undefined}
       aria-label={title ? undefined : "Modal"}
     >
-      {title && (
+      <If is={isDefined(title)}>
         <ModalHeader>
           <Heading2 id={titleId} default>
             {title}
@@ -109,15 +111,14 @@ export function Modal({
             <IconMinor.Xmark />
           </CloseButton>
         </ModalHeader>
-      )}
-
+      </If>
       <ModalContent>{children}</ModalContent>
 
-      {hasFooter && (
+      <If is={hasFooter}>
         <ModalFooter>
           {customFooter ?? (
             <>
-              {secondaryButtonLabel && (
+              <If is={isDefined(secondaryButtonLabel)}>
                 <Button
                   plain
                   subtle
@@ -126,9 +127,9 @@ export function Modal({
                 >
                   {secondaryButtonLabel}
                 </Button>
-              )}
+              </If>
 
-              {closeButtonLabel && (
+              <If is={isDefined(closeButtonLabel)}>
                 <Button
                   onClick={onClose}
                   name="modal-close-button"
@@ -136,9 +137,9 @@ export function Modal({
                 >
                   {closeButtonLabel}
                 </Button>
-              )}
+              </If>
 
-              {primaryButtonLabel && (
+              <If is={isDefined(primaryButtonLabel)}>
                 <Button
                   primary
                   onClick={onPrimaryAction}
@@ -148,11 +149,11 @@ export function Modal({
                 >
                   {primaryButtonLabel}
                 </Button>
-              )}
+              </If>
             </>
           )}
         </ModalFooter>
-      )}
+      </If>
     </ModalBase>
   );
 }

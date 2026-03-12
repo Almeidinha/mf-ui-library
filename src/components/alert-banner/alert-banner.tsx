@@ -80,21 +80,22 @@ const CloseButton = styled.button`
   }
 `;
 
-export const AlertBanner: FC<AlertBannerProps> = (props) => {
-  const {
-    open = true,
-    dismissible = false,
-    primaryButtonLabel,
-    secondaryButtonLabel,
-    onPrimaryAction,
-    onSecondaryAction,
-    onClose,
-  } = props;
+export const AlertBanner: FC<AlertBannerProps> = ({
+  open = true,
+  dismissible = false,
+  primaryButtonLabel,
+  secondaryButtonLabel,
+  className,
+  children,
+  onPrimaryAction,
+  onSecondaryAction,
+  onClose,
+  ...rest
+}) => {
+  const background = getBackgroundColor(rest);
+  const border = getBorderColor(rest);
 
-  const background = getBackgroundColor(props);
-  const border = getBorderColor(props);
-
-  const { icon: LevelIcon, color: iconColor } = getIcon(props);
+  const { icon: LevelIcon, color: iconColor } = getIcon(rest);
 
   const handleClose = () => {
     safeCallback(onClose);
@@ -109,12 +110,12 @@ export const AlertBanner: FC<AlertBannerProps> = (props) => {
       role="alert"
       background={background}
       border={border}
-      className={props.className}
+      className={className}
     >
       <IconContainer $iconColor={iconColor}>
         <LevelIcon></LevelIcon>
       </IconContainer>
-      <Content>{props.children}</Content>
+      <Content>{children}</Content>
       <If is={dismissible}>
         <CloseButton aria-label="Close" onClick={handleClose}>
           <IconMinor.Xmark />

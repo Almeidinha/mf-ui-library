@@ -6,6 +6,8 @@ import { Spinner } from "components/spinner";
 import { Label } from "components/typography";
 import { Focused, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
+import { If } from "helpers/nothing";
+import { is, isDefined } from "helpers/safe-navigation";
 import React from "react";
 import styled, { css } from "styled-components";
 
@@ -243,7 +245,7 @@ export const TreeNode = ({
         onFocus={() => onFocus(node.id)}
         onKeyDown={(event) => onKeyDown(event, node.id)}
       >
-        {showLeftDisclosure && (
+        <If is={showLeftDisclosure}>
           <CollapseButton
             tabIndex={-1}
             subtle
@@ -261,10 +263,10 @@ export const TreeNode = ({
             aria-controls={`${treeId}-group-${node.id}`}
             IconSuffix={disclosureIcon}
           />
-        )}
+        </If>
 
         <ItemMain>
-          {isRichTreeView && (
+          <If is={isRichTreeView}>
             <Checkbox
               tabIndex={-1}
               checked={checkboxChecked}
@@ -277,9 +279,10 @@ export const TreeNode = ({
               aria-labelledby={labelId}
               aria-describedby={node.helpfulMessage ? messageId : undefined}
             />
-          )}
-
-          {resolvedIcon && <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>}
+          </If>
+          <If is={isDefined(resolvedIcon)}>
+            <NodeIcon aria-hidden>{resolvedIcon}</NodeIcon>
+          </If>
 
           <LabelButton
             tabIndex={-1}
@@ -292,7 +295,7 @@ export const TreeNode = ({
           </LabelButton>
         </ItemMain>
 
-        {showRightDisclosure && (
+        <If is={showRightDisclosure}>
           <CollapseButton
             tabIndex={-1}
             subtle
@@ -310,26 +313,26 @@ export const TreeNode = ({
             aria-controls={`${treeId}-group-${node.id}`}
             IconSuffix={disclosureIcon}
           />
-        )}
+        </If>
       </ItemWrapper>
 
-      {node.helpfulMessage !== null && (
+      <If is={isDefined(node.helpfulMessage)}>
         <HelpfulMessage subdued id={messageId} $level={node.level}>
           {node.helpfulMessage}
         </HelpfulMessage>
-      )}
+      </If>
 
-      {hasLoadError && (
+      <If is={hasLoadError}>
         <HelpfulMessage subdued id={errorMessageId} $level={node.level}>
           Failed to load. Try expanding again.
         </HelpfulMessage>
-      )}
+      </If>
 
-      {node.isParent && expanded && (
+      <If is={is(node.isParent && expanded)}>
         <ChildGroup role="group" id={`${treeId}-group-${node.id}`}>
           {children}
         </ChildGroup>
-      )}
+      </If>
     </ListItem>
   );
 };

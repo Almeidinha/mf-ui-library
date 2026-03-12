@@ -56,18 +56,16 @@ const getInteractionColor = ({ subtle }: Pick<ActionLinkProps, "subtle">) => {
   return subtle ? Interactive.Subtle.Hover : Interactive.Default.Hover;
 };
 
-export const ActionLink: FC<ActionLinkProps> = (props) => {
-  const {
-    children,
-    disabled = false,
-    subtle,
-    href,
-    onClick,
-    tabIndex,
-    newTab = false,
-    ...rest
-  } = props;
-
+export const ActionLink: FC<ActionLinkProps> = ({
+  children,
+  disabled = false,
+  subtle,
+  href,
+  onClick,
+  tabIndex,
+  newTab = false,
+  ...rest
+}) => {
   const initialColor = getInitialColor({ subtle, disabled });
   const interactionColor = getInteractionColor({ subtle });
 

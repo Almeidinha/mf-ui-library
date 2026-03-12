@@ -131,8 +131,8 @@ const SemanticCategory = ({ name, subCategories }: ISemanticCategoryProps) => {
           overflow: "auto",
         }}
       >
-        {subCategories.map((subCategory, index) => (
-          <div key={index}>
+        {subCategories.map((subCategory) => (
+          <div key={subCategory.name}>
             {Object.entries(subCategory.palette).map(([key, hex]) => (
               <ColorSquare
                 key={`${subCategory.name}-${key}`}

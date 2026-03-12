@@ -977,7 +977,7 @@ export const CustomMenu: Story = {
         {safeArray(props.options).map((option, i) => (
           <CustomRow
             active={props.selectedIndex === i}
-            key={i}
+            key={option.label}
             onClick={() => handleClick(props, option)}
           >
             <IconWraper>{option["icon"]}</IconWraper>

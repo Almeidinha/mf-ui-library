@@ -15,9 +15,11 @@ interface IInputTextProps extends Omit<
   suffix?: string;
 }
 
-export const InputText: FC<IInputTextProps, InputFieldSlots> = (props) => {
-  const { value, onChange, ...inputFieldProps } = props;
-
+export const InputText: FC<IInputTextProps, InputFieldSlots> = ({
+  value,
+  onChange,
+  ...inputFieldProps
+}) => {
   return (
     <InputField
       {...inputFieldProps}

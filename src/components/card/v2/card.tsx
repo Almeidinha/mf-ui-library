@@ -4,6 +4,7 @@ import { Heading3 } from "components/typography";
 import { Margin, Padding } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { If } from "helpers/nothing";
+import { is } from "helpers/safe-navigation";
 import { isSlotOfType } from "helpers/slots";
 import { toKebabCase } from "helpers/strings";
 import {
@@ -90,14 +91,12 @@ type SubComponents = {
   AlertBanner: typeof CardAlertBannerSlot;
 };
 
-export const Card: FC<ICardProps, SubComponents> = (props) => {
-  const {
-    children,
-    heading,
-    "aria-labelledby": ariaLabelledBy,
-    ...htmlProps
-  } = props;
-
+export const Card: FC<ICardProps, SubComponents> = ({
+  children,
+  heading,
+  "aria-labelledby": ariaLabelledBy,
+  ...htmlProps
+}) => {
   const reactId = useId();
   const { sections, controls, headingAction, alertBanners, otherChildren } =
     parseCardChildren(children);
@@ -127,7 +126,7 @@ export const Card: FC<ICardProps, SubComponents> = (props) => {
       <If is={!hasSections && hasLooseChildren}>
         <CardSectionSlot>{otherChildren}</CardSectionSlot>
       </If>
-      <If is={hasSections && hasLooseChildren}>
+      <If is={is(hasSections && hasLooseChildren)}>
         <CardSectionSlot>{otherChildren}</CardSectionSlot>
       </If>
 

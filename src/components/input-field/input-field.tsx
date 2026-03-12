@@ -180,7 +180,7 @@ export const InputField = forwardRef<
       <InputFrame
         label={label}
         $labelPosition={labelPosition}
-        htmlFor={label && props.name}
+        htmlFor={label || props.name}
       >
         <If is={label}>
           <InputLabel $labelPosition={labelPosition} subtle subdued>

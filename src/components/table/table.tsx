@@ -171,11 +171,13 @@ function isTDActionElement(
   return isValidElement(child) && child.type === TableCellAction;
 }
 
-export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell(
-  props: ITableHeadProps,
-) {
-  const { sort, isPlaceholder, onSortClick, children, ...htmlProps } = props;
-
+export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
+  sort,
+  isPlaceholder,
+  onSortClick,
+  children,
+  ...htmlProps
+}) {
   const isSorted = isDefined(sort) && sort !== "NONE";
   const isSortedDesc = sort === "DESC";
 
@@ -236,8 +238,7 @@ const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect(
 };
 
 const TableCellSelect: FC<CheckboxProps & { selected?: boolean }> =
-  function TableCellSelect(props) {
-    const { selected, checked: checkedProp, ...rest } = props;
+  function TableCellSelect({ selected, checked: checkedProp, ...rest }) {
     const checked = is(checkedProp) || is(selected);
 
     return (
@@ -253,11 +254,13 @@ const TableHeadActions: FC<ITableHeadProps> = function TableHeadActions(
   return <TableHeaderCell {...props}></TableHeaderCell>;
 };
 
-const TableCellAction: FC<TableBodyActionProps> = function TableCellAction(
-  props,
-) {
-  const { children, icon, disabled, onClick, destructive } = props;
-
+const TableCellAction: FC<TableBodyActionProps> = function TableCellAction({
+  children,
+  icon,
+  disabled,
+  onClick,
+  destructive,
+}) {
   return (
     <SimpleMenuItem
       onClick={onClick}
@@ -270,10 +273,10 @@ const TableCellAction: FC<TableBodyActionProps> = function TableCellAction(
   );
 };
 
-const TableCellActions: FC<ITableCellProps> = function TableCellActions(
-  props: ITableCellProps,
-) {
-  const { children, ...tdProps } = props;
+const TableCellActions: FC<ITableCellProps> = function TableCellActions({
+  children,
+  ...tdProps
+}: ITableCellProps) {
   const { clickOutsideRef, isOpen, onItemSelect, toggle } = useSimpleMenuState({
     closeOnItemSelect: true,
   });

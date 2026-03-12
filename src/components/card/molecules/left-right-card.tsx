@@ -26,11 +26,13 @@ interface ILeftRightCardProps extends ICardProps {
   className?: string;
 }
 
-export const LeftRightCard: FC<ILeftRightCardProps, SubComponents> = (
-  props,
-) => {
-  const { children, heading, helpText, className, ...cardProps } = props;
-
+export const LeftRightCard: FC<ILeftRightCardProps, SubComponents> = ({
+  children,
+  heading,
+  helpText,
+  className,
+  ...cardProps
+}) => {
   const right = getSlot(Right, children);
   const controls = getSlot(Controls, children);
 

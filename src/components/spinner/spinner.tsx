@@ -50,17 +50,22 @@ type IProps = SpinnerSizeProps & {
   className?: string;
 };
 
-export const Spinner: FC<IProps> = (props) => {
+export const Spinner: FC<IProps> = ({
+  onPrimary,
+  onCritical,
+  className,
+  ...props
+}) => {
   const size = getValuesBySize(props);
 
   return (
     <Spin
       role="status"
       aria-label="Loading"
-      $onPrimary={is(props.onPrimary)}
-      $onCritical={is(props.onCritical)}
+      $onPrimary={is(onPrimary)}
+      $onCritical={is(onCritical)}
       $size={size}
-      className={props.className}
+      className={className}
     >
       <IconMinor.Spinner aria-hidden="true" />
     </Spin>

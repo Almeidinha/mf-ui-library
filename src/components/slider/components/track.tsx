@@ -1,6 +1,6 @@
 import { Actions } from "foundation/colors";
 import { FC } from "helpers/generic-types";
-import React, { memo } from "react";
+import { memo } from "react";
 import { GetTrackProps, SliderItem } from "react-compound-slider";
 import styled from "styled-components";
 
@@ -47,7 +47,7 @@ export const TrackComponent: FC<ITrackComponent> = memo((props) => {
   const width = target.percent - source.percent;
 
   return (
-    <React.Fragment>
+    <>
       <Track
         $trackHeight={trackHeight}
         $left={left}
@@ -60,7 +60,7 @@ export const TrackComponent: FC<ITrackComponent> = memo((props) => {
         $width={width}
         {...getTrackProps()}
       />
-    </React.Fragment>
+    </>
   );
 });
 

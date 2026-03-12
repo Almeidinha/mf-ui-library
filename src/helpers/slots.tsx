@@ -43,13 +43,17 @@ export class Slot<T = unknown> extends PureComponent<PropsWithChildren<T>> {
   static __slot = true;
 
   override render() {
-    return this.props.children;
+    const { children } = this.props;
+
+    return children;
   }
 }
 
 export class StylableSlot extends Slot<HTMLAttributes<HTMLDivElement>> {
   override render() {
-    return <div {...this.props}>{this.props.children}</div>;
+    const { children, ...props } = this.props;
+
+    return <div {...props}>{children}</div>;
   }
 }
 
@@ -59,7 +63,7 @@ export class StylableSlot extends Slot<HTMLAttributes<HTMLDivElement>> {
  */
 // eslint-disable-next-line comma-spacing
 export const FunctionSlot = (<T,>(props: PropsWithChildren<T>) => {
-  return <>{props.children}</>;
+  return props.children;
 }) as SlotComponent;
 
 FunctionSlot.__slot = true;

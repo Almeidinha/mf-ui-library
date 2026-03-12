@@ -94,21 +94,20 @@ function computeSubmenuPosition(args: {
 }
 
 // eslint-disable-next-line comma-spacing
-const OptionMultiLevelExpandedComponentImpl = <T,>(
-  props: OptionMultiLevelExpandedProps<T>,
-) => {
-  const {
-    selected,
-    labelComponent: CustomLabel,
-    option,
-    height,
-    width,
-    selectedValues,
-    getOptionKey,
-    expandedKeys,
-    containerRef,
-  } = props;
-
+const OptionMultiLevelExpandedComponentImpl = <T,>({
+  selected,
+  labelComponent: CustomLabel,
+  option,
+  height,
+  width,
+  selectedValues,
+  expandedKeys,
+  containerRef,
+  onExpand,
+  onSelect,
+  onReturn,
+  getOptionKey,
+}: OptionMultiLevelExpandedProps<T>) => {
   const active = useMemo(
     () =>
       selectedValues.some(
@@ -134,11 +133,11 @@ const OptionMultiLevelExpandedComponentImpl = <T,>(
 
   const onClick = useCallback(() => {
     if (hasChildren) {
-      props.onExpand?.(option);
+      onExpand?.(option);
     } else {
-      props.onSelect(option.value, option);
+      onSelect(option.value, option);
     }
-  }, [hasChildren, option, props]);
+  }, [hasChildren, option, onExpand, onSelect]);
 
   const updatePosition = useCallback(() => {
     const anchorEl = anchorRef.current;
@@ -198,7 +197,9 @@ const OptionMultiLevelExpandedComponentImpl = <T,>(
           </Label>
         )}
 
-        {hasChildren && <IconMinor.ChevronRightSolid />}
+        <If is={hasChildren}>
+          <IconMinor.ChevronRightSolid />
+        </If>
       </OptionItem>
 
       <If is={isExpanded === true && hasChildren}>
@@ -217,9 +218,9 @@ const OptionMultiLevelExpandedComponentImpl = <T,>(
                 height={height}
                 width={width}
                 selectedValues={selectedValues}
-                onSelect={props.onSelect}
-                onExpand={props.onExpand}
-                onReturn={props.onReturn}
+                onSelect={onSelect}
+                onExpand={onExpand}
+                onReturn={onReturn}
                 getOptionKey={getOptionKey}
                 expandedKeys={expandedKeys}
                 containerRef={containerRef}

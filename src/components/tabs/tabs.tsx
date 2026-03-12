@@ -199,7 +199,7 @@ export const Tabs: FC<TabsProps, SubComponents> = (props) => {
 
   void rest;
 
-  return <>{decoratedChildren}</>;
+  return decoratedChildren;
 };
 
 function decorateTab(

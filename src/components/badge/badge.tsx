@@ -18,12 +18,12 @@ const BadgeFrame = styled(Label)<{ color: string }>`
 
 type IBadgeProps = BadgeTypeProps & PropsWithChildren<{ className?: string }>;
 
-export const Badge: FC<IBadgeProps> = (props) => {
-  const color = getColor(props);
+export const Badge: FC<IBadgeProps> = ({ className, children, ...rest }) => {
+  const color = getColor(rest);
 
   return (
-    <BadgeFrame className={props.className} color={color}>
-      {props.children}
+    <BadgeFrame className={className} color={color}>
+      {children}
     </BadgeFrame>
   );
 };

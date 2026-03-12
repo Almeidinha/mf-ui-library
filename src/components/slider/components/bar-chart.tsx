@@ -26,9 +26,7 @@ const getBaseChartData = (data: readonly number[]): BaseChartDatum[] => {
     .sort((a, b) => a.value - b.value);
 };
 
-export const BarChartComponent: FC<IProps> = (props) => {
-  const { data, highlight } = props;
-
+export const BarChartComponent: FC<IProps> = ({ data, highlight }) => {
   const baseData = useMemo(() => {
     return getBaseChartData(data);
   }, [data]);

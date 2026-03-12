@@ -105,10 +105,7 @@ const StyledCheckbox = styled.input<{ $error?: boolean }>`
 `;
 
 const CheckboxImpl = <T extends boolean = false>(
-  props: CheckboxProps<T>,
-  forwardedRef: React.Ref<HTMLInputElement>,
-) => {
-  const {
+  {
     error,
     indeterminate,
     checked: controlledChecked,
@@ -116,8 +113,9 @@ const CheckboxImpl = <T extends boolean = false>(
     disabled,
     onChange,
     ...rest
-  } = props;
-
+  }: CheckboxProps<T>,
+  forwardedRef: React.Ref<HTMLInputElement>,
+) => {
   const internalRef = useRef<HTMLInputElement>(null);
   const mergedRef = useMergedRefs(internalRef, forwardedRef);
   const isThreeState = indeterminate === true;

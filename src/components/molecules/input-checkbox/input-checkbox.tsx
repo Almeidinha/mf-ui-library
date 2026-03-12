@@ -23,11 +23,9 @@ export type InputCheckboxProps = CheckboxProps & {
 };
 
 const InputCheckboxImpl = (
-  props: InputCheckboxProps,
+  { label = "", name, ...rest }: InputCheckboxProps,
   ref: React.Ref<HTMLInputElement>,
 ) => {
-  const { label = "", name, ...rest } = props;
-
   if (isEmpty(label)) {
     return <Nothing />;
   }

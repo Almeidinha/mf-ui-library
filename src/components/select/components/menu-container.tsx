@@ -60,19 +60,19 @@ const MenuWrapper = styled.div<IMenuWrapperProps>`
   }
 `;
 
-export const MenuContainer: FC<IMenuContainerProps> = (
-  props: IMenuContainerProps,
-) => {
-  const {
-    onClick,
-    children,
-    label,
-    menuHeight,
-    menuPosition,
-    labelPosition,
-    invalid,
-  } = props;
-  const className = ["select-menu", props.className].filter((c) => c).join(" ");
+export const MenuContainer: FC<IMenuContainerProps> = ({
+  onClick,
+  children,
+  label,
+  menuHeight,
+  menuPosition,
+  labelPosition,
+  invalid,
+  className,
+}: IMenuContainerProps) => {
+  const composeClassName = ["select-menu", className]
+    .filter((c) => c)
+    .join(" ");
 
   return (
     <MenuWrapper
@@ -82,7 +82,7 @@ export const MenuContainer: FC<IMenuContainerProps> = (
       $labelPosition={labelPosition}
       $invalid={invalid}
       data-role="menu"
-      className={className}
+      className={composeClassName}
       onClick={onClick}
     >
       {children}

@@ -18,16 +18,21 @@ const TagContainer = styled(Tag)`
 `;
 
 // eslint-disable-next-line comma-spacing
-const ValueComponentMultiImpl = <T,>(props: IValueComponentMultiProps<T>) => {
-  const { option, onRemove, labelComponent = SelectLabel } = props;
-
+const ValueComponentMultiImpl = <T,>({
+  option,
+  onRemove,
+  labelComponent = SelectLabel,
+  className,
+}: IValueComponentMultiProps<T>) => {
   const LabelComponent: SelectLabelComponent<T> = labelComponent;
 
-  const className = ["value-multi", props.className].filter(Boolean).join(" ");
+  const composedClassName = ["value-multi", className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <TagContainer
-      className={className}
+      className={composedClassName}
       closable
       onClose={() => onRemove(option.value)}
     >
