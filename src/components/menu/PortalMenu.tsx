@@ -12,13 +12,13 @@ import React, {
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
-import { ROW_HEIGHT } from "./helper";
-import { MenuListExpanded } from "./menu-list-expanded";
 import {
   computeAnchoredPosition,
   FixedPos,
   Placement,
-} from "./portal-position";
+} from "../../helpers/portal-position";
+import { ROW_HEIGHT } from "./helper";
+import { MenuListExpanded } from "./menu-list-expanded";
 
 type MenuItem = IOption<unknown> & { onItemSelect?: () => void };
 

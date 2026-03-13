@@ -8,6 +8,7 @@ import {
 } from "helpers/safe-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FixedSizeList } from "react-window";
+import styled from "styled-components";
 
 import {
   DEFAULT_EMPTY_TEXT,
@@ -22,7 +23,14 @@ import {
 import { defaultGetOptionKey } from "../utils";
 import { EmptyOptionItem, SelectLabel } from "./helpers";
 import { MenuContainer } from "./menu-container";
+import { MenuPortalLayer } from "./menu-portal-layer";
 import { MenuRow, MenuRowWithMultiLevels } from "./menu-row";
+
+const MenuPanel = styled.div`
+  position: absolute;
+  width: 100%;
+  left: 0;
+`;
 
 // eslint-disable-next-line comma-spacing
 export const Menu = <T,>(props: MenuComponentProps<T>) => {
@@ -46,6 +54,14 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     options: propOptions,
     onSelect,
     getOptionKey = defaultGetOptionKey,
+
+    disablePortal = true,
+    portalContainer,
+    anchorRef,
+    portalPlacement,
+    portalOffset = 4,
+    viewportPadding = 8,
+    matchAnchorWidth = true,
   } = props;
 
   const [options, setOptions] = useState<IOption<T>[]>(() =>
@@ -81,10 +97,6 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
 
   const handleSelect = useCallback(
     (nextValue: T, option: IOption<T>) => {
-      if (is(multiLevel)) {
-        setOptions(safeArray(propOptions));
-      }
-
       if (Array.isArray(value) && is(multi)) {
         const nextKey = getOptionKey(nextValue);
 
@@ -99,7 +111,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
 
       onSelect(nextValue, option);
     },
-    [multiLevel, propOptions, multi, value, onSelect, getOptionKey],
+    [multi, value, onSelect, getOptionKey],
   );
 
   const handleExpand = useCallback((option: IOption<T>) => {
@@ -109,6 +121,12 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
   const handleReturn = useCallback(() => {
     setOptions(safeArray(propOptions));
   }, [propOptions]);
+
+  const handleExited = useCallback(() => {
+    if (is(multiLevel)) {
+      setOptions(safeArray(propOptions));
+    }
+  }, [multiLevel, propOptions]);
 
   const normalizedValue = useMemo<T[]>(() => {
     if (is(multi) && Array.isArray(value)) {
@@ -171,7 +189,6 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     return (
       <FixedSizeList<ItemData<T>>
         className="menu-list"
-        style={{ position: "absolute" }}
         ref={listRef}
         width="100%"
         height={height}
@@ -184,23 +201,43 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     );
   };
 
+  const resolvedPlacement =
+    portalPlacement ??
+    (menuPosition === menuPositionType.TOP ? "top-start" : "bottom-start");
+
   return (
-    <Slide
-      in={open}
-      direction={menuPosition === "top" ? "up" : "down"}
-      mountOnEnter
-      unmountOnExit
+    <MenuPortalLayer
+      open={open}
+      disablePortal={disablePortal}
+      portalContainer={portalContainer}
+      anchorRef={anchorRef}
+      placement={resolvedPlacement}
+      offset={portalOffset}
+      viewportPadding={viewportPadding}
+      matchAnchorWidth={matchAnchorWidth}
     >
-      <MenuContainer
-        className={className}
-        invalid={invalid}
-        label={label}
-        menuHeight={height}
-        menuPosition={menuPosition}
-        labelPosition={labelPosition}
+      <Slide
+        in={open}
+        timeout={{ enter: 180, exit: 140 }}
+        direction={menuPosition === "top" ? "up" : "down"}
+        mountOnEnter
+        unmountOnExit
+        enter
+        exit
+        onExited={handleExited}
       >
-        {renderList()}
-      </MenuContainer>
-    </Slide>
+        <MenuContainer
+          disableInlinePosition={!disablePortal}
+          className={className}
+          invalid={invalid}
+          label={label}
+          menuHeight={height}
+          menuPosition={menuPosition}
+          labelPosition={labelPosition}
+        >
+          <MenuPanel>{renderList()}</MenuPanel>
+        </MenuContainer>
+      </Slide>
+    </MenuPortalLayer>
   );
 };

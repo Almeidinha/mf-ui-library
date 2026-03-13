@@ -1,6 +1,7 @@
 import { FC } from "@helpers";
 import { IconListMajor, IconNames } from "components/icon/icon-list";
-import React, { CSSProperties, HTMLAttributes } from "react";
+import { Placement } from "helpers/portal-position";
+import React, { CSSProperties, HTMLAttributes, RefObject } from "react";
 
 type SelectIconType = (typeof IconListMajor)[IconNames];
 
@@ -52,6 +53,14 @@ interface SelectCommonProps<T> {
   menuComponent?: SelectMenuComponent<T>;
   maxLength?: number;
   multiLevel?: boolean;
+
+  disablePortal?: boolean;
+  portalContainer?: HTMLElement;
+  portalPlacement?: Placement;
+  portalOffset?: number;
+  viewportPadding?: number;
+  matchAnchorWidth?: boolean;
+
   filterBehavior?: (this: void, search: string, option: IOption<T>) => boolean;
   getOptionKey?: (this: void, value: T) => string;
   onSearch?(this: void, value: string): void;
@@ -126,9 +135,20 @@ export interface IMenuContainerProps extends HTMLAttributes<HTMLDivElement> {
   labelPosition?: string;
   label?: string;
   children?: React.ReactNode;
+  disableInlinePosition?: boolean;
   onRef?(el: HTMLDivElement | undefined): void;
   onClick?(this: void, el: React.MouseEvent<HTMLDivElement>): void;
 }
+
+export type MenuPortalProps = {
+  disablePortal?: boolean;
+  portalContainer?: HTMLElement;
+  anchorRef?: RefObject<HTMLElement | null>;
+  portalPlacement?: Placement;
+  portalOffset?: number;
+  viewportPadding?: number;
+  matchAnchorWidth?: boolean;
+};
 
 type RectSize = number | "auto";
 
@@ -184,6 +204,14 @@ export type MenuComponentProps<T> = {
   menuTitle?: string;
   multiLevel?: boolean;
   className?: string;
+
+  disablePortal?: boolean;
+  portalContainer?: HTMLElement;
+  anchorRef?: RefObject<HTMLElement | null>;
+  portalPlacement?: Placement;
+  portalOffset?: number;
+  viewportPadding?: number;
+  matchAnchorWidth?: boolean;
 
   getOptionKey: (value: T) => string;
   onSelect(this: void, value: T | T[] | undefined, option?: IOption<T>): void;

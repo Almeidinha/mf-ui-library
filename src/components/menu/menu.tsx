@@ -4,7 +4,7 @@ import { defaultGetOptionKey } from "components/select/utils";
 import React, { useMemo, useRef } from "react";
 import styled from "styled-components";
 
-import { Placement } from "./portal-position";
+import { Placement } from "../../helpers/portal-position";
 import { PortalMenu } from "./PortalMenu";
 
 type MenuItem = {

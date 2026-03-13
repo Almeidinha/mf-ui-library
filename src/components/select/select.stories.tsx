@@ -450,6 +450,12 @@ When using the custom menuComponent, the select exposes this properties.
     iconPosition: "right",
     placeholder: "Select something...",
     emptyText: "Nothing found here...",
+    disablePortal: true,
+    portalContainer: undefined,
+    portalPlacement: "bottom-start",
+    portalOffset: 4,
+    viewportPadding: 8,
+    matchAnchorWidth: true,
   },
   argTypes: {
     onChange: {
@@ -1067,5 +1073,19 @@ export const CustomMenuList: Story = {
     emptyText: { control: false, table: { disable: true } },
     options: { control: false, table: { disable: true } },
     multiLevel: { control: false, table: { disable: true } },
+  },
+};
+
+export const PortalSelct: Story = {
+  render: function Render(args) {
+    return (
+      <Flex style={{ minHeight: 250, width: 300, alignItems: "center" }}>
+        <Select {...args} />
+      </Flex>
+    );
+  },
+  args: {
+    disablePortal: false,
+    options: options1,
   },
 };

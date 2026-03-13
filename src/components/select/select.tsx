@@ -61,6 +61,12 @@ const SelectImpl = <T,>(
     iconPosition,
     ariaLabelledBy,
     ariaDescribedBy,
+    disablePortal,
+    portalContainer,
+    portalPlacement,
+    portalOffset,
+    viewportPadding,
+    matchAnchorWidth,
     getOptionKey = defaultGetOptionKey,
     onOpen,
     onClose,
@@ -119,6 +125,8 @@ const SelectImpl = <T,>(
     onClose?.();
   }, [onClose]);
 
+  const anchorRef = React.useRef<HTMLDivElement | null>(null);
+
   const clickAwayRef = useOnClickOutside((event: Event) => {
     const target = event.target as HTMLElement | null;
     if (target?.closest?.(".select-menu")) {
@@ -127,7 +135,11 @@ const SelectImpl = <T,>(
     closeMenu();
   });
 
-  const mergedRef = useMergedRefs<HTMLDivElement>(selectRef, clickAwayRef);
+  const mergedRef = useMergedRefs<HTMLDivElement>(
+    selectRef,
+    clickAwayRef,
+    anchorRef,
+  );
 
   const onOptionSelect = useCallback(
     (nextValue: T | undefined | T[], option?: IOption<T>) => {
@@ -360,6 +372,13 @@ const SelectImpl = <T,>(
         onSelect={onOptionSelect}
         multiLevel={multiLevel}
         getOptionKey={getOptionKey}
+        anchorRef={anchorRef}
+        disablePortal={disablePortal}
+        portalContainer={portalContainer}
+        portalPlacement={portalPlacement}
+        portalOffset={portalOffset}
+        viewportPadding={viewportPadding}
+        matchAnchorWidth={matchAnchorWidth}
       />
     </Container>
   );
