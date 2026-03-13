@@ -2,6 +2,7 @@ import { useMergedRefs } from "hooks/useMergedRefs";
 import {
   CSSProperties,
   forwardRef,
+  useCallback,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -71,9 +72,44 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
     const collapsedSizeCss = toCssUnit(collapsedSize);
 
     const [contentSize, setContentSize] = useState(0);
-    const [inlineSize, setInlineSize] = useState<string>(collapsedSizeCss);
 
     const mergedRef = useMergedRefs(wrapperRef, forwardedRef);
+
+    const setWrapperSize = useCallback(
+      (value: string) => {
+        const node = wrapperRef.current;
+        if (!node) {
+          return;
+        }
+
+        node.style[sizeProperty] = value;
+      },
+      [sizeProperty],
+    );
+
+    const setWrapperOverflow = useCallback(
+      (value: CSSProperties["overflow"]) => {
+        const node = wrapperRef.current;
+        if (!node) {
+          return;
+        }
+
+        node.style.overflow = value ?? "hidden";
+      },
+      [],
+    );
+
+    const setWrapperOpacity = useCallback(
+      (value: string) => {
+        const node = wrapperRef.current;
+        if (!node || !animateOpacity) {
+          return;
+        }
+
+        node.style.opacity = value;
+      },
+      [animateOpacity],
+    );
 
     useLayoutEffect(() => {
       const node = innerRef.current;
@@ -111,10 +147,13 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       const isStillOpen = wasOpen && inProp;
 
       if (isOpening) {
-        setInlineSize(collapsedSizeCss);
+        setWrapperOverflow("hidden");
+        setWrapperSize(collapsedSizeCss);
+        setWrapperOpacity("0");
 
         const frame = window.requestAnimationFrame(() => {
-          setInlineSize(expanded);
+          setWrapperSize(expanded);
+          setWrapperOpacity("1");
         });
 
         prevInRef.current = inProp;
@@ -125,10 +164,13 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       }
 
       if (isClosing) {
-        setInlineSize(expanded);
+        setWrapperOverflow("hidden");
+        setWrapperSize(expanded);
+        setWrapperOpacity("1");
 
         const frame = window.requestAnimationFrame(() => {
-          setInlineSize(collapsedSizeCss);
+          setWrapperSize(collapsedSizeCss);
+          setWrapperOpacity("0");
         });
 
         prevInRef.current = inProp;
@@ -139,15 +181,29 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       }
 
       if (isStillOpen) {
-        if (inlineSize !== "auto") {
-          setInlineSize(expanded);
+        // Keep the open container in sync with content growth/shrink
+        // without replaying the enter animation.
+        if (wrapperRef.current?.style[sizeProperty] !== "auto") {
+          setWrapperSize(expanded);
         }
+        setWrapperOpacity("1");
       } else {
-        setInlineSize(collapsedSizeCss);
+        setWrapperOverflow("hidden");
+        setWrapperSize(collapsedSizeCss);
+        setWrapperOpacity("0");
       }
 
       prevInRef.current = inProp;
-    }, [collapsedSizeCss, contentSize, inProp, inlineSize, isMounted]);
+    }, [
+      collapsedSizeCss,
+      contentSize,
+      inProp,
+      isMounted,
+      setWrapperOpacity,
+      setWrapperOverflow,
+      setWrapperSize,
+      sizeProperty,
+    ]);
 
     useLayoutEffect(() => {
       if (!isMounted || !inProp) {
@@ -155,18 +211,31 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       }
 
       if (isReducedMotion) {
-        setInlineSize("auto");
+        setWrapperSize("auto");
+        setWrapperOverflow("visible");
+        setWrapperOpacity("1");
         return;
       }
 
       const timer = window.setTimeout(() => {
-        setInlineSize("auto");
+        setWrapperSize("auto");
+        setWrapperOverflow("visible");
+        setWrapperOpacity("1");
       }, timeouts.enter);
 
       return () => {
         window.clearTimeout(timer);
       };
-    }, [contentSize, inProp, isMounted, isReducedMotion, timeouts.enter]);
+    }, [
+      contentSize,
+      inProp,
+      isMounted,
+      isReducedMotion,
+      setWrapperOpacity,
+      setWrapperOverflow,
+      setWrapperSize,
+      timeouts.enter,
+    ]);
 
     if (!isMounted) {
       return null;
@@ -181,19 +250,14 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
     const currentEasing = inProp ? easingByMode.enter : easingByMode.exit;
 
     const wrapperStyle: CSSProperties = {
-      overflow: inlineSize === "auto" ? "visible" : "hidden",
+      overflow: "hidden",
       transitionProperty: animateOpacity
         ? `${sizeProperty}, opacity`
         : sizeProperty,
       transitionDuration: `${currentDuration}ms`,
       transitionTimingFunction: currentEasing,
       willChange: animateOpacity ? `${sizeProperty}, opacity` : sizeProperty,
-      [sizeProperty]: inlineSize,
     };
-
-    if (animateOpacity) {
-      wrapperStyle.opacity = inProp ? 1 : 0;
-    }
 
     const innerStyle: CSSProperties =
       orientation === "horizontal"
