@@ -19,6 +19,7 @@ function getContentSize(
   if (!element) {
     return 0;
   }
+
   return orientation === "vertical"
     ? element.scrollHeight
     : element.scrollWidth;
@@ -37,6 +38,7 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
       easing = "ease-in-out",
       collapsedSize = 0,
       orientation = "vertical",
+      animateOpacity = true,
       children,
       onEnter,
       onEntered,
@@ -46,8 +48,9 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const innerRef = useRef<HTMLDivElement | null>(null);
+    const prevInRef = useRef(inProp);
 
-    const { status, isMounted, isReducedMotion } = useTransitionState({
+    const { isMounted, isReducedMotion } = useTransitionState({
       in: inProp,
       appear,
       enter,
@@ -97,39 +100,73 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
 
     useLayoutEffect(() => {
       if (!isMounted) {
+        prevInRef.current = inProp;
         return;
       }
 
       const expanded = `${contentSize}px`;
+      const wasOpen = prevInRef.current;
+      const isOpening = !wasOpen && inProp;
+      const isClosing = wasOpen && !inProp;
+      const isStillOpen = wasOpen && inProp;
 
-      if (status === "pre-enter") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (isOpening) {
         setInlineSize(collapsedSizeCss);
-        return;
+
+        const frame = window.requestAnimationFrame(() => {
+          setInlineSize(expanded);
+        });
+
+        prevInRef.current = inProp;
+
+        return () => {
+          window.cancelAnimationFrame(frame);
+        };
       }
 
-      if (status === "entering") {
+      if (isClosing) {
         setInlineSize(expanded);
+
+        const frame = window.requestAnimationFrame(() => {
+          setInlineSize(collapsedSizeCss);
+        });
+
+        prevInRef.current = inProp;
+
+        return () => {
+          window.cancelAnimationFrame(frame);
+        };
+      }
+
+      if (isStillOpen) {
+        if (inlineSize !== "auto") {
+          setInlineSize(expanded);
+        }
+      } else {
+        setInlineSize(collapsedSizeCss);
+      }
+
+      prevInRef.current = inProp;
+    }, [collapsedSizeCss, contentSize, inProp, inlineSize, isMounted]);
+
+    useLayoutEffect(() => {
+      if (!isMounted || !inProp) {
         return;
       }
 
-      if (status === "entered") {
+      if (isReducedMotion) {
         setInlineSize("auto");
         return;
       }
 
-      if (status === "exiting") {
-        setInlineSize(expanded);
-        requestAnimationFrame(() => {
-          setInlineSize(collapsedSizeCss);
-        });
-        return;
-      }
+      const timer = window.setTimeout(() => {
+        setInlineSize("auto");
+      }, timeouts.enter);
 
-      if (status === "exited") {
-        setInlineSize(collapsedSizeCss);
-      }
-    }, [collapsedSizeCss, contentSize, isMounted, status]);
+      return () => {
+        window.clearTimeout(timer);
+      };
+    }, [contentSize, inProp, isMounted, isReducedMotion, timeouts.enter]);
 
     if (!isMounted) {
       return null;
@@ -137,22 +174,26 @@ export const Collapse = forwardRef<HTMLDivElement, CollapseProps>(
 
     const currentDuration = isReducedMotion
       ? 0
-      : status === "exiting"
-        ? timeouts.exit
-        : timeouts.enter;
+      : inProp
+        ? timeouts.enter
+        : timeouts.exit;
 
-    const currentEasing =
-      status === "exiting" ? easingByMode.exit : easingByMode.enter;
+    const currentEasing = inProp ? easingByMode.enter : easingByMode.exit;
 
     const wrapperStyle: CSSProperties = {
       overflow: inlineSize === "auto" ? "visible" : "hidden",
-      opacity: status === "entering" || status === "entered" ? 1 : 0,
-      transitionProperty: `${sizeProperty}, opacity`,
+      transitionProperty: animateOpacity
+        ? `${sizeProperty}, opacity`
+        : sizeProperty,
       transitionDuration: `${currentDuration}ms`,
       transitionTimingFunction: currentEasing,
-      willChange: `${sizeProperty}, opacity`,
+      willChange: animateOpacity ? `${sizeProperty}, opacity` : sizeProperty,
       [sizeProperty]: inlineSize,
     };
+
+    if (animateOpacity) {
+      wrapperStyle.opacity = inProp ? 1 : 0;
+    }
 
     const innerStyle: CSSProperties =
       orientation === "horizontal"

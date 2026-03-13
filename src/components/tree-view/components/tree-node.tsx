@@ -100,8 +100,8 @@ const HelpfulMessage = styled(Label)<{ $level: number }>`
 `;
 
 const ChildGroup = styled.ol`
-  margin: ${Margin.xxs} 0 0 0;
   padding: ${Padding.none};
+  padding-top: ${Margin.xxs};
   list-style: none;
   display: flex;
   flex-direction: column;
@@ -329,7 +329,11 @@ export const TreeNode = ({
         </HelpfulMessage>
       </If>
 
-      <Collapse in={is(node.isParent && expanded)}>
+      <Collapse
+        in={is(node.isParent && expanded)}
+        animateOpacity={false}
+        timeout={{ enter: 120, exit: 100 }}
+      >
         <ChildGroup role="group" id={`${treeId}-group-${node.id}`}>
           {children}
         </ChildGroup>

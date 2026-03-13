@@ -72,5 +72,6 @@ export type CollapseProps = TransitionLifecycleProps & {
   easing?: TransitionEasing;
   collapsedSize?: number | string;
   orientation?: CollapseOrientation;
+  animateOpacity?: boolean;
   children: ReactElement;
 };
