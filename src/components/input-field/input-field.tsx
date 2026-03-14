@@ -7,7 +7,7 @@ import { forwardRef } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { is, isDefined, isEmpty } from "helpers/safe-navigation";
 import { getSlot, Slot } from "helpers/slots";
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useId } from "react";
 import styled, { css } from "styled-components";
 
 import { Flex, SpaceBetween } from "../layout";
@@ -108,7 +108,9 @@ export interface IInputFieldProps extends InputHTMLAttributes<HTMLInputElement> 
   labelPosition?: "top" | "side";
 }
 
-const InputFrame = styled.label<{
+const InputFrame = styled.label.withConfig({
+  shouldForwardProp: (prop) => !["label", "$labelPosition"].includes(prop),
+})<{
   label?: string;
   $labelPosition?: "top" | "side";
 }>`
@@ -166,6 +168,9 @@ export const InputField = forwardRef<
     ...inputProps
   } = props;
 
+  const generatedId = useId();
+  const inputId = props.id ?? props.name ?? generatedId;
+
   const icon = getSlot(IconSlot, children);
   const controls = getSlot(ControlsSlot, children);
   const required = is(props.required) ? "*" : "";
@@ -180,7 +185,7 @@ export const InputField = forwardRef<
       <InputFrame
         label={label}
         $labelPosition={labelPosition}
-        htmlFor={label || props.name}
+        htmlFor={inputId}
       >
         <If is={label}>
           <InputLabel $labelPosition={labelPosition} subtle subdued>
@@ -196,6 +201,7 @@ export const InputField = forwardRef<
           </If>
           <HTMLInput
             ref={ref}
+            id={inputId}
             aria-invalid={props.invalid || undefined}
             aria-required={props.required || undefined}
             {...inputProps}

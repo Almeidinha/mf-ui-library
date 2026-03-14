@@ -1,6 +1,7 @@
 import { Margin, Padding } from "@foundations";
 import { Card } from "components/card";
 import { Button } from "components/molecules/button";
+import { useControllableState } from "hooks/useControllableState";
 import React, { JSX, useEffect, useId, useMemo, useState } from "react";
 import styled from "styled-components";
 
@@ -53,26 +54,6 @@ const Controls = styled.div`
   margin-bottom: ${Margin.s};
 `;
 
-function useControllableListState(
-  controlledValue: string[] | undefined,
-  defaultValue: string[] | undefined,
-) {
-  const [uncontrolledValue, setUncontrolledValue] = useState<string[]>(
-    defaultValue ?? [],
-  );
-
-  const isControlled = controlledValue !== undefined;
-  const value = isControlled ? controlledValue : uncontrolledValue;
-
-  const setValue = (next: string[]) => {
-    if (!isControlled) {
-      setUncontrolledValue(next);
-    }
-  };
-
-  return [value, setValue] as const;
-}
-
 export const TreeView = ({
   nodes,
   className,
@@ -119,19 +100,23 @@ export const TreeView = ({
     setFailedNodeIds([]);
   }, [nodes]);
 
-  const [checkedIds, setCheckedIds] = useControllableListState(
-    checkedList,
-    defaultCheckedList,
-  );
-  const [expandedIds, setExpandedIds] = useControllableListState(
-    expanded,
-    defaultExpanded,
-  );
+  const [checkedIds, setCheckedIds] = useControllableState<string[], false>({
+    value: checkedList,
+    defaultValue: defaultCheckedList ?? [],
+    readOnly: true,
+  });
+
+  const [expandedIds, setExpandedIds] = useControllableState<string[], false>({
+    value: expanded,
+    defaultValue: defaultExpanded ?? [],
+    readOnly: true,
+  });
 
   const flatNodes = useMemo<FlattenNode[]>(
     () => flattenNodes(treeNodes),
     [treeNodes],
   );
+
   const nodeMap = useMemo(() => createNodeMap(flatNodes), [flatNodes]);
 
   const checkedSet = useMemo(() => new Set(checkedIds), [checkedIds]);

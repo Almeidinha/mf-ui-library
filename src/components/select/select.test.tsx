@@ -107,8 +107,11 @@ describe("Select Tests", () => {
 
     expect(handleClose).toHaveBeenCalled();
 
-    const optionMXAfterMenuClose = screen.queryByText("Mexico");
-    expect(optionMXAfterMenuClose).toBeNull();
+    expect(screen.getByRole("combobox")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(document.querySelector(".select-menu")).not.toBeVisible();
 
     expect(handleChange).toHaveBeenCalledWith("MX", {
       label: "Mexico",

@@ -48,38 +48,67 @@ export function useTransitionState(
 
   const enterTimerRef = useRef<number | null>(null);
   const exitTimerRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const isFirstRenderRef = useRef(true);
+  const raf1Ref = useRef<number | null>(null);
+  const raf2Ref = useRef<number | null>(null);
+  const firstRenderRef = useRef(true);
+  const runIdRef = useRef(0);
+  const prevInRef = useRef(inProp);
 
-  const [isMounted, setIsMounted] = useState(() => inProp || !mountOnEnter);
-
+  const [hasExited, setHasExited] = useState(() => !inProp);
   const [status, setStatus] = useState<TransitionStatus>(() => {
     if (inProp) {
-      if (appear) {
-        return "pre-enter";
-      }
-      return "entered";
+      return appear ? "pre-enter" : "entered";
     }
 
     return "exited";
   });
 
+  const isMounted = inProp || !hasExited || !mountOnEnter;
+
+  const clearEnterScheduled = () => {
+    if (enterTimerRef.current !== null) {
+      window.clearTimeout(enterTimerRef.current);
+      enterTimerRef.current = null;
+    }
+
+    if (raf1Ref.current !== null) {
+      window.cancelAnimationFrame(raf1Ref.current);
+      raf1Ref.current = null;
+    }
+
+    if (raf2Ref.current !== null) {
+      window.cancelAnimationFrame(raf2Ref.current);
+      raf2Ref.current = null;
+    }
+  };
+
+  const clearExitScheduled = () => {
+    if (exitTimerRef.current !== null) {
+      window.clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+  };
+
   useEffect(() => {
     return () => {
-      if (enterTimerRef.current !== null) {
-        window.clearTimeout(enterTimerRef.current);
-      }
-      if (exitTimerRef.current !== null) {
-        window.clearTimeout(exitTimerRef.current);
-      }
-      if (rafRef.current !== null) {
-        window.cancelAnimationFrame(rafRef.current);
-      }
+      clearEnterScheduled();
+      clearExitScheduled();
+      runIdRef.current += 1;
     };
   }, []);
 
   useEffect(() => {
-    const isFirstRender = isFirstRenderRef.current;
+    const prevIn = prevInRef.current;
+    const inChanged = prevIn !== inProp;
+
+    if (!inChanged) {
+      return;
+    }
+
+    runIdRef.current += 1;
+    const currentRun = runIdRef.current;
+
+    const isFirstRender = firstRenderRef.current;
     const enterDuration = prefersReducedMotion
       ? 0
       : isFirstRender && appear
@@ -87,44 +116,42 @@ export function useTransitionState(
         : timeouts.enter;
     const exitDuration = prefersReducedMotion ? 0 : timeouts.exit;
 
-    if (enterTimerRef.current !== null) {
-      window.clearTimeout(enterTimerRef.current);
-      enterTimerRef.current = null;
-    }
-
-    if (exitTimerRef.current !== null) {
-      window.clearTimeout(exitTimerRef.current);
-      exitTimerRef.current = null;
-    }
-
-    if (rafRef.current !== null) {
-      window.cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-
     if (inProp) {
-      if (!isMounted) {
-        setIsMounted(true);
-      }
+      clearExitScheduled();
 
       if (!enter) {
-        setStatus("entered");
-        onEnter?.();
-        onEntered?.();
-        isFirstRenderRef.current = false;
-        return;
-      }
+        clearEnterScheduled();
 
-      if (status === "entered" || status === "entering") {
-        isFirstRenderRef.current = false;
+        raf1Ref.current = window.requestAnimationFrame(() => {
+          if (runIdRef.current !== currentRun) {
+            return;
+          }
+
+          setStatus("entered");
+          onEnter?.();
+          onEntered?.();
+        });
+
+        firstRenderRef.current = false;
+        prevInRef.current = inProp;
         return;
       }
 
       onEnter?.();
-      setStatus("pre-enter");
 
-      rafRef.current = window.requestAnimationFrame(() => {
-        rafRef.current = window.requestAnimationFrame(() => {
+      // Use "exited" / initial hidden styles as the pre-enter frame.
+      clearEnterScheduled();
+
+      raf1Ref.current = window.requestAnimationFrame(() => {
+        if (runIdRef.current !== currentRun) {
+          return;
+        }
+
+        raf2Ref.current = window.requestAnimationFrame(() => {
+          if (runIdRef.current !== currentRun) {
+            return;
+          }
+
           setStatus("entering");
 
           if (enterDuration === 0) {
@@ -134,85 +161,104 @@ export function useTransitionState(
           }
 
           enterTimerRef.current = window.setTimeout(() => {
+            if (runIdRef.current !== currentRun) {
+              return;
+            }
+
             setStatus("entered");
             onEntered?.();
           }, enterDuration);
         });
       });
 
-      isFirstRenderRef.current = false;
+      firstRenderRef.current = false;
+      prevInRef.current = inProp;
       return;
     }
+
+    clearEnterScheduled();
 
     if (!exit) {
-      onExit?.();
-      setStatus("exited");
-      onExited?.();
-      if (unmountOnExit) {
-        setIsMounted(false);
-      }
-      isFirstRenderRef.current = false;
-      return;
-    }
+      clearExitScheduled();
 
-    if (status === "exited" || status === "exiting") {
-      if (status === "exited" && unmountOnExit) {
-        setIsMounted(false);
-      }
-      isFirstRenderRef.current = false;
+      raf1Ref.current = window.requestAnimationFrame(() => {
+        if (runIdRef.current !== currentRun) {
+          return;
+        }
+
+        onExit?.();
+        setStatus("exited");
+        onExited?.();
+
+        if (unmountOnExit) {
+          setHasExited(true);
+        }
+      });
+
+      firstRenderRef.current = false;
+      prevInRef.current = inProp;
       return;
     }
 
     onExit?.();
-    setStatus("exiting");
 
-    if (exitDuration === 0) {
-      setStatus("exited");
-      onExited?.();
-      if (unmountOnExit) {
-        setIsMounted(false);
+    raf1Ref.current = window.requestAnimationFrame(() => {
+      if (runIdRef.current !== currentRun) {
+        return;
       }
-      isFirstRenderRef.current = false;
-      return;
-    }
 
-    exitTimerRef.current = window.setTimeout(() => {
-      setStatus("exited");
-      onExited?.();
-      if (unmountOnExit) {
-        setIsMounted(false);
+      setStatus("exiting");
+
+      if (exitDuration === 0) {
+        setStatus("exited");
+        onExited?.();
+
+        if (unmountOnExit) {
+          setHasExited(true);
+        }
+        return;
       }
-    }, exitDuration);
 
-    isFirstRenderRef.current = false;
+      clearExitScheduled();
+
+      exitTimerRef.current = window.setTimeout(() => {
+        if (runIdRef.current !== currentRun) {
+          return;
+        }
+
+        setStatus("exited");
+        onExited?.();
+
+        if (unmountOnExit) {
+          setHasExited(true);
+        }
+      }, exitDuration);
+    });
+
+    firstRenderRef.current = false;
+    prevInRef.current = inProp;
   }, [
     appear,
     enter,
     exit,
     inProp,
-    isMounted,
+    mountOnEnter,
     onEnter,
     onEntered,
     onExit,
     onExited,
     prefersReducedMotion,
-    status,
     timeouts.appear,
     timeouts.enter,
     timeouts.exit,
     unmountOnExit,
   ]);
 
-  const currentDuration =
-    status === "exiting"
-      ? prefersReducedMotion
-        ? 0
-        : timeouts.exit
-      : prefersReducedMotion
-        ? 0
-        : isFirstRenderRef.current && appear
-          ? timeouts.appear
-          : timeouts.enter;
+  const currentDuration = prefersReducedMotion
+    ? 0
+    : status === "exiting"
+      ? timeouts.exit
+      : timeouts.enter;
 
   return {
     status,

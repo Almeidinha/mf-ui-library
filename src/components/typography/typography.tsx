@@ -1,12 +1,16 @@
 import { Margin } from "foundation/spacing";
-import { BodyProps, LabelProps, Typography } from "foundation/typography";
+import {
+  BodyProps,
+  LabelProps,
+  Typography as FoundationTypography,
+} from "foundation/typography";
 import {
   ITransientTextAspectProps,
   TextAspectProps,
   TYPOGRAPHY_BLOCKED_PROPS,
 } from "foundation/typography/text-aspect-flags";
 import { FC, PropsWithChildren } from "helpers/generic-types";
-import { HTMLAttributes } from "react";
+import React, { HTMLAttributes } from "react";
 import styled from "styled-components";
 
 export type ITextComponentProps = TextAspectProps & {
@@ -14,6 +18,30 @@ export type ITextComponentProps = TextAspectProps & {
   as?: string;
 } & HTMLAttributes<HTMLElement> &
   PropsWithChildren;
+
+export type TypographyVariant =
+  | "display"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "h4"
+  | "body-large"
+  | "body"
+  | "caption"
+  | "label"
+  | "link";
+
+type SharedTypographyProps = ITextComponentProps;
+type BodyTypographyProps = ITextComponentProps & BodyProps;
+type LabelTypographyProps = ITextComponentProps & LabelProps;
+
+export type TypographyProps =
+  | ({
+      variant?: "display" | "h1" | "h2" | "h3" | "h4" | "caption";
+    } & SharedTypographyProps)
+  | ({ variant: "body" | "body-large" | "link" } & BodyTypographyProps)
+  | ({ variant: "label" } & LabelTypographyProps);
+
 type ITransientTextComponentProps = ITransientTextAspectProps & {
   $emphasis?: boolean;
 } & HTMLAttributes<HTMLElement>;
@@ -36,17 +64,17 @@ function toTransientProps(
 export const DISPLAY = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${Typography.Display};
+  ${FoundationTypography.Display};
 `;
 
 export const Display: FC<ITextComponentProps> = ({ children, ...props }) => {
   return <DISPLAY {...toTransientProps(props)}>{children}</DISPLAY>;
 };
 
-export const HEADING1 = styled.div.withConfig({
+export const HEADING1 = styled.h1.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${Typography.Heading1};
+  ${FoundationTypography.Heading1};
   margin: ${Margin.none};
   margin-bottom: ${Margin.l};
 `;
@@ -55,10 +83,10 @@ export const Heading1: FC<ITextComponentProps> = ({ children, ...props }) => {
   return <HEADING1 {...toTransientProps(props)}>{children}</HEADING1>;
 };
 
-export const HEADING2 = styled.div.withConfig({
+export const HEADING2 = styled.h2.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${Typography.Heading2};
+  ${FoundationTypography.Heading2};
   margin: ${Margin.none};
   margin-bottom: ${Margin.m};
 `;
@@ -67,10 +95,10 @@ export const Heading2: FC<ITextComponentProps> = ({ children, ...props }) => {
   return <HEADING2 {...toTransientProps(props)}>{children}</HEADING2>;
 };
 
-export const HEADING3 = styled.div.withConfig({
+export const HEADING3 = styled.h3.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${Typography.Heading3};
+  ${FoundationTypography.Heading3};
   margin: ${Margin.none};
   margin-bottom: ${Margin.l};
 `;
@@ -79,10 +107,10 @@ export const Heading3: FC<ITextComponentProps> = ({ children, ...props }) => {
   return <HEADING3 {...toTransientProps(props)}>{children}</HEADING3>;
 };
 
-export const HEADING4 = styled.div.withConfig({
+export const HEADING4 = styled.h4.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${Typography.Heading4};
+  ${FoundationTypography.Heading4};
   margin: ${Margin.none};
   margin-bottom: ${Margin.m};
 `;
@@ -94,7 +122,7 @@ export const Heading4: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const BODY_LARGE = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & BodyProps>`
-  ${Typography.BodyLarge};
+  ${FoundationTypography.BodyLarge};
 `;
 
 export const BodyLarge: FC<ITextComponentProps & BodyProps> = ({
@@ -107,7 +135,7 @@ export const BodyLarge: FC<ITextComponentProps & BodyProps> = ({
 export const BODY = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & BodyProps>`
-  ${Typography.Body};
+  ${FoundationTypography.Body};
 `;
 
 export const Body: FC<ITextComponentProps & BodyProps> = ({
@@ -120,7 +148,7 @@ export const Body: FC<ITextComponentProps & BodyProps> = ({
 export const CAPTION = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${Typography.Caption};
+  ${FoundationTypography.Caption};
 `;
 
 export const Caption: FC<ITextComponentProps> = ({ children, ...props }) => {
@@ -130,7 +158,7 @@ export const Caption: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const LABEL = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & LabelProps>`
-  ${Typography.Label};
+  ${FoundationTypography.Label};
 `;
 
 export const Label: FC<ITextComponentProps & LabelProps> = ({
@@ -143,7 +171,7 @@ export const Label: FC<ITextComponentProps & LabelProps> = ({
 export const LINK = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & BodyProps>`
-  ${Typography.Link};
+  ${FoundationTypography.Link};
 `;
 
 export const Link: FC<ITextComponentProps & BodyProps> = ({
@@ -151,4 +179,30 @@ export const Link: FC<ITextComponentProps & BodyProps> = ({
   ...props
 }) => {
   return <LINK {...toTransientProps(props)}>{children}</LINK>;
+};
+
+const VARIANT_STYLES_MAP: Record<
+  TypographyVariant,
+  React.ComponentType<ITextComponentProps>
+> = {
+  display: Display,
+  h1: Heading1,
+  h2: Heading2,
+  h3: Heading3,
+  h4: Heading4,
+  "body-large": BodyLarge,
+  body: Body,
+  caption: Caption,
+  label: Label,
+  link: Link,
+};
+
+export const Typography: FC<TypographyProps> = ({
+  variant = "body",
+  children,
+  ...props
+}) => {
+  const Component = VARIANT_STYLES_MAP[variant];
+
+  return <Component {...props}>{children}</Component>;
 };

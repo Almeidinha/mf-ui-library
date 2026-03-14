@@ -4,14 +4,8 @@ import { Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
-import {
-  CSSProperties,
-  FocusEvent,
-  MouseEvent,
-  ReactNode,
-  useId,
-  useState,
-} from "react";
+import { useControllableState } from "hooks/useControllableState";
+import { CSSProperties, FocusEvent, MouseEvent, ReactNode, useId } from "react";
 import styled, { css, keyframes, RuleSet } from "styled-components";
 
 type Position =
@@ -213,19 +207,13 @@ export const Tooltip: FC<TooltipProps> = ({
   defaultOpen = false,
   onOpenChange,
 }) => {
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
-
-  const isControlled = open !== undefined;
-  const isOpen = isControlled ? open : uncontrolledOpen;
-
   const id = `tooltip-${useId()}`;
 
-  const setOpen = (nextOpen: boolean) => {
-    if (!isControlled) {
-      setUncontrolledOpen(nextOpen);
-    }
-    onOpenChange?.(nextOpen);
-  };
+  const [isOpen, setOpen] = useControllableState<boolean, false>({
+    value: open,
+    defaultValue: defaultOpen,
+    onChange: onOpenChange,
+  });
 
   const show = () => setOpen(true);
   const hide = () => setOpen(false);

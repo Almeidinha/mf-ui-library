@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useControllableState } from "hooks";
+import { useCallback } from "react";
 
 export type CheckedState<T extends boolean> = T extends true
   ? boolean | undefined
@@ -6,8 +7,8 @@ export type CheckedState<T extends boolean> = T extends true
 
 type UseCheckboxOptions<T extends boolean> = {
   indeterminate?: T;
-  checked?: CheckedState<T>; // controlled
-  defaultChecked?: CheckedState<T>; // uncontrolled initial
+  checked?: CheckedState<T>;
+  defaultChecked?: CheckedState<T>;
   disabled?: boolean;
   onChange?: (next: CheckedState<T>) => void;
 };
@@ -27,61 +28,43 @@ export function useCheckbox<T extends boolean = false>(
     disabled,
     onChange,
   } = options;
+
   const isThreeState = indeterminate === true;
 
-  const isControlled = Object.prototype.hasOwnProperty.call(options, "checked");
-
-  const [uncontrolledChecked, setUncontrolledChecked] = useState<
-    CheckedState<T>
-  >(() => {
-    if (isControlled) {
-      return controlledChecked as CheckedState<T>;
-    }
-    if (defaultChecked !== undefined) {
-      return defaultChecked;
-    }
-    return false as CheckedState<T>;
+  const triState = useControllableState<boolean, true>({
+    value: controlledChecked,
+    defaultValue: (defaultChecked ?? false) as boolean | undefined,
+    onChange: onChange as ((next: boolean | undefined) => void) | undefined,
   });
 
-  // TODO: Check if we really ned this effect
-  // Keep internal state aligned if switching to controlled
-  useEffect(() => {
-    if (isControlled) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUncontrolledChecked(controlledChecked as CheckedState<T>);
+  const biState = useControllableState<boolean, false>({
+    value: controlledChecked,
+    defaultValue: defaultChecked ?? false,
+    onChange: onChange as ((next: boolean) => void) | undefined,
+  });
+
+  const [checked, setChecked] = isThreeState ? triState : biState;
+
+  const computeNext = useCallback((): CheckedState<T> => {
+    if (isThreeState) {
+      return (
+        checked === false ? true : checked === true ? undefined : false
+      ) as CheckedState<T>;
     }
-  }, [isControlled, controlledChecked]);
 
-  const checked = (
-    isControlled ? controlledChecked : uncontrolledChecked
-  ) as CheckedState<T>;
-
-  const computeNext = useCallback((): boolean | undefined => {
-    return isThreeState
-      ? checked === false
-        ? true
-        : checked === true
-          ? undefined
-          : false
-      : !checked;
+    return !checked as CheckedState<T>;
   }, [checked, isThreeState]);
-
-  const commit = useCallback(
-    (next: CheckedState<T>) => {
-      if (!isControlled) {
-        setUncontrolledChecked(next);
-      }
-      onChange?.(next);
-    },
-    [isControlled, onChange],
-  );
 
   const toggle = useCallback(() => {
     if (disabled) {
       return;
     }
-    commit(computeNext() as CheckedState<T>);
-  }, [commit, computeNext, disabled]);
 
-  return { checked, toggle };
+    setChecked(computeNext() as never);
+  }, [computeNext, disabled, setChecked]);
+
+  return {
+    checked: checked as CheckedState<T>,
+    toggle,
+  };
 }

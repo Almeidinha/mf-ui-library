@@ -70,7 +70,6 @@ export const Transition = forwardRef<HTMLElement, TransitionProps>(
       });
 
     const child = children as ReactElement<TransitionChildProps>;
-
     const mergedRef = useMergedRefs(child.props.ref, forwardedRef);
 
     if (!isMounted) {
@@ -89,10 +88,10 @@ export const Transition = forwardRef<HTMLElement, TransitionProps>(
     const phaseStyles = getStyles({ status });
 
     const visibilityStyle: CSSProperties =
-      status === "exited" && !unmountOnExit
+      status === "exiting" || status === "exited"
         ? {
             pointerEvents: "none",
-            visibility: "hidden",
+            visibility: status === "exited" ? "hidden" : undefined,
           }
         : {};
 

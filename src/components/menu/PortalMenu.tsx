@@ -1,4 +1,3 @@
-import { Nothing } from "@helpers";
 import { IOption } from "components/select";
 import { Slide } from "components/transitions";
 import { useRepositionOnScroll } from "hooks";
@@ -169,10 +168,6 @@ export const PortalMenu = ({
     enabled: open,
     onReposition: updatePosition,
   });
-
-  if (!open) {
-    return <Nothing />;
-  }
 
   const handleSelect = (_: unknown, item: MenuItem) => {
     item?.onItemSelect?.();

@@ -1,6 +1,7 @@
 import { IconMinor } from "components/icon";
 import { Flex, SpaceBetween } from "components/layout";
 import { Button } from "components/molecules/button";
+import { TransformIconWrapper } from "components/shared-styled-components";
 import { Body, Label } from "components/typography";
 import { Borders, Focused, Icons, Surface, Text } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
@@ -445,10 +446,10 @@ const ValueImpl = <T,>({
             customIcon
           ) : is(searchable) ? (
             <IconMinor.MagnifyingGlass />
-          ) : open ? (
-            <IconMinor.ChevronUpSolid />
           ) : (
-            <IconMinor.ChevronDownSolid />
+            <TransformIconWrapper $rotate={open} aria-hidden="true">
+              <IconMinor.ChevronDownSolid />
+            </TransformIconWrapper>
           )}
         </ValueRight>
       </ValueContainer>

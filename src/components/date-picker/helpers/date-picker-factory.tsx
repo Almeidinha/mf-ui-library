@@ -1,7 +1,7 @@
 import { Actions } from "foundation/colors";
 import { Margin } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
-import { Nothing } from "helpers/nothing";
+import { If, Nothing } from "helpers/nothing";
 import {
   defaultTo,
   first,
@@ -13,7 +13,7 @@ import {
   toArray,
 } from "helpers/safe-navigation";
 import { applyProps, getOtherChildren, getSlot, Slot } from "helpers/slots";
-import { useInputControllableState } from "hooks";
+import { useControllableState } from "hooks";
 import React, { InputHTMLAttributes } from "react";
 import { DateObject } from "react-multi-date-picker";
 import styled from "styled-components";
@@ -123,15 +123,15 @@ export function datePickerFactory<T>({
   }) => {
     const calendarId = React.useId();
 
-    const [value, onChange] = useInputControllableState<T>({
+    const [value, onChange] = useControllableState<T, false>({
       value: valueProp,
       defaultValue,
       onChange: onChangeProp,
     });
 
-    const [open, setOpen] = useInputControllableState<boolean>({
+    const [open, setOpen] = useControllableState<boolean, false>({
       value: isOpen,
-      defaultValue: defaultOpen,
+      defaultValue: defaultOpen ?? false,
       onChange: onOpenChange,
     });
 
@@ -181,7 +181,7 @@ export function datePickerFactory<T>({
         ) : (
           <InputField
             role="combobox"
-            aria-expanded={is(open)}
+            aria-expanded={open}
             aria-haspopup="dialog"
             aria-controls={calendarId}
             placeholder={displayPlaceholder}
@@ -189,7 +189,7 @@ export function datePickerFactory<T>({
             readOnly={hasValue(value)}
             value={displayValue}
             onChange={() => undefined}
-            onClick={() => setOpen(!is(open))}
+            onClick={() => setOpen(!open)}
             label={label}
             $disabled={Boolean(disabled)}
           >
@@ -198,7 +198,7 @@ export function datePickerFactory<T>({
             </InputField.Icon>
           </InputField>
         )}
-        {is(open) ? (
+        <If is={open}>
           <div
             role="dialog"
             id={calendarId}
@@ -223,9 +223,7 @@ export function datePickerFactory<T>({
               {calendarChildren}
             </Calendar>
           </div>
-        ) : (
-          <Nothing />
-        )}
+        </If>
       </InputDatePicker>
     );
   };
