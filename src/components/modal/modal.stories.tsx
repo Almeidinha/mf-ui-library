@@ -32,6 +32,19 @@ const MainText = styled(Body)`
   text-align: center;
 `;
 
+const LongContent = () => (
+  <Flex column gap={Gap.m}>
+    {Array.from({ length: 18 }).map((_, index) => (
+      // eslint-disable-next-line react/no-array-index-key
+      <Body key={index}>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer
+        facilisis, nisl eu aliquam luctus, purus justo faucibus massa, vitae
+        volutpat ipsum sem at velit. Section {index + 1}.
+      </Body>
+    ))}
+  </Flex>
+);
+
 const meta = {
   title: "Components/Modal",
   component: Modal,
@@ -47,17 +60,46 @@ It should be used thoughtfully.
 ## How to use
 
 \`\`\`tsx
-import { Modal } from './index'
+import { Modal } from "./index";
 
 <Modal
   open={isOpen}
-  closeButtonLabel="Close me"
+  title="Modal title"
+  closeButtonLabel="Close"
   onClose={() => setIsOpen(false)}
 >
   <Body>Modal text</Body>
 </Modal>
 \`\`\`
 
+---
+
+## Sizing
+
+Use:
+
+- \`maxWidth\`
+- \`fullWidth\`
+- \`fullScreen\`
+
+\`\`\`tsx
+<Modal open onClose={handleClose} maxWidth="sm" />
+<Modal open onClose={handleClose} maxWidth="900px" />
+<Modal open onClose={handleClose} fullWidth maxWidth="md" />
+<Modal open onClose={handleClose} fullScreen />
+\`\`\`
+
+---
+
+## Scroll behavior
+
+- \`scroll="paper"\` keeps scrolling inside the modal content
+- \`scroll="body"\` makes the overlay/container scroll instead
+
+\`\`\`tsx
+<Modal open onClose={handleClose} scroll="paper" />
+<Modal open onClose={handleClose} scroll="body" />
+\`\`\`
         `,
       },
     },
@@ -65,12 +107,16 @@ import { Modal } from './index'
   args: {
     open: false,
     closeOnEsc: true,
+    closeOnOverlayClick: true,
     title: "Modal Title",
     children: <p>This is the content of the modal.</p>,
     primaryButtonLabel: "Primary",
     closeButtonLabel: "Close",
     secondaryButtonLabel: "Secondary",
-    modalSize: "default",
+    fullWidth: false,
+    fullScreen: false,
+    maxWidth: "md",
+    scroll: "paper",
     onClose: () => console.log("Modal closed"),
     onOverlayClick: () => console.log("Overlay clicked"),
     onPrimaryAction: () => console.log("Primary action clicked"),
@@ -85,6 +131,7 @@ import { Modal } from './index'
     open: {
       description: "Controls whether the modal is open.",
       table: {
+        category: "State",
         defaultValue: { summary: "false" },
       },
     },
@@ -92,6 +139,14 @@ import { Modal } from './index'
       description:
         "Whether the modal should close when the Escape key is pressed.",
       table: {
+        category: "Behavior",
+        defaultValue: { summary: "true" },
+      },
+    },
+    closeOnOverlayClick: {
+      description: "Whether clicking the overlay should close the modal.",
+      table: {
+        category: "Behavior",
         defaultValue: { summary: "true" },
       },
     },
@@ -99,18 +154,116 @@ import { Modal } from './index'
       description:
         "The title of the modal. If not provided, the modal will be labelled as 'Modal' for accessibility purposes.",
       table: {
+        category: "Content",
         defaultValue: { summary: "undefined" },
       },
     },
-    modalSize: {
-      description: "The size of the modal.",
+    children: {
+      description: "Body content rendered inside the modal.",
       table: {
-        defaultValue: { summary: "default" },
+        category: "Content",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    maxWidth: {
+      description:
+        "Controls the modal max width. Accepts preset tokens, false, or any CSS width value.",
+      control: "text",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "md" },
+        type: {
+          summary: `"xs" | "sm" | "md" | "lg" | "xl" | false | string`,
+        },
+      },
+    },
+    fullWidth: {
+      description:
+        "Makes the modal take the available width up to its maxWidth.",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "false" },
+      },
+    },
+    fullScreen: {
+      description: "Makes the modal occupy the full viewport.",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "false" },
+      },
+    },
+    scroll: {
+      description:
+        "Controls where the scroll happens. 'paper' scrolls inside the modal. 'body' scrolls in the overlay/container.",
+      control: "inline-radio",
+      options: ["paper", "body"],
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "paper" },
+      },
+    },
+    primaryButtonLabel: {
+      description: "Label for the primary action button.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    secondaryButtonLabel: {
+      description: "Label for the secondary action button.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    closeButtonLabel: {
+      description: "Accessible label shown for the close button.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onPrimaryAction: {
+      description: "Called when the primary action button is clicked.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onSecondaryAction: {
+      description: "Called when the secondary action button is clicked.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    isPrimaryButtonDisabled: {
+      description: "Disables the primary action button.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "false" },
+      },
+    },
+    isPrimaryActionLoading: {
+      description: "Shows the loading state on the primary action button.",
+      table: {
+        category: "Actions",
+        defaultValue: { summary: "false" },
+      },
+    },
+    customFooter: {
+      description:
+        "Custom footer content. When provided, it replaces the default action button layout.",
+      control: false,
+      table: {
+        category: "Footer",
+        defaultValue: { summary: "undefined" },
       },
     },
     usePortal: {
       description: "Whether the modal should be rendered in a portal.",
       table: {
+        category: "Portal",
         defaultValue: { summary: "false" },
       },
     },
@@ -118,18 +271,21 @@ import { Modal } from './index'
       description:
         "The DOM element where the portal should be rendered. If not provided, it will be rendered in the body element.",
       table: {
+        category: "Portal",
         defaultValue: { summary: "document.body" },
-      },
-    },
-    children: {
-      description: "Body content rendered inside the modal.",
-      table: {
-        defaultValue: { summary: "undefined" },
       },
     },
     onClose: {
       description: "Called when the modal requests to close.",
       table: {
+        category: "Events",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onOverlayClick: {
+      description: "Called when the overlay is clicked.",
+      table: {
+        category: "Events",
         defaultValue: { summary: "undefined" },
       },
     },
@@ -139,16 +295,19 @@ import { Modal } from './index'
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+function ModalStoryRenderer(args: ModalProps) {
+  const [{ open }, updateArgs] = useArgs<ModalProps>();
+
+  return (
+    <div style={{ height: 350 }}>
+      <Button onClick={() => updateArgs({ open: !open })}>Open Modal</Button>
+      <Modal {...args} onClose={() => updateArgs({ open: false })} />
+    </div>
+  );
+}
+
 export const Docs: Story = {
-  render: function Render(args) {
-    const [{ open }, updateArgs] = useArgs<ModalProps>();
-    return (
-      <div style={{ height: 500 }}>
-        <Button onClick={() => updateArgs({ open: !open })}>Open Modal</Button>
-        <Modal {...args} onClose={() => updateArgs({ open: false })} />
-      </div>
-    );
-  },
+  render: ModalStoryRenderer,
 };
 
 export const AsyncAction: Story = {
@@ -157,6 +316,7 @@ export const AsyncAction: Story = {
 
     const triggerAsyncPrimaryAction = () => {
       updateArgs({ isPrimaryActionLoading: true });
+
       setTimeout(() => {
         updateArgs({ isPrimaryActionLoading: false });
         alert("Primary Action done (:");
@@ -164,7 +324,7 @@ export const AsyncAction: Story = {
     };
 
     return (
-      <div style={{ height: 500 }}>
+      <div style={{ height: 700 }}>
         <Button onClick={() => updateArgs({ open: !open })}>Open Modal</Button>
         <Modal
           {...args}
@@ -180,9 +340,65 @@ export const AsyncAction: Story = {
   },
 };
 
+export const FullWidth: Story = {
+  render: ModalStoryRenderer,
+  args: {
+    title: "Full width modal",
+    fullWidth: true,
+    maxWidth: false,
+    children: <LongContent />,
+  },
+};
+
+export const FullScreen: Story = {
+  render: ModalStoryRenderer,
+  args: {
+    title: "Full screen modal",
+    fullScreen: true,
+    children: <LongContent />,
+  },
+};
+
+export const MaxWidthPresets: Story = {
+  render: ModalStoryRenderer,
+  args: {
+    title: "Preset max width",
+    maxWidth: "lg",
+    children: <LongContent />,
+  },
+};
+
+export const CustomMaxWidth: Story = {
+  render: ModalStoryRenderer,
+  args: {
+    title: "Custom max width",
+    maxWidth: "720px",
+    children: <LongContent />,
+  },
+};
+
+export const ScrollPaper: Story = {
+  render: ModalStoryRenderer,
+  args: {
+    title: "Scroll inside the modal",
+    scroll: "paper",
+    children: <LongContent />,
+  },
+};
+
+export const ScrollBody: Story = {
+  render: ModalStoryRenderer,
+  args: {
+    title: "Scroll on the overlay/container",
+    scroll: "body",
+    children: <LongContent />,
+  },
+};
+
 export const Destructive: Story = {
   render: function Render(args) {
     const [{ closeButtonLabel }, updateArgs] = useArgs<ModalProps>();
+
     return (
       <div>
         <Flex column gap={Gap.l}>
@@ -194,6 +410,7 @@ export const Destructive: Story = {
             Open the modal!
           </Button>
         </Flex>
+
         <ModalDestructive
           {...args}
           closeButtonLabel={closeButtonLabel || "Close"}
@@ -203,7 +420,7 @@ export const Destructive: Story = {
           }}
           onClose={() => updateArgs({ open: false })}
           onOverlayClick={() => updateArgs({ open: false })}
-        ></ModalDestructive>
+        />
       </div>
     );
   },

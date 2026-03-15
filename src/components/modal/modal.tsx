@@ -17,6 +17,7 @@ const ModalHeader = styled.header`
   align-items: center;
   padding: ${Padding.m};
   border-bottom: 1px solid ${Borders.Default.Subdued};
+  flex-shrink: 0;
 `;
 
 const CloseButton = styled.button.attrs({ type: "button" })`
@@ -44,10 +45,19 @@ const CloseButton = styled.button.attrs({ type: "button" })`
 `;
 
 const ModalContent = styled.div`
-  max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
   padding: ${Padding.m};
+  overflow-x: hidden;
+
+  [data-scroll="paper"] &,
+  [data-fullscreen="true"] & {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  [data-scroll="body"] & {
+    overflow-y: visible;
+  }
 `;
 
 const ModalFooter = styled.footer`
@@ -58,6 +68,7 @@ const ModalFooter = styled.footer`
   display: flex;
   gap: ${Gap.xs};
   justify-content: flex-end;
+  flex-shrink: 0;
 `;
 
 export type ModalProps = ModalBaseProps & {
@@ -112,6 +123,7 @@ export function Modal({
           </CloseButton>
         </ModalHeader>
       </If>
+
       <ModalContent>{children}</ModalContent>
 
       <If is={hasFooter}>

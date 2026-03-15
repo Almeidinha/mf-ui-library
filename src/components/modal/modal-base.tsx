@@ -6,10 +6,11 @@ import React, {
   MouseEvent,
   ReactNode,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
 import { createPortal } from "react-dom";
-import styled, { keyframes } from "styled-components";
+import styled, { css, keyframes } from "styled-components";
 
 const ESC_KEYS = ["Escape", "Esc"] as const;
 
@@ -23,51 +24,107 @@ const grow = keyframes`
   to { transform: scale(1); opacity: 1; }
 `;
 
-const OverlayFrame = styled.div`
+export const MODAL_MAX_WIDTH = {
+  xs: "456px",
+  sm: "518px",
+  md: "616px",
+  lg: "776px",
+  xl: "936px",
+} as const;
+
+export type ModalMaxWidthPreset = keyof typeof MODAL_MAX_WIDTH;
+export type ModalMaxWidth = ModalMaxWidthPreset | false | (string & {});
+
+export type ModalScroll = "paper" | "body";
+
+const OverlayFrame = styled.div<{
+  $scroll: ModalScroll;
+  $fullScreen: boolean;
+}>`
   position: fixed;
   inset: 0;
   z-index: 20000;
   background-color: ${Background.Overlay};
   display: grid;
-  place-items: center;
-  padding: 16px;
   animation: ${fadeIn} 0.2s ease-out;
+
+  ${({ $fullScreen }) =>
+    $fullScreen
+      ? css`
+          padding: 0;
+        `
+      : css`
+          padding: 16px;
+        `}
+
+  ${({ $scroll, $fullScreen }) =>
+    $scroll === "body"
+      ? css`
+          place-items: ${$fullScreen ? "stretch" : "start center"};
+          overflow-y: auto;
+          overflow-x: hidden;
+        `
+      : css`
+          place-items: center;
+          overflow: hidden;
+        `}
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 `;
 
-const ModalFrame = styled.div<{ $widthValue: string }>`
+const ModalFrame = styled.div<{
+  $resolvedMaxWidth: string;
+  $fullWidth: boolean;
+  $fullScreen: boolean;
+  $scroll: ModalScroll;
+}>`
   background-color: ${Surface.Default.Default};
-  width: min(calc(100vw - 32px), ${({ $widthValue }) => $widthValue});
-  max-height: calc(100vh - 32px);
-  overflow: hidden;
-  border-radius: 8px;
+  box-sizing: border-box;
   ${shadowXl};
   animation: ${grow} 0.12s ease-out;
 
+  ${({ $fullScreen, $resolvedMaxWidth, $fullWidth, $scroll }) =>
+    $fullScreen
+      ? css`
+          width: 100vw;
+          height: 100vh;
+          max-width: 100vw;
+          max-height: 100vh;
+          border-radius: 0;
+        `
+      : css`
+          width: ${$fullWidth
+            ? "min(calc(100vw - 32px), 100%)"
+            : `min(calc(100vw - 32px), ${$resolvedMaxWidth})`};
+          max-width: ${$resolvedMaxWidth};
+          max-height: ${$scroll === "body" ? "none" : `calc(100vh - 32px)`};
+          border-radius: 8px;
+        `}
+
+  ${({ $fullScreen, $scroll }) =>
+    $fullScreen || $scroll === "paper"
+      ? css`
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        `
+      : css`
+          overflow: visible;
+          display: block;
+        `}
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 `;
-
-export const MODAL_SIZE = {
-  small: "456px",
-  critical: "518px",
-  default: "616px",
-  large: "776px",
-  xLarge: "936px",
-} as const;
-
-export type ModalSize = keyof typeof MODAL_SIZE;
 
 export interface ModalBaseProps extends HTMLAttributes<HTMLDivElement> {
   open: boolean;
   children: ReactNode;
   closeOnEsc?: boolean;
   closeOnOverlayClick?: boolean;
-  modalSize?: ModalSize;
   onOverlayClick?: () => void;
   onClose: () => void;
   "aria-labelledby"?: string;
@@ -78,7 +135,42 @@ export interface ModalBaseProps extends HTMLAttributes<HTMLDivElement> {
 
   /** Portal support */
   usePortal?: boolean;
-  portalContainer?: Element | null; // defaults to document.body
+  portalContainer?: Element | null;
+
+  /** Makes the modal take the available width up to maxWidth */
+  fullWidth?: boolean;
+
+  /** Makes the modal take the full viewport */
+  fullScreen?: boolean;
+
+  /**
+   * Controls the modal max width.
+   * Can be a preset token, false to disable the max-width constraint,
+   * or any CSS width value.
+   */
+  maxWidth?: ModalMaxWidth;
+
+  /**
+   * paper: modal content scrolls inside the paper
+   * body: overlay area scrolls instead
+   */
+  scroll?: ModalScroll;
+}
+
+function resolveMaxWidth(maxWidth: ModalMaxWidth | undefined) {
+  if (maxWidth === false) {
+    return "calc(100vw - 32px)";
+  }
+
+  if (typeof maxWidth === "string" && maxWidth in MODAL_MAX_WIDTH) {
+    return MODAL_MAX_WIDTH[maxWidth as keyof typeof MODAL_MAX_WIDTH];
+  }
+
+  if (typeof maxWidth === "string") {
+    return maxWidth;
+  }
+
+  return MODAL_MAX_WIDTH.md;
 }
 
 export function ModalBase({
@@ -86,13 +178,16 @@ export function ModalBase({
   children,
   closeOnEsc = true,
   closeOnOverlayClick = true,
-  modalSize = "default",
   onOverlayClick,
   onClose,
   className,
   initialFocusRef,
   usePortal = true,
   portalContainer,
+  fullWidth = false,
+  fullScreen = false,
+  maxWidth = "md",
+  scroll = "paper",
   "aria-labelledby": ariaLabelledby,
   "aria-label": ariaLabel,
   ...rest
@@ -100,6 +195,8 @@ export function ModalBase({
   const panelRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const previousOverflowRef = useRef<string>("");
+
+  const resolvedMaxWidth = useMemo(() => resolveMaxWidth(maxWidth), [maxWidth]);
 
   useKeyDown(
     ESC_KEYS,
@@ -125,6 +222,7 @@ export function ModalBase({
 
     const raf = requestAnimationFrame(() => {
       initialFocusRef?.current?.focus?.();
+
       if (!initialFocusRef?.current) {
         panelRef.current?.focus?.();
       }
@@ -160,7 +258,12 @@ export function ModalBase({
   };
 
   const content = (
-    <OverlayFrame onClick={handleOverlayClick} data-testid="modal-overlay">
+    <OverlayFrame
+      onClick={handleOverlayClick}
+      data-testid="modal-overlay"
+      $scroll={scroll}
+      $fullScreen={fullScreen}
+    >
       <ModalFrame
         {...rest}
         ref={panelRef}
@@ -169,16 +272,20 @@ export function ModalBase({
         aria-modal="true"
         aria-labelledby={ariaLabelledby}
         aria-label={computedAriaLabel}
-        $widthValue={MODAL_SIZE[modalSize]}
+        data-scroll={scroll}
+        data-fullscreen={fullScreen ? "true" : "false"}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
+        $resolvedMaxWidth={resolvedMaxWidth}
+        $fullWidth={fullWidth}
+        $fullScreen={fullScreen}
+        $scroll={scroll}
       >
         {children}
       </ModalFrame>
     </OverlayFrame>
   );
 
-  // Portal mounting (safe for SSR)
   if (!usePortal) {
     return content;
   }
@@ -186,6 +293,5 @@ export function ModalBase({
   const mount =
     portalContainer ?? (typeof document !== "undefined" ? document.body : null);
 
-  // If we can't resolve a mount node (SSR), just render inline
   return mount ? createPortal(content, mount) : content;
 }

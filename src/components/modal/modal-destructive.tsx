@@ -8,6 +8,18 @@ import { ModalBase, ModalBaseProps } from "./modal-base";
 
 const ModalContent = styled.div`
   padding: ${Padding.xl} ${Padding.xl} ${Padding.none};
+  overflow-x: hidden;
+
+  [data-scroll="paper"] &,
+  [data-fullscreen="true"] & {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  [data-scroll="body"] & {
+    overflow-y: visible;
+  }
 `;
 
 const ModalFooter = styled.footer`
@@ -17,6 +29,7 @@ const ModalFooter = styled.footer`
   display: flex;
   gap: ${Gap.xs};
   justify-content: flex-end;
+  flex-shrink: 0;
 `;
 
 const CustomButton = styled(Button)`
@@ -41,7 +54,7 @@ export function ModalDestructive({
     <ModalBase
       {...baseProps}
       onClose={onClose}
-      modalSize="critical"
+      maxWidth="sm"
       aria-label="Confirmation dialog"
     >
       <ModalContent>{children}</ModalContent>
