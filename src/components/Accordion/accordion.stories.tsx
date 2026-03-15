@@ -51,7 +51,6 @@ const meta = {
   parameters: {
     layout: "centered",
   },
-  tags: ["autodocs"],
   args: {
     type: "single",
     collapsible: true,

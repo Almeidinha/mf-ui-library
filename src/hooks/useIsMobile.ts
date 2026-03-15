@@ -1,21 +1,5 @@
-import { useEffect, useState } from "react";
+import { breakpoints } from "foundation/breakpoints";
 
-export const useIsMobile = (): boolean => {
-  const [isMobile, setIsMobile] = useState(false);
+import { useMediaQuery } from "./useMediaQuery";
 
-  useEffect(() => {
-    const handleResize = (): void => {
-      setIsMobile(window.innerWidth < 1039);
-    };
-
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return isMobile;
-};
+export const useIsMobile = (): boolean => useMediaQuery(breakpoints.down("lg"));
