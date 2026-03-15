@@ -53,7 +53,62 @@ The available optional properties are as follows.
     className: "",
     children: "This is My TAG!",
   },
-  argTypes: {},
+  argTypes: {
+    children: {
+      description: "Content rendered inside the tag.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "This is My TAG!",
+        },
+      },
+    },
+    closable: {
+      description: "Adds a close affordance to the tag.",
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    disabled: {
+      description: "Disables the tag and prevents interaction.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    className: {
+      description: "Additional class name applied to the tag root.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: '""',
+        },
+      },
+    },
+    onClick: {
+      description: "Called when the tag is clicked.",
+      table: {
+        category: "Events",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+    onClose: {
+      description: "Called when the close action is triggered.",
+      table: {
+        category: "Events",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+  },
 } satisfies Meta<typeof Tag>;
 
 export default meta;

@@ -45,7 +45,32 @@ const meta = {
   component: Table,
   parameters: {},
   tags: ["autodocs"],
-  argTypes: {},
+  argTypes: {
+    children: {
+      description:
+        "Table markup composed from TableHead, TableBody, TableRow, and cell subcomponents.",
+      table: {
+        category: "Composition",
+        defaultValue: { summary: "undefined" },
+      },
+      control: false,
+    },
+    className: {
+      description: "Optional class name applied to the table root.",
+      table: {
+        category: "Appearance",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    style: {
+      description: "Inline styles applied to the table root.",
+      table: {
+        category: "Appearance",
+        defaultValue: { summary: "undefined" },
+      },
+      control: false,
+    },
+  },
 } satisfies Meta<typeof Table>;
 
 export default meta;

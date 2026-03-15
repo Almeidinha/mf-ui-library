@@ -15,15 +15,40 @@ const meta = {
     fallbackUrl: "https://www.svgrepo.com/show/425244/users-avatar.svg",
   },
   argTypes: {
+    imageUrl: {
+      description: "Primary image URL rendered by the thumbnail.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "https://www.svgrepo.com/show/425238/users-avatar.svg",
+        },
+      },
+    },
     size: {
+      description: "Sets the rendered thumbnail size.",
       control: { type: "radio" },
       options: ["small", "medium", "large"],
-      table: { defaultValue: { summary: "medium" } },
+      table: {
+        category: "Appearance",
+        defaultValue: { summary: "medium" },
+      },
+    },
+    imageLabel: {
+      description: "Accessible label used for the rendered image.",
+      table: {
+        category: "Accessibility",
+        defaultValue: { summary: "Thumbnail Image" },
+      },
     },
     fallbackUrl: {
       description:
         "URL of the fallback image to display if the main image fails to load.",
-      table: { defaultValue: { summary: "undefined" } },
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "https://www.svgrepo.com/show/425244/users-avatar.svg",
+        },
+      },
     },
   },
 } satisfies Meta<typeof Thumbnail>;

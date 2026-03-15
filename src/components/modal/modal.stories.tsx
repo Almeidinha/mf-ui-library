@@ -82,6 +82,12 @@ import { Modal } from './index'
     portalContainer: undefined,
   },
   argTypes: {
+    open: {
+      description: "Controls whether the modal is open.",
+      table: {
+        defaultValue: { summary: "false" },
+      },
+    },
     closeOnEsc: {
       description:
         "Whether the modal should close when the Escape key is pressed.",
@@ -92,6 +98,9 @@ import { Modal } from './index'
     title: {
       description:
         "The title of the modal. If not provided, the modal will be labelled as 'Modal' for accessibility purposes.",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
     },
     modalSize: {
       description: "The size of the modal.",
@@ -110,6 +119,18 @@ import { Modal } from './index'
         "The DOM element where the portal should be rendered. If not provided, it will be rendered in the body element.",
       table: {
         defaultValue: { summary: "document.body" },
+      },
+    },
+    children: {
+      description: "Body content rendered inside the modal.",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onClose: {
+      description: "Called when the modal requests to close.",
+      table: {
+        defaultValue: { summary: "undefined" },
       },
     },
   },

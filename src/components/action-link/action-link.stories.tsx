@@ -20,32 +20,46 @@ const meta = {
   },
   argTypes: {
     children: {
+      description: "Content rendered inside the action link.",
       table: {
+        category: "Content",
         type: { summary: "ReactNode" },
+        defaultValue: { summary: "Click me" },
       },
     },
     newTab: {
+      description: "Opens the link in a new browser tab when true.",
       table: {
+        category: "Behavior",
         defaultValue: { summary: "undefined" },
       },
     },
     href: {
+      description: "Destination URL for the link.",
       table: {
-        defaultValue: { summary: "undefined" },
+        category: "Behavior",
+        defaultValue: { summary: "https://www.example.com" },
       },
     },
     onClick: {
+      description: "Called when the link is activated.",
       table: {
+        category: "Events",
         defaultValue: { summary: "undefined" },
       },
     },
     disabled: {
+      description: "Disables the link and prevents navigation.",
       table: {
+        category: "State",
         defaultValue: { summary: "false" },
       },
     },
     subtle: {
+      description:
+        "Renders the action link with a lower-emphasis visual style.",
       table: {
+        category: "Appearance",
         defaultValue: { summary: "false" },
       },
     },

@@ -17,11 +17,18 @@ const meta = {
   },
   argTypes: {
     code: {
+      description: "ISO country code used to render the matching flag.",
       control: {
         type: "select",
         labels: Object.fromEntries(Object.entries(CountryList)),
       },
       options: Object.keys(CountryList).map((key) => key),
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "BR",
+        },
+      },
     },
   },
 } satisfies Meta<typeof Flag>;

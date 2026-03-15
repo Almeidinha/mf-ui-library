@@ -53,8 +53,60 @@ Extends HTMLAttributes<HTMLInputElement>
     checked: false,
   },
   argTypes: {
+    checked: {
+      description: "Controlled checked state of the checkbox.",
+      table: {
+        category: "Controlled state",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    disabled: {
+      description: "Disables the checkbox and prevents interaction.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    error: {
+      description: "Applies an error style to the checkbox control.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
     indeterminate: {
+      description: "Displays the checkbox in an indeterminate mixed state.",
       control: "boolean",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    readOnly: {
+      description: "Prevents changes while preserving the rendered state.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    onChange: {
+      description: "Called when the checked state changes.",
+      table: {
+        category: "Events",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
     },
   },
 } satisfies Meta<typeof Checkbox>;

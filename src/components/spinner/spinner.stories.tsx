@@ -41,8 +41,33 @@ import { Spinner } from './index'
   },
   argTypes: {
     size: {
+      description: "Sets the rendered spinner size for this demo wrapper.",
       options: ["small", "medium", "large"],
       control: { type: "radio" },
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "medium",
+        },
+      },
+    },
+    onPrimary: {
+      description: "Adjusts spinner contrast for use on primary surfaces.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    onCritical: {
+      description: "Adjusts spinner contrast for use on critical surfaces.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "false",
+        },
+      },
     },
   },
 } satisfies Meta<SpinStoryArgs>;

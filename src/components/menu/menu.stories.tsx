@@ -27,9 +27,12 @@ const meta: Meta<MenuStoryArgs> = {
   },
   argTypes: {
     anchor: {
+      description:
+        "Story-only helper that chooses which demo element anchors the menu.",
       control: { type: "radio" },
       options: [undefined, "button", "icon"],
       table: {
+        category: "Story controls",
         defaultValue: { summary: "undefined" },
         type: {
           summary: "anchor",
@@ -38,6 +41,7 @@ const meta: Meta<MenuStoryArgs> = {
       },
     },
     placement: {
+      description: "Preferred placement of the menu relative to its anchor.",
       control: { type: "select" },
       options: [
         "bottom-start",
@@ -48,12 +52,31 @@ const meta: Meta<MenuStoryArgs> = {
         "left-start",
       ],
       table: {
+        category: "Layout",
         defaultValue: { summary: "bottom-start" },
       },
     },
     width: {
+      description: "Width of the rendered menu in pixels or auto sizing mode.",
       table: {
+        category: "Layout",
         defaultValue: { summary: "auto" },
+      },
+    },
+    items: {
+      description:
+        "Menu items rendered by the component, including nested items.",
+      control: false,
+      table: {
+        category: "Data",
+        defaultValue: { summary: "generated demo menu" },
+      },
+    },
+    open: {
+      description: "Controls whether the menu is open in the demo.",
+      table: {
+        category: "State",
+        defaultValue: { summary: "false" },
       },
     },
   },

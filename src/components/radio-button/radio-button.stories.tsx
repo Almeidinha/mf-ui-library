@@ -48,7 +48,46 @@ Extends \`HTMLAttributes<HTMLInputElement>\`
   argTypes: {
     label: {
       table: {
-        disable: true,
+        category: "Content",
+        defaultValue: {
+          summary: "Radio Button label",
+        },
+      },
+      description: "Visible label rendered next to the radio button.",
+    },
+    checked: {
+      description: "Controlled checked state for the radio button.",
+      table: {
+        category: "Controlled state",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    disabled: {
+      description: "Disables the radio button and prevents interaction.",
+      table: {
+        category: "State",
+        defaultValue: { summary: "false" },
+      },
+    },
+    readOnly: {
+      description: "Prevents changes while preserving the rendered state.",
+      table: {
+        category: "State",
+        defaultValue: { summary: "false" },
+      },
+    },
+    name: {
+      description: "Radio group name used to associate related radio buttons.",
+      table: {
+        category: "Behavior",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onChange: {
+      description: "Called when the selected state changes.",
+      table: {
+        category: "Events",
+        defaultValue: { summary: "undefined" },
       },
     },
   },

@@ -76,22 +76,68 @@ import { AlertBanner } from './index'
   },
   argTypes: {
     dismissible: {
+      description:
+        "Shows a dismiss action so the banner can be closed manually.",
       control: "boolean",
       table: {
         defaultValue: { summary: "false" },
       },
     },
-    open: { control: "boolean" },
-    primaryButtonLabel: { control: "text" },
-    secondaryButtonLabel: { control: "text" },
-    onPrimaryAction: { action: "primary action" },
-    onSecondaryAction: { action: "secondary action" },
-    onClose: { action: "close alert" },
+    open: {
+      description: "Controls whether the alert banner is currently visible.",
+      control: "boolean",
+      table: {
+        defaultValue: { summary: "true" },
+      },
+    },
+    primaryButtonLabel: {
+      description: "Label shown on the primary action button when provided.",
+      control: "text",
+      table: {
+        defaultValue: { summary: '""' },
+      },
+    },
+    secondaryButtonLabel: {
+      description: "Label shown on the secondary action button when provided.",
+      control: "text",
+      table: {
+        defaultValue: { summary: '""' },
+      },
+    },
+    onPrimaryAction: {
+      description: "Called when the primary action button is clicked.",
+      action: "primary action",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onSecondaryAction: {
+      description: "Called when the secondary action button is clicked.",
+      action: "secondary action",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onClose: {
+      description: "Called when the banner requests to close.",
+      action: "close alert",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
+    },
     variant: {
+      description: "Semantic style applied to the banner.",
       control: { type: "select" },
       options: ["neutral", "info", "success", "warning", "critical"],
       table: {
         defaultValue: { summary: "neutral" },
+      },
+    },
+    children: {
+      description: "Banner body content rendered inside the alert.",
+      control: false,
+      table: {
+        defaultValue: { summary: "undefined" },
       },
     },
   },

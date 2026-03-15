@@ -27,11 +27,13 @@ const meta = {
       },
     },
     secondary: {
+      description: "Uses the secondary visual style for the tab list.",
       table: {
         defaultValue: { summary: "false" },
       },
     },
     selected: {
+      description: "Controlled index of the currently selected tab.",
       table: { defaultValue: { summary: "0" } },
     },
     onChange: {
@@ -39,6 +41,14 @@ const meta = {
         "Callback when the selected tab changes. Receives the new index.",
       table: {
         type: { summary: "(index: number) => void)" },
+      },
+    },
+    children: {
+      description:
+        "TabList, Tab, and Content children used to compose the tabs.",
+      control: false,
+      table: {
+        defaultValue: { summary: "undefined" },
       },
     },
     activationMode: {

@@ -41,11 +41,45 @@ import { Avatar } from './index'
     className: "custom-avatar",
   },
   argTypes: {
+    name: {
+      description: "Name used for initials and accessible labeling.",
+      table: {
+        defaultValue: { summary: "Some Full Name" },
+      },
+    },
     size: {
+      description: "Sets the rendered avatar size.",
       control: { type: "select" },
       options: ["small", "medium", "large"],
       table: {
-        defaultValue: { summary: "small" },
+        defaultValue: { summary: "large" },
+      },
+    },
+    imageUrl: {
+      description: "Image URL shown in the avatar when available.",
+      table: {
+        defaultValue: {
+          summary:
+            "https://static.vecteezy.com/system/resources/thumbnails/027/951/137/small_2x/stylish-spectacles-guy-3d-avatar-character-illustrations-png.png",
+        },
+      },
+    },
+    imageLabel: {
+      description: "Accessible label applied to the avatar image.",
+      table: {
+        defaultValue: { summary: "Some Full Name avatar" },
+      },
+    },
+    withLabel: {
+      description: "Shows the user name alongside the avatar.",
+      table: {
+        defaultValue: { summary: "true" },
+      },
+    },
+    className: {
+      description: "Optional class name applied to the avatar root.",
+      table: {
+        defaultValue: { summary: "custom-avatar" },
       },
     },
   },

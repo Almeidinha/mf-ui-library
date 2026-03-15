@@ -46,7 +46,62 @@ Also, you can sen this parameters:
     disabled: false,
     indeterminate: false,
   },
-  argTypes: {},
+  argTypes: {
+    label: {
+      description: "Visible text rendered next to the checkbox control.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Checkbox label",
+        },
+      },
+    },
+    checked: {
+      description: "Controlled checked state for the underlying checkbox.",
+      table: {
+        category: "Controlled state",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+    error: {
+      description: "Applies the error presentation to the checkbox field.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    disabled: {
+      description: "Disables the checkbox and prevents user interaction.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    indeterminate: {
+      description: "Displays the checkbox in an indeterminate mixed state.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    onChange: {
+      description: "Called when the checked state changes.",
+      table: {
+        category: "Events",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+  },
 } satisfies Meta<typeof InputCheckbox>;
 
 export default meta;

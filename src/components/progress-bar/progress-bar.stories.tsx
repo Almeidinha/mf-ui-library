@@ -40,14 +40,36 @@ import { ProgressBar } from './index'
   },
   argTypes: {
     size: {
+      description: "Sets the visual thickness of the progress bar.",
       table: {
+        category: "Appearance",
+        defaultValue: { summary: "small" },
         type: { summary: '"small" | "medium" | "large"' },
       },
       control: { type: "radio" },
       options: ["small", "medium", "large"],
     },
     progress: {
+      description: "Current progress percentage from 0 to 100.",
       control: { type: "range", min: 0, max: 100 },
+      table: {
+        category: "Behavior",
+        defaultValue: { summary: "50" },
+      },
+    },
+    pulse: {
+      description: "Adds a pulsing animation to indicate ongoing activity.",
+      table: {
+        category: "Appearance",
+        defaultValue: { summary: "false" },
+      },
+    },
+    "aria-label": {
+      description: "Accessible label announced for the progress bar.",
+      table: {
+        category: "Accessibility",
+        defaultValue: { summary: "Progress bar example" },
+      },
     },
   },
 } satisfies Meta<typeof ProgressBar>;

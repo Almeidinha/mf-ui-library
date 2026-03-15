@@ -91,67 +91,117 @@ Also, you can sen this parameters:
   },
   argTypes: {
     options: {
+      description: "Options rendered by the multi-choice list.",
+      control: false,
       table: {
+        category: "Data",
         type: {
           summary: "MultiChoiceOption[]",
           detail:
             "Array of options to render, each with shape { value: string; label: string; helpMessage?: string; disabled?: boolean; id?: string }",
         },
+        defaultValue: {
+          summary: "3 demo options",
+        },
       },
     },
     className: {
+      description: "Additional class names applied to the component root.",
       table: {
+        category: "Appearance",
         type: {
           summary: "string",
           detail: "Additional CSS class names to apply to the component",
         },
+        defaultValue: {
+          summary: '""',
+        },
       },
     },
     onChange: {
+      description: "Called with the next selected values array when selection changes.",
       table: {
+        category: "Events",
         type: {
           summary: "(next: string[]) => void",
           detail:
             "Function that receives the next selected values array when a change occurs, use for controlled mode. For uncontrolled mode, this is optional.",
         },
+        defaultValue: {
+          summary: "undefined",
+        },
       },
     },
     value: {
+      description: "Controlled array of selected option values.",
       table: {
+        category: "Controlled state",
         type: {
           summary: "string[]",
           detail:
             "Array<string> representing selected values, use for controlled mode",
         },
+        defaultValue: {
+          summary: "[]",
+        },
       },
     },
     defaultValue: {
+      description: "Initial selected values when used uncontrolled.",
       table: {
+        category: "Uncontrolled state",
         type: {
           summary: "string[]",
           detail:
             "string representing the default selected values, use for uncontrolled mode",
         },
+        defaultValue: {
+          summary: "undefined",
+        },
       },
     },
     name: {
+      description: "Name applied to the underlying checkbox group.",
       table: {
+        category: "Accessibility",
         type: {
           summary: "string",
+        },
+        defaultValue: {
+          summary: '""',
         },
       },
     },
     "aria-label": {
+      description: "Accessible label for the group when no visible label is provided.",
       table: {
+        category: "Accessibility",
         type: {
           summary: "string",
+        },
+        defaultValue: {
+          summary: '""',
         },
       },
     },
     "aria-labelledby": {
+      description: "References an element that labels the group.",
       table: {
+        category: "Accessibility",
         type: {
           summary: "string",
+        },
+        defaultValue: {
+          summary: '""',
+        },
+      },
+    },
+    errorMessage: {
+      description: "Validation or helper message shown below the group.",
+      table: {
+        category: "Feedback",
+        defaultValue: {
+          summary: '""',
         },
       },
     },

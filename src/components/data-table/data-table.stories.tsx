@@ -106,26 +106,102 @@ const meta = {
       control: { type: "select" },
       options: ["id", "firstName", "lastName", "age", "fullName"],
       table: {
-        defaultValue: { summary: undefined },
+        category: "Sorting",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    rows: {
+      description: "Table row data rendered by the component.",
+      control: false,
+      table: {
+        category: "Data",
+        defaultValue: { summary: "[]" },
+      },
+    },
+    columns: {
+      description:
+        "Column definitions describing headers, sizing, sorting, and custom cell rendering.",
+      control: false,
+      table: {
+        category: "Data",
+        defaultValue: { summary: "[]" },
+      },
+    },
+    rowKey: {
+      description: "Field used as the unique key for each row.",
+      table: {
+        category: "Data",
+        defaultValue: { summary: "id" },
+      },
+    },
+    paginated: {
+      description:
+        "Shows pagination controls and slices the visible rows by page.",
+      table: {
+        category: "Pagination",
+        defaultValue: { summary: "true" },
+      },
+    },
+    defaultPageSize: {
+      description: "Initial number of rows shown per page.",
+      table: {
+        category: "Pagination",
+        defaultValue: { summary: "5" },
+      },
+    },
+    pageSizeOptions: {
+      description: "Available page size values shown in the paginator.",
+      table: {
+        category: "Pagination",
+        defaultValue: { summary: "[5, 10, 25]" },
+      },
+    },
+    searchable: {
+      description: "Adds a search field that filters visible rows.",
+      table: {
+        category: "Search",
+        defaultValue: { summary: "true" },
+      },
+    },
+    searchPlaceholder: {
+      description: "Placeholder text shown in the search input.",
+      table: {
+        category: "Search",
+        defaultValue: { summary: "Search..." },
+      },
+    },
+    searchDebounce: {
+      description:
+        "Debounce delay in milliseconds applied to search input updates.",
+      table: {
+        category: "Search",
+        defaultValue: { summary: "250" },
+      },
+    },
+    emptyMessage: {
+      description: "Message shown when there are no rows to display.",
+      table: {
+        category: "Empty state",
+        defaultValue: { summary: "No rows found..." },
+      },
+    },
+    checkboxSelection: {
+      description:
+        "Adds row selection checkboxes and a select-all header checkbox.",
+      table: {
+        category: "Selection",
+        defaultValue: { summary: "true" },
       },
     },
     sortDirection: {
+      description: "Initial sort direction used with `sortField`.",
       control: { type: "select" },
       options: ["NONE", "ASC", "DESC"],
       table: {
-        defaultValue: { summary: undefined },
+        category: "Sorting",
+        defaultValue: { summary: "undefined" },
       },
     },
-    emptyMessage: { table: { defaultValue: { summary: "No rows found." } } },
-    searchDebounce: { table: { defaultValue: { summary: "250" } } },
-    checkboxSelection: { table: { defaultValue: { summary: "false" } } },
-    searchable: { table: { defaultValue: { summary: "false" } } },
-    pageSizeOptions: {
-      table: { defaultValue: { summary: "[5, 10, 25, 50]" } },
-    },
-    defaultPageSize: { table: { defaultValue: { summary: "10" } } },
-    paginated: { table: { defaultValue: { summary: "false" } } },
-    searchPlaceholder: { table: { defaultValue: { summary: "Search..." } } },
   },
 } satisfies Meta<typeof DataTable>;
 

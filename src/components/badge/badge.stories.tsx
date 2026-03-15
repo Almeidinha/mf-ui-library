@@ -52,9 +52,25 @@ import { Badge } from './index'
   },
   args: { children: "Badge", variant: "neutral" },
   argTypes: {
+    children: {
+      description: "Text content rendered inside the badge.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Badge",
+        },
+      },
+    },
     variant: {
+      description: "Selects the semantic badge style used for this preview.",
       control: { type: "select" },
       options: ["neutral", "info", "success", "warning", "critical"],
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "neutral",
+        },
+      },
     },
   },
 } satisfies Meta<BadgeStoryArgs>;

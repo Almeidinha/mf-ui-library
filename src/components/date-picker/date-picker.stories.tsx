@@ -38,14 +38,79 @@ const meta = {
     max: undefined,
   },
   argTypes: {
+    value: {
+      description: "Controlled selected date value.",
+      table: {
+        category: "Controlled state",
+        defaultValue: { summary: "201-06-15" },
+      },
+    },
+    defaultValue: {
+      description: "Initial selected date for uncontrolled usage.",
+      table: {
+        category: "Uncontrolled state",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    label: {
+      description: "Label displayed for the date picker input.",
+      table: {
+        category: "Content",
+        defaultValue: { summary: "Select a date" },
+      },
+    },
+    onChange: {
+      description: "Called when the selected date changes.",
+      table: {
+        category: "Events",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onOpenChange: {
+      description: "Called when the calendar opens or closes.",
+      table: {
+        category: "Events",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    isOpen: {
+      description: "Controlled open state for the calendar popover.",
+      table: {
+        category: "Controlled state",
+        defaultValue: { summary: "false" },
+      },
+    },
     defaultOpen: {
+      description: "Initial open state when the component is uncontrolled.",
       control: "boolean",
+      table: {
+        category: "Uncontrolled state",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    format: {
+      description:
+        "Date display format string or formatter function used in the input.",
+      table: {
+        category: "Formatting",
+        defaultValue: { summary: "DD/MM/YYYY" },
+      },
     },
     min: {
+      description: "Minimum selectable date.",
       control: "date",
+      table: {
+        category: "Validation",
+        defaultValue: { summary: "undefined" },
+      },
     },
     max: {
+      description: "Maximum selectable date.",
       control: "date",
+      table: {
+        category: "Validation",
+        defaultValue: { summary: "undefined" },
+      },
     },
   },
 } satisfies Meta<typeof DatePicker>;

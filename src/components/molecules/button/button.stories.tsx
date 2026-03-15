@@ -130,6 +130,7 @@ Types primary and destructive can also be combined by passing \`primary destruct
   },
   argTypes: {
     buttonType: {
+      description: "Selects the button visual treatment.",
       control: { type: "select" },
       options: [
         "basic",
@@ -145,6 +146,7 @@ Types primary and destructive can also be combined by passing \`primary destruct
       },
     },
     size: {
+      description: "Adjusts the button size.",
       control: { type: "radio" },
       options: ["small", "default", "large"],
       table: {
@@ -152,6 +154,7 @@ Types primary and destructive can also be combined by passing \`primary destruct
       },
     },
     IconPrefix: {
+      description: "Optional icon shown before the button label.",
       control: { type: "select" },
       options: ["Bell", "CircleInfo"],
       mapping: {
@@ -160,11 +163,30 @@ Types primary and destructive can also be combined by passing \`primary destruct
       },
     },
     IconSuffix: {
+      description: "Optional icon shown after the button label.",
       control: { type: "select" },
       options: ["Bell", "CircleInfo"],
       mapping: {
         Bell: () => <Icon.Bell />,
         CircleInfo: () => <Icon.CircleInfo />,
+      },
+    },
+    children: {
+      description: "Text or content rendered inside the button.",
+      table: {
+        defaultValue: { summary: "Button" },
+      },
+    },
+    loading: {
+      description: "Shows a loading state inside the button.",
+      table: {
+        defaultValue: { summary: "false" },
+      },
+    },
+    disabled: {
+      description: "Disables the button and prevents interaction.",
+      table: {
+        defaultValue: { summary: "false" },
       },
     },
   },

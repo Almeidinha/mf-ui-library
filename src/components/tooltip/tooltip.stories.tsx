@@ -17,8 +17,38 @@ const meta = {
     className: "",
   },
   argTypes: {
-    width: { control: "number" },
+    content: {
+      description: "Text or content rendered inside the tooltip bubble.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Tooltip content",
+        },
+      },
+    },
+    children: {
+      description:
+        "Trigger element or text that reveals the tooltip on hover or focus.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Hover me",
+        },
+      },
+    },
+    width: {
+      description: "Optional fixed width for the tooltip bubble.",
+      control: "number",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
     position: {
+      description:
+        "Preferred placement of the tooltip relative to its trigger.",
       control: { type: "radio" },
       options: [
         "top",
@@ -30,6 +60,30 @@ const meta = {
         "left",
         "right",
       ],
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "top",
+        },
+      },
+    },
+    className: {
+      description: "Optional class name applied to the tooltip wrapper.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: '""',
+        },
+      },
+    },
+    style: {
+      description: "Inline styles applied to the tooltip wrapper.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "{}",
+        },
+      },
     },
   },
 } satisfies Meta<typeof Tooltip>;

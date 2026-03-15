@@ -105,15 +105,56 @@ slots available on the 'InputField' are also available on the simple inputs, unl
     required: false,
   },
   argTypes: {
+    invalid: {
+      description: "Applies invalid styling to the input field.",
+      table: {
+        category: "State",
+        defaultValue: { summary: "false" },
+      },
+    },
+    disabled: {
+      description: "Disables the input and prevents interaction.",
+      table: {
+        category: "State",
+        defaultValue: { summary: "false" },
+      },
+    },
+    prefix: {
+      description: "Small text rendered before the input control.",
+      table: {
+        category: "Content",
+        defaultValue: { summary: '""' },
+      },
+    },
+    suffix: {
+      description: "Small text rendered after the input control.",
+      table: {
+        category: "Content",
+        defaultValue: { summary: '""' },
+      },
+    },
+    label: {
+      description: "Label rendered with the input field.",
+      table: {
+        category: "Content",
+        defaultValue: { summary: "Input Label" },
+      },
+    },
     labelPosition: {
+      description:
+        "Sets whether the label is rendered above or beside the input.",
       options: ["top", "side"],
       control: { type: "radio" },
       table: {
+        category: "Layout",
         defaultValue: { summary: "top" },
       },
     },
     required: {
+      description:
+        "Marks the field as required and adds the required indicator.",
       table: {
+        category: "State",
         defaultValue: { summary: "false" },
       },
     },

@@ -377,6 +377,7 @@ import { TreeView } from "./index";
         "Tree data. Each node must have a unique `id` and a `label`. Use `children` for eager trees and `hasChildren` for lazy parents.",
       control: { disable: true },
       table: {
+        category: "Data",
         type: { summary: "TreeNodeData[]" },
       },
     },
@@ -385,6 +386,7 @@ import { TreeView } from "./index";
         "Controls the tree mode. `true` (default) renders a rich tree with checkboxes. `false` renders a simpler navigation tree without checkbox selection.",
       control: { type: "boolean" },
       table: {
+        category: "Behavior",
         type: { summary: "boolean" },
         defaultValue: { summary: "true" },
       },
@@ -392,6 +394,7 @@ import { TreeView } from "./index";
     className: {
       description: "Optional class applied to the root container.",
       table: {
+        category: "Appearance",
         type: { summary: "string" },
         defaultValue: { summary: "undefined" },
       },
@@ -399,6 +402,7 @@ import { TreeView } from "./index";
     title: {
       description: "Title displayed at the top of the tree view.",
       table: {
+        category: "Content",
         type: { summary: "string" },
         defaultValue: { summary: "undefined" },
       },
@@ -407,6 +411,7 @@ import { TreeView } from "./index";
       description:
         'ARIA label for the tree element. If omitted, it falls back to `title`, then "Tree view".',
       table: {
+        category: "Accessibility",
         type: { summary: "string" },
         defaultValue: { summary: "title ?? 'Tree view'" },
       },
@@ -415,6 +420,7 @@ import { TreeView } from "./index";
       description:
         "Wraps the tree in a Card with the `title` as the heading when true.",
       table: {
+        category: "Appearance",
         type: { summary: "boolean" },
         defaultValue: { summary: "true" },
       },
@@ -422,6 +428,7 @@ import { TreeView } from "./index";
     showChildCount: {
       description: "Shows the number of direct children next to parent nodes.",
       table: {
+        category: "Appearance",
         type: { summary: "boolean" },
         defaultValue: { summary: "false" },
       },
@@ -430,6 +437,7 @@ import { TreeView } from "./index";
       description:
         "Disables expanding/collapsing parent nodes (including expand/collapse all controls).",
       table: {
+        category: "Behavior",
         type: { summary: "boolean" },
         defaultValue: { summary: "false" },
       },
@@ -439,6 +447,7 @@ import { TreeView } from "./index";
         "Controlled list of checked leaf node ids. Only available in rich tree mode.",
       control: { type: "object" },
       table: {
+        category: "Controlled state",
         type: { summary: "string[]" },
         defaultValue: { summary: "undefined" },
       },
@@ -448,6 +457,7 @@ import { TreeView } from "./index";
         "Initial checked ids when uncontrolled. Only available in rich tree mode.",
       control: { type: "object" },
       table: {
+        category: "Uncontrolled state",
         type: { summary: "string[]" },
         defaultValue: { summary: "[]" },
       },
@@ -457,6 +467,7 @@ import { TreeView } from "./index";
         "Controlled list of expanded parent node ids. Provide this to fully control expansion.",
       control: { type: "object" },
       table: {
+        category: "Controlled state",
         type: { summary: "string[]" },
         defaultValue: { summary: "undefined" },
       },
@@ -466,6 +477,7 @@ import { TreeView } from "./index";
         "Initial expanded ids when uncontrolled (i.e., when `expanded` is undefined).",
       control: { type: "object" },
       table: {
+        category: "Uncontrolled state",
         type: { summary: "string[]" },
         defaultValue: { summary: "[]" },
       },
@@ -475,6 +487,7 @@ import { TreeView } from "./index";
         "Called after a check/uncheck interaction. Only leaf nodes are tracked as checked ids. Only available in rich tree mode.",
       action: "check",
       table: {
+        category: "Events",
         type: {
           summary:
             "(checkedIds: string[], node: { id; label; checked }) => void",
@@ -486,6 +499,7 @@ import { TreeView } from "./index";
         "Called after a parent expand/collapse interaction, and also when using Expand all / Collapse all controls.",
       action: "expand",
       table: {
+        category: "Events",
         type: {
           summary:
             "(expandedIds: string[], node?: { id; label; expanded }) => void",
@@ -497,6 +511,7 @@ import { TreeView } from "./index";
         "Called when a node label is clicked (or labelAction resolves to click).",
       action: "nodeClick",
       table: {
+        category: "Events",
         type: { summary: "(node: { id; label }) => void" },
       },
     },
@@ -505,6 +520,7 @@ import { TreeView } from "./index";
         "Called when a node receives focus (mouse or keyboard navigation).",
       action: "nodeFocus",
       table: {
+        category: "Events",
         type: { summary: "(node: { id; label }) => void" },
       },
     },
@@ -513,6 +529,7 @@ import { TreeView } from "./index";
         "Custom renderer for the node row content. Receives loading, load-error, focus, and expanded state and, in rich mode, the checkbox state.",
       control: { disable: true },
       table: {
+        category: "Rendering",
         type: {
           summary:
             "(args: { node: TreeNodeMeta; expanded: boolean; checkState?: CheckboxState; focused: boolean; isLoading: boolean; hasLoadError: boolean }) => ReactNode",
@@ -525,6 +542,7 @@ import { TreeView } from "./index";
         "Optional icons for parent expanded/collapsed and leaf nodes. Values are ReactNode.",
       control: { disable: true },
       table: {
+        category: "Appearance",
         type: {
           summary:
             "{ parentExpanded?: ReactNode; parentCollapsed?: ReactNode; leaf?: ReactNode }",
@@ -535,6 +553,7 @@ import { TreeView } from "./index";
     showExpandAllControls: {
       description: "Shows Expand all / Collapse all controls above the tree.",
       table: {
+        category: "Expand all controls",
         type: { summary: "boolean" },
         defaultValue: { summary: "false" },
       },
@@ -542,6 +561,7 @@ import { TreeView } from "./index";
     expandAllLabel: {
       description: "Label for the Expand all button.",
       table: {
+        category: "Expand all controls",
         type: { summary: "string" },
         defaultValue: { summary: "Expand all" },
       },
@@ -549,6 +569,7 @@ import { TreeView } from "./index";
     collapseAllLabel: {
       description: "Label for the Collapse all button.",
       table: {
+        category: "Expand all controls",
         type: { summary: "string" },
         defaultValue: { summary: "Collapse all" },
       },
@@ -558,6 +579,7 @@ import { TreeView } from "./index";
         "Async loader called the first time an expanded lazy node (`hasChildren: true` with no loaded `children`) is opened.",
       control: { disable: true },
       table: {
+        category: "Lazy loading",
         type: {
           summary: "(node: TreeNodeData) => Promise<TreeNodeData[]>",
         },
@@ -569,6 +591,7 @@ import { TreeView } from "./index";
         "Called when `loadChildren` rejects for a node, allowing the parent app to surface an error.",
       action: "loadChildrenError",
       table: {
+        category: "Lazy loading",
         type: {
           summary: "(node: TreeNodeData, error: unknown) => void",
         },
@@ -579,6 +602,7 @@ import { TreeView } from "./index";
         "Called right before `loadChildren` starts for a lazy node. Useful for analytics, logging, or external loading indicators.",
       action: "loadChildrenStart",
       table: {
+        category: "Lazy loading",
         type: {
           summary: "(node: TreeNodeData) => void",
         },
@@ -589,6 +613,7 @@ import { TreeView } from "./index";
         "Called after lazy loading finishes, with either `success` or `error`.",
       action: "loadChildrenEnd",
       table: {
+        category: "Lazy loading",
         type: {
           summary: "(node: TreeNodeData, result: 'success' | 'error') => void",
         },
@@ -600,6 +625,7 @@ import { TreeView } from "./index";
       options: ["expand", "check", "select"],
       control: { type: "radio" },
       table: {
+        category: "Behavior",
         type: { summary: "'expand' | 'check' | 'select'" },
         defaultValue: { summary: "expand" },
       },

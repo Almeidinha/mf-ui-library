@@ -49,23 +49,55 @@ Extends \`HTMLAttributes<HTMLInputElement>\`
   },
   argTypes: {
     id: {
+      description:
+        "Optional id for the underlying input. Defaults to a generated id.",
       table: {
         defaultValue: { summary: "useId()" },
       },
     },
     disabled: {
+      description: "Disables the switch and prevents interaction.",
       table: {
         defaultValue: { summary: "false" },
       },
     },
     checked: {
+      description: "Controlled checked state of the switch.",
       table: {
-        defaultValue: { summary: "false" },
+        defaultValue: { summary: "true" },
       },
     },
     defaultChecked: {
       description:
         "Use this prop to make the switch uncontrolled. It will manage its own state internally.",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    label: {
+      description: "Visible label rendered next to the switch.",
+      table: {
+        defaultValue: { summary: "Enable feature" },
+      },
+    },
+    name: {
+      description: "Name applied to the underlying input element.",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    helpText: {
+      description: "Supporting helper text shown below the label.",
+      table: {
+        defaultValue: { summary: "This is a help text" },
+      },
+    },
+    onChange: {
+      description:
+        "Called with the next checked state when the switch changes.",
+      table: {
+        defaultValue: { summary: "undefined" },
+      },
     },
   },
 } satisfies Meta<typeof Switch>;

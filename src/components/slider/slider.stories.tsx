@@ -42,16 +42,31 @@ import { Slider } from './index'
   },
   argTypes: {
     min: {
+      description: "Minimum allowed slider value.",
       table: {
         defaultValue: { summary: "0" },
       },
     },
+    max: {
+      description: "Maximum allowed slider value.",
+      table: {
+        defaultValue: { summary: "100" },
+      },
+    },
+    value: {
+      description: "Controlled numeric value for the slider.",
+      table: {
+        defaultValue: { summary: "50" },
+      },
+    },
     editable: {
+      description: "Allows typing the value directly in the paired input.",
       table: {
         defaultValue: { summary: "false" },
       },
     },
     prefix: {
+      description: "Optional prefix shown with the current value.",
       table: {
         defaultValue: { summary: '""' },
       },

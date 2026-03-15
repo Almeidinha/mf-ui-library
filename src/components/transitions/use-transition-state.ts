@@ -100,20 +100,21 @@ export function useTransitionState(
   useEffect(() => {
     const prevIn = prevInRef.current;
     const inChanged = prevIn !== inProp;
+    const isFirstRender = firstRenderRef.current;
 
-    if (!inChanged) {
+    if (!inChanged && !isFirstRender) {
       return;
     }
 
     runIdRef.current += 1;
     const currentRun = runIdRef.current;
 
-    const isFirstRender = firstRenderRef.current;
     const enterDuration = prefersReducedMotion
       ? 0
       : isFirstRender && appear
         ? timeouts.appear
         : timeouts.enter;
+
     const exitDuration = prefersReducedMotion ? 0 : timeouts.exit;
 
     if (inProp) {
@@ -138,8 +139,6 @@ export function useTransitionState(
       }
 
       onEnter?.();
-
-      // Use "exited" / initial hidden styles as the pre-enter frame.
       clearEnterScheduled();
 
       raf1Ref.current = window.requestAnimationFrame(() => {

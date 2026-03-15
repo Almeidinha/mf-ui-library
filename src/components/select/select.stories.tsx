@@ -460,21 +460,184 @@ When using the custom menuComponent, the select exposes this properties.
   argTypes: {
     onChange: {
       action: "changed",
+      description: "Called when the selected value changes.",
       table: {
+        category: "Events",
         disable: true,
       },
     },
+    options: {
+      description: "Options displayed in the select menu.",
+      control: false,
+      table: {
+        category: "Data",
+        defaultValue: {
+          summary: "4 demo options",
+        },
+      },
+    },
+    value: {
+      description:
+        "Controlled selected value. Use a single value or an array when multi-select is enabled.",
+      table: {
+        category: "Controlled state",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+    label: {
+      description: "Label displayed for the select field.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Select an option",
+        },
+      },
+    },
+    multi: {
+      description: "Allows selecting more than one option.",
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    searchable: {
+      description: "Adds a search input to filter the available options.",
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    clearable: {
+      description: "Adds a control to clear the current selection.",
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    disabled: {
+      description: "Disables the select and prevents interaction.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    invalid: {
+      description: "Applies invalid styling to the select control.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
     menuPosition: {
+      description:
+        "Preferred vertical position of the menu relative to the field.",
       control: "radio",
       options: ["top", "bottom"],
+      table: {
+        category: "Layout",
+        defaultValue: {
+          summary: "bottom",
+        },
+      },
     },
     labelPosition: {
+      description: "Places the label above or beside the field.",
       control: "radio",
       options: ["top", "side"],
+      table: {
+        category: "Layout",
+        defaultValue: {
+          summary: "top",
+        },
+      },
     },
     iconPosition: {
+      description: "Places the dropdown icon on the left or right side.",
       control: "radio",
       options: ["left", "right"],
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "right",
+        },
+      },
+    },
+    placeholder: {
+      description: "Placeholder text shown when nothing is selected.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Select something...",
+        },
+      },
+    },
+    emptyText: {
+      description: "Message shown when filtering returns no options.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "Nothing found here...",
+        },
+      },
+    },
+    disablePortal: {
+      description: "Renders the menu inline instead of using a portal.",
+      table: {
+        category: "Portal",
+        defaultValue: {
+          summary: "true",
+        },
+      },
+    },
+    portalPlacement: {
+      description: "Placement used for the menu when it is portaled.",
+      table: {
+        category: "Portal",
+        defaultValue: {
+          summary: "bottom-start",
+        },
+      },
+    },
+    portalOffset: {
+      description:
+        "Offset in pixels between the trigger and the portaled menu.",
+      table: {
+        category: "Portal",
+        defaultValue: {
+          summary: "4",
+        },
+      },
+    },
+    viewportPadding: {
+      description: "Minimum viewport padding preserved around a portaled menu.",
+      table: {
+        category: "Portal",
+        defaultValue: {
+          summary: "8",
+        },
+      },
+    },
+    matchAnchorWidth: {
+      description:
+        "Keeps the portaled menu width aligned to the trigger width.",
+      table: {
+        category: "Portal",
+        defaultValue: {
+          summary: "true",
+        },
+      },
     },
   },
 } satisfies Meta<typeof Select>;

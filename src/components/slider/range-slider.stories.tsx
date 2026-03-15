@@ -53,28 +53,51 @@ import { RangeSlider } from './index'
   },
   argTypes: {
     min: {
+      description: "Minimum allowed slider value.",
       table: {
         defaultValue: { summary: "0" },
       },
     },
     max: {
+      description: "Maximum allowed slider value.",
       table: {
         defaultValue: { summary: "100" },
       },
     },
+    values: {
+      description: "Controlled lower and upper values for the selected range.",
+      table: {
+        defaultValue: { summary: "[0, 100]" },
+      },
+    },
     prefix: {
+      description: "Optional prefix shown with the selected values.",
       table: {
         defaultValue: { summary: '""' },
       },
     },
     editable: {
+      description: "Allows typing the selected min and max values directly.",
       table: {
         defaultValue: { summary: "false" },
       },
     },
     graphHeight: {
+      description: "Height of the optional graph rendered above the slider.",
       table: {
         defaultValue: { summary: "100" },
+      },
+    },
+    minLabel: {
+      description: "Label shown next to the minimum value field.",
+      table: {
+        defaultValue: { summary: "Min" },
+      },
+    },
+    maxLabel: {
+      description: "Label shown next to the maximum value field.",
+      table: {
+        defaultValue: { summary: "Max" },
       },
     },
     data: {

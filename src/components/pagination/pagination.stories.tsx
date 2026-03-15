@@ -53,7 +53,98 @@ Extends \`InputHTMLAttributes<HTMLInputElement>\`
     showPageSizeSelector: false,
     pageSizeOptions: [5, 10, 20, 50, 100],
   },
-  argTypes: {},
+  argTypes: {
+    page: {
+      description: "Current page in the controlled pagination state.",
+      table: {
+        category: "Controlled state",
+        defaultValue: {
+          summary: "1",
+        },
+      },
+    },
+    totalPages: {
+      description: "Total number of available pages.",
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "100",
+        },
+      },
+    },
+    showPageInfo: {
+      description: "Displays the current page indicator next to the controls.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "true",
+        },
+      },
+    },
+    previousLabel: {
+      description: "Optional text label for the previous-page control.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: '""',
+        },
+      },
+    },
+    nextLabel: {
+      description: "Optional text label for the next-page control.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: '""',
+        },
+      },
+    },
+    pageSize: {
+      description: "Currently selected page size.",
+      table: {
+        category: "Page size",
+        defaultValue: {
+          summary: "10",
+        },
+      },
+    },
+    showPageSizeSelector: {
+      description: "Shows a page size picker next to the pagination controls.",
+      table: {
+        category: "Page size",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    pageSizeOptions: {
+      description: "Available options displayed in the page size selector.",
+      table: {
+        category: "Page size",
+        defaultValue: {
+          summary: "[5, 10, 20, 50, 100]",
+        },
+      },
+    },
+    onChange: {
+      description: "Called when the current page changes.",
+      table: {
+        category: "Events",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+    onPageSizeChange: {
+      description: "Called when the selected page size changes.",
+      table: {
+        category: "Events",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+  },
 } satisfies Meta<typeof Pagination>;
 
 export default meta;

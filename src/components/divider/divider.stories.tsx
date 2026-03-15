@@ -27,6 +27,18 @@ import { Divider } from './index'
   args: {
     subdued: false,
   },
+  argTypes: {
+    subdued: {
+      description:
+        "Renders the divider with a softer, less prominent treatment.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+  },
 } satisfies Meta<DividerProps>;
 
 export default meta;

@@ -29,9 +29,11 @@ const meta = {
   },
   argTypes: {
     open: {
+      description: "Controls whether the toast is currently visible.",
       table: { defaultValue: { summary: "false" } },
     },
     position: {
+      description: "Placement of the toast viewport on the screen.",
       control: { type: "radio" },
       options: [
         "top",
@@ -55,6 +57,7 @@ const meta = {
       table: { defaultValue: { summary: "Notification" } },
     },
     variant: {
+      description: "Semantic style used for the toast.",
       control: { type: "radio" },
       options: ["info", "default", "success", "warning", "error"],
       table: {
@@ -75,6 +78,18 @@ const meta = {
     closeable: {
       description: "Whether the toast can be manually closed by the user.",
       table: { defaultValue: { summary: "true" } },
+    },
+    title: {
+      description: "Main title shown in the toast content.",
+      table: { defaultValue: { summary: "undefined" } },
+    },
+    description: {
+      description: "Supporting message shown below the toast title.",
+      table: { defaultValue: { summary: "This is a toast notification." } },
+    },
+    actionText: {
+      description: "Optional label for the toast action button.",
+      table: { defaultValue: { summary: "undefined" } },
     },
     disablePortal: {
       description:

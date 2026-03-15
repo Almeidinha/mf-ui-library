@@ -67,8 +67,34 @@ Also, you can sen this parameters:
   },
   argTypes: {
     direction: {
+      description: "Arranges the radio options vertically or horizontally.",
       table: {
         defaultValue: { summary: "vertical" },
+      },
+    },
+    options: {
+      description: "Options rendered inside the choice list.",
+      control: false,
+      table: {
+        defaultValue: { summary: "3 demo options" },
+      },
+    },
+    selected: {
+      description: "Controlled selected option value.",
+      table: {
+        defaultValue: { summary: "banana" },
+      },
+    },
+    name: {
+      description: "Radio group name used to link the options together.",
+      table: {
+        defaultValue: { summary: "Choose your favorite fruit" },
+      },
+    },
+    onChange: {
+      description: "Called when the selected option changes.",
+      table: {
+        defaultValue: { summary: "undefined" },
       },
     },
   },

@@ -65,32 +65,115 @@ const meta = {
   },
   argTypes: {
     type: {
+      description: "Selects single-open or multi-open accordion behavior.",
       control: { type: "radio" },
       options: ["single", "multiple"],
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "single",
+        },
+      },
     },
     value: {
       control: false,
+      description:
+        "Controlled expanded value. Use a string in single mode or an array in multiple mode.",
       table: {
+        category: "Controlled state",
         disable: true,
       },
     },
     defaultValue: {
       control: false,
+      description:
+        "Initial expanded value for uncontrolled usage. Use a string in single mode or an array in multiple mode.",
       table: {
+        category: "Uncontrolled state",
         disable: true,
       },
     },
+    collapsible: {
+      description:
+        "Allows closing the currently open item in single mode. Not used in multiple mode.",
+      table: {
+        category: "Single mode only",
+        defaultValue: {
+          summary: "true",
+        },
+      },
+    },
+    disabled: {
+      description: "Disables all accordion items and prevents interaction.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    readOnly: {
+      description:
+        "Keeps the accordion focusable but prevents expanding or collapsing items.",
+      table: {
+        category: "State",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
+    unmountOnExit: {
+      description:
+        "Unmounts panel content after it finishes collapsing instead of keeping it hidden in the DOM.",
+      table: {
+        category: "Behavior",
+        defaultValue: {
+          summary: "false",
+        },
+      },
+    },
     iconPosition: {
+      description: "Places the expand icon before or after the header content.",
       control: { type: "radio" },
       options: ["start", "end"],
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "end",
+        },
+      },
     },
     variant: {
+      description: "Selects the container treatment for the accordion surface.",
       control: { type: "radio" },
       options: ["outlined", "filled", "ghost"],
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "outlined",
+        },
+      },
     },
     size: {
+      description:
+        "Adjusts header spacing, panel spacing, and typography scale.",
       control: { type: "radio" },
       options: ["sm", "md", "lg"],
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "md",
+        },
+      },
+    },
+    hasDividers: {
+      description: "Adds separators between accordion items.",
+      table: {
+        category: "Appearance",
+        defaultValue: {
+          summary: "true",
+        },
+      },
     },
   },
 } satisfies Meta<AccordionStoryArgs>;

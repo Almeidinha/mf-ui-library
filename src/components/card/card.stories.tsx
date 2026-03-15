@@ -80,7 +80,26 @@ Extends HTMLAttributes<HTMLDivElement>
     },
   },
   args: {},
-  argTypes: {},
+  argTypes: {
+    heading: {
+      description: "Optional heading displayed at the top of the card.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+    children: {
+      description: "Main content rendered inside the card body.",
+      table: {
+        category: "Content",
+        defaultValue: {
+          summary: "undefined",
+        },
+      },
+    },
+  },
 } satisfies Meta<typeof Card>;
 
 export default meta;
@@ -172,7 +191,11 @@ export const CardHeadingActionExample: Story = {
     ),
   },
   argTypes: {
-    children: { control: false, table: { disable: true } },
+    children: {
+      control: false,
+      description: "Demo-only heading action content for this example.",
+      table: { disable: true },
+    },
   },
   parameters: {
     docs: { disable: true },
