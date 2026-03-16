@@ -7,7 +7,7 @@ import { Background, Borders, Surface } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
 import { useWindowEvent } from "hooks/useWindowEvent";
-import {
+import React, {
   DragEvent,
   memo,
   RefCallback,
@@ -54,6 +54,20 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
   return next;
 }
 
+function toCssSize(value?: number | string, fallback?: string) {
+  if (typeof value === "number") {
+    return `${value}px`;
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return fallback;
+}
+
+export type DataTableColumnManagerMode = "portal" | "inline";
+
 type DataTableColumnManagerProps<T extends Record<string, unknown>> = {
   columns: DataTableColumn<T>[];
   columnVisibility: DataTableColumnVisibility;
@@ -67,10 +81,17 @@ type DataTableColumnManagerProps<T extends Record<string, unknown>> = {
   columnOrder: string[];
   setColumnOrder: (order: string[]) => void;
   resetColumnOrder: () => void;
+
+  mode?: DataTableColumnManagerMode;
+  width?: number | string;
+  inlineMaxHeight?: number | string;
+  showBackdrop?: boolean;
+  inlineContainerRef?: React.RefObject<HTMLElement | null>;
 };
 
 const Root = styled.div`
   position: relative;
+  width: 100%;
 `;
 
 const TriggerRow = styled(Flex)`
@@ -88,26 +109,73 @@ const Backdrop = styled.button`
   z-index: 999;
 `;
 
-const Drawer = styled.aside`
+const InlineBackdrop = styled.button`
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 9;
+`;
+
+const drawerBaseStyles = css<{ $width: string }>`
+  background: ${Surface.Default.Default};
+  display: flex;
+  flex-direction: column;
+  width: ${({ $width }) => $width};
+`;
+
+const PortalDrawer = styled.aside<{ $width: string }>`
+  ${drawerBaseStyles};
   position: fixed;
   top: 0;
   right: 0;
   height: 100vh;
-  width: min(420px, 100vw);
-  background: ${Surface.Default.Default};
   border-left: 1px solid ${Borders.Default.Default};
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
   transform: translateX(0);
-  animation: slideIn 0.22s ease;
+  animation: slideInPortal 0.22s ease;
 
-  @keyframes slideIn {
+  @keyframes slideInPortal {
     from {
       transform: translateX(100%);
     }
     to {
       transform: translateX(0);
+    }
+  }
+`;
+
+const InlineDrawer = styled.aside<{
+  $width: string;
+  $inlineMaxHeight: string;
+}>`
+  ${drawerBaseStyles};
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: stretch;
+  width: ${({ $width }) => $width};
+  max-width: min(100%, ${({ $width }) => $width});
+  max-height: ${({ $inlineMaxHeight }) => $inlineMaxHeight};
+  border: 1px solid ${Borders.Default.Default};
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 10;
+  transform: translateY(0);
+  animation: slideInInline 0.18s ease;
+
+  @keyframes slideInInline {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 `;
@@ -305,11 +373,19 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   columnOrder,
   setColumnOrder,
   resetColumnOrder,
+  mode = "portal",
+  width = 420,
+  inlineMaxHeight = "70vh",
+  showBackdrop,
+  inlineContainerRef,
 }: DataTableColumnManagerProps<T>) {
   const [open, setOpen] = useState(false);
   const [draggingField, setDraggingField] = useState<string | null>(null);
   const [dragOverField, setDragOverField] = useState<string | null>(null);
   const [previewOrder, setPreviewOrderState] = useState<string[] | null>(null);
+  const [inlineMountNode, setInlineMountNode] = useState<HTMLElement | null>(
+    null,
+  );
 
   const drawerRef = useOnClickOutside(() => setOpen(false));
 
@@ -330,6 +406,11 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   const dragFrameRef = useRef<number | null>(null);
   const lastDragClientYRef = useRef<number | null>(null);
 
+  const isPortalMode = mode === "portal";
+  const resolvedShowBackdrop = showBackdrop ?? isPortalMode;
+  const drawerWidth = toCssSize(width, "420px")!;
+  const inlineDrawerMaxHeight = toCssSize(inlineMaxHeight, "70vh")!;
+
   const setPreviewOrder = useCallback((next: string[] | null) => {
     previewOrderRef.current = next;
     setPreviewOrderState(next);
@@ -340,7 +421,6 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       cancelAnimationFrame(autoScrollFrameRef.current);
       autoScrollFrameRef.current = null;
     }
-
     autoScrollDeltaRef.current = 0;
   }, []);
 
@@ -349,7 +429,6 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       cancelAnimationFrame(dragFrameRef.current);
       dragFrameRef.current = null;
     }
-
     pendingDragOverRef.current = null;
     lastDragClientYRef.current = null;
   }, []);
@@ -443,9 +522,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       const previousScrollTop = container.scrollTop;
       container.scrollTop += delta;
 
-      const didScroll = container.scrollTop !== previousScrollTop;
-
-      if (!didScroll) {
+      if (container.scrollTop === previousScrollTop) {
         clearAutoScroll();
         return;
       }
@@ -575,6 +652,22 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     [flushDragOver],
   );
 
+  const openManager = useCallback(() => {
+    if (isPortalMode) {
+      setOpen(true);
+      return;
+    }
+
+    setInlineMountNode(inlineContainerRef?.current ?? null);
+    setOpen(true);
+  }, [inlineContainerRef, isPortalMode]);
+
+  const closeManager = useCallback(() => {
+    clearDragState();
+    setOpen(false);
+    setInlineMountNode(null);
+  }, [clearDragState]);
+
   useLayoutEffect(() => {
     if (!shouldAnimateRef.current) {
       return;
@@ -699,114 +792,138 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     clearDragState();
   }, [clearAutoScroll, clearDragState, clearPendingDragFrame]);
 
-  const overlay =
-    open && typeof document !== "undefined"
-      ? createPortal(
-          <>
-            <Backdrop
-              aria-label="Close column manager"
-              onClick={() => setOpen(false)}
-            />
+  const drawerBody = (
+    <>
+      <Header>
+        <Flex justify="space-between" center>
+          <Label strong>Manage columns</Label>
 
-            <Drawer ref={drawerRef} aria-label="Column manager">
-              <Header>
-                <Flex justify="space-between" center>
-                  <Label strong>Manage columns</Label>
+          <Button
+            aria-label="Close column manager"
+            onClick={closeManager}
+            primary
+            IconPrefix={IconMinor.Xmark}
+          />
+        </Flex>
+      </Header>
 
-                  <Button
-                    aria-label="Close column manager"
-                    onClick={() => setOpen(false)}
-                    primary
-                    IconPrefix={IconMinor.Xmark}
-                  />
-                </Flex>
-              </Header>
+      <Content ref={contentRef}>
+        <Flex column gap={Gap.m}>
+          <ResetRow gap={Gap.xs}>
+            <Button small onClick={resetColumnVisibility}>
+              Reset visibility
+            </Button>
 
-              <Content ref={contentRef}>
-                <Flex column gap={Gap.m}>
-                  <ResetRow gap={Gap.xs}>
-                    <Button small onClick={resetColumnVisibility}>
-                      Reset visibility
-                    </Button>
+            <Button small onClick={resetPinnedColumns}>
+              Reset pinning
+            </Button>
 
-                    <Button small onClick={resetPinnedColumns}>
-                      Reset pinning
-                    </Button>
+            <Button small onClick={resetColumnOrder}>
+              Reset order
+            </Button>
+          </ResetRow>
 
-                    <Button small onClick={resetColumnOrder}>
-                      Reset order
-                    </Button>
-                  </ResetRow>
+          {orderedColumns.map((column) => {
+            const field = getColumnId(column);
+            const label = getColumnHeaderLabel(column);
+            const isVisible = columnVisibility[field] !== false;
 
-                  {orderedColumns.map((column) => {
-                    const field = getColumnId(column);
-                    const label = getColumnHeaderLabel(column);
-                    const isVisible = columnVisibility[field] !== false;
+            const cannotHideLastVisible =
+              isVisible && visibleColumnCount <= 1 && column.hideable !== false;
 
-                    const cannotHideLastVisible =
-                      isVisible &&
-                      visibleColumnCount <= 1 &&
-                      column.hideable !== false;
+            const pinState: DataTablePin | null = leftPinnedSet.has(field)
+              ? "left"
+              : rightPinnedSet.has(field)
+                ? "right"
+                : null;
 
-                    const pinState: DataTablePin | null = leftPinnedSet.has(
-                      field,
-                    )
-                      ? "left"
-                      : rightPinnedSet.has(field)
-                        ? "right"
-                        : null;
+            const reorderDisabled = column.reorderable === false;
+            const hideDisabled = column.hideable === false;
+            const pinDisabled = column.pinnable === false;
 
-                    const reorderDisabled = column.reorderable === false;
-                    const hideDisabled = column.hideable === false;
-                    const pinDisabled = column.pinnable === false;
+            return (
+              <ColumnManagerItem
+                key={field}
+                label={label}
+                isVisible={isVisible}
+                cannotHideLastVisible={cannotHideLastVisible}
+                pinState={pinState}
+                reorderDisabled={reorderDisabled}
+                hideDisabled={hideDisabled}
+                pinDisabled={pinDisabled}
+                isDragging={draggingField === field}
+                isDragOver={dragOverField === field && draggingField !== field}
+                setItemRef={setItemRef(field)}
+                onDragOver={handleDragOver(field)}
+                onDrop={handleDrop(field)}
+                onDragStart={handleDragStart(field, reorderDisabled)}
+                onDragEnd={handleDragEnd}
+                onToggleVisible={() => toggleColumnVisibility(field)}
+                onPinLeft={() =>
+                  pinColumn(field, pinState === "left" ? null : "left")
+                }
+                onPinNone={() => pinColumn(field, null)}
+                onPinRight={() =>
+                  pinColumn(field, pinState === "right" ? null : "right")
+                }
+              />
+            );
+          })}
+        </Flex>
+      </Content>
 
-                    return (
-                      <ColumnManagerItem
-                        key={field}
-                        label={label}
-                        isVisible={isVisible}
-                        cannotHideLastVisible={cannotHideLastVisible}
-                        pinState={pinState}
-                        reorderDisabled={reorderDisabled}
-                        hideDisabled={hideDisabled}
-                        pinDisabled={pinDisabled}
-                        isDragging={draggingField === field}
-                        isDragOver={
-                          dragOverField === field && draggingField !== field
-                        }
-                        setItemRef={setItemRef(field)}
-                        onDragOver={handleDragOver(field)}
-                        onDrop={handleDrop(field)}
-                        onDragStart={handleDragStart(field, reorderDisabled)}
-                        onDragEnd={handleDragEnd}
-                        onToggleVisible={() => toggleColumnVisibility(field)}
-                        onPinLeft={() =>
-                          pinColumn(field, pinState === "left" ? null : "left")
-                        }
-                        onPinNone={() => pinColumn(field, null)}
-                        onPinRight={() =>
-                          pinColumn(
-                            field,
-                            pinState === "right" ? null : "right",
-                          )
-                        }
-                      />
-                    );
-                  })}
-                </Flex>
-              </Content>
+      <Footer>
+        <Flex justify="flex-end">
+          <Button primary onClick={closeManager}>
+            Done
+          </Button>
+        </Flex>
+      </Footer>
+    </>
+  );
 
-              <Footer>
-                <Flex justify="flex-end">
-                  <Button primary onClick={() => setOpen(false)}>
-                    Done
-                  </Button>
-                </Flex>
-              </Footer>
-            </Drawer>
-          </>,
-          document.body,
+  const overlayContent = open ? (
+    <>
+      {resolvedShowBackdrop ? (
+        isPortalMode ? (
+          <Backdrop aria-label="Close column manager" onClick={closeManager} />
+        ) : (
+          <InlineBackdrop
+            aria-label="Close column manager"
+            onClick={closeManager}
+          />
         )
+      ) : null}
+
+      {isPortalMode ? (
+        <PortalDrawer
+          ref={drawerRef}
+          aria-label="Column manager"
+          $width={drawerWidth}
+        >
+          {drawerBody}
+        </PortalDrawer>
+      ) : (
+        <InlineDrawer
+          ref={drawerRef}
+          aria-label="Column manager"
+          $width={drawerWidth}
+          $inlineMaxHeight={inlineDrawerMaxHeight}
+        >
+          {drawerBody}
+        </InlineDrawer>
+      )}
+    </>
+  ) : null;
+
+  const portalOverlay =
+    open && isPortalMode && typeof document !== "undefined"
+      ? createPortal(overlayContent, document.body)
+      : null;
+
+  const inlineOverlay =
+    open && !isPortalMode && inlineMountNode
+      ? createPortal(overlayContent, inlineMountNode)
       : null;
 
   return (
@@ -814,14 +931,14 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       <TriggerRow>
         <Button
           aria-label="Manage columns"
-          onClick={() => setOpen(true)}
+          onClick={openManager}
           IconPrefix={IconMinor.Gear}
         >
           Columns
         </Button>
       </TriggerRow>
 
-      {overlay}
+      {isPortalMode ? portalOverlay : inlineOverlay}
     </Root>
   );
 }

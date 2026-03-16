@@ -106,6 +106,8 @@ const meta = {
     defaultColumnOrder: undefined,
     pinnedColumns: undefined,
     defaultPinnedColumns: undefined,
+    mode: "portal",
+    showBackdrop: false,
   },
   argTypes: {
     sortField: {
@@ -316,6 +318,25 @@ const meta = {
         defaultValue: { summary: "undefined" },
       },
     },
+    showBackdrop: {
+      description:
+        "Shows a backdrop overlay when the column manager is open to focus attention.",
+      control: "boolean",
+      table: {
+        category: "Column manager",
+        defaultValue: { summary: "false" },
+      },
+    },
+    mode: {
+      description:
+        "Determines how the column manager is rendered. `portal` renders in a React portal, while `inline` renders within the table container.",
+      control: { type: "radio" },
+      options: ["portal", "inline"],
+      table: {
+        category: "Column manager",
+        defaultValue: { summary: "portal" },
+      },
+    },
   },
 } satisfies Meta<typeof DataTable>;
 
@@ -323,7 +344,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
+  args: {
+    mode: "inline",
+    showBackdrop: true
+  },
+
   loaders: [() => ({ rows: getPersonRows() })],
+
   render: (args, { loaded: { rows } }) => {
     return (
       <Flex>
@@ -335,5 +362,5 @@ export const Primary: Story = {
         />
       </Flex>
     );
-  },
+  }
 };

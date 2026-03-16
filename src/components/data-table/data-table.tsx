@@ -21,6 +21,7 @@ import { useDataTable } from "./useDataTable";
 
 const TableScroll = styled.div`
   width: 100%;
+  position: relative;
   overflow-x: auto;
 `;
 
@@ -75,7 +76,11 @@ export function DataTable<T extends Record<string, unknown>>(
     searchPlaceholder = "Search...",
     checkboxSelection = false,
     emptyMessage = "No rows found.",
+    showBackdrop,
+    mode,
   } = props;
+
+  const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
 
   const {
     search,
@@ -199,10 +204,13 @@ export function DataTable<T extends Record<string, unknown>>(
           columnOrder={columnOrder}
           setColumnOrder={setColumnOrder}
           resetColumnOrder={resetColumnOrder}
+          mode={mode}
+          showBackdrop={showBackdrop}
+          inlineContainerRef={tableAreaRef}
         />
       </Flex>
 
-      <TableScroll>
+      <TableScroll ref={tableAreaRef}>
         <Table>
           <TableHead>
             <TableRow>

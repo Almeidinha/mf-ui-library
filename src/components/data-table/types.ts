@@ -7,6 +7,8 @@ export type DataTablePin = "left" | "right";
 
 export type DataTableRowKey<T> = keyof T | ((row: T) => React.Key);
 
+export type DataTableColumnManagerMode = "portal" | "inline";
+
 export type DataTableAction<T extends Record<string, unknown>> = {
   key: string;
   label: ReactNode;
@@ -110,6 +112,8 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   pinnedColumns?: DataTablePinnedColumns;
   defaultPinnedColumns?: DataTablePinnedColumns;
   onPinnedColumnsChange?: (pinned: DataTablePinnedColumns) => void;
+  mode?: DataTableColumnManagerMode;
+  showBackdrop?: boolean;
 };
 
 export type UseDataTableProps<T extends Record<string, unknown>> =
