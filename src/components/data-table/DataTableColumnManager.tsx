@@ -6,7 +6,14 @@ import { Label } from "components/typography";
 import { Background, Borders, Surface } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
-import { DragEvent, useMemo, useState } from "react";
+import {
+  DragEvent,
+  RefCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styled, { css } from "styled-components";
 
 import {
@@ -116,27 +123,29 @@ const SectionTitle = styled(Label)`
 `;
 
 const ColumnCard = styled.div<{ $dragging?: boolean; $dragOver?: boolean }>`
-  border: 1px solid ${Borders.Default.Default};
+  border: 1px solid
+    ${({ $dragOver }) =>
+      $dragOver ? Borders.Default.Default : Borders.Default.Default};
   border-radius: 8px;
   background: ${Background.Default};
   padding: ${Padding.m};
   opacity: ${({ $dragging }) => ($dragging ? 0.55 : 1)};
   transition:
-    transform 180ms ease,
-    opacity 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
+    opacity 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  will-change: transform;
 
   ${({ $dragging }) =>
     $dragging &&
     css`
-      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     `}
 
   ${({ $dragOver }) =>
     $dragOver &&
     css`
-      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px ${Borders.Default.Default};
     `}
 `;
 
@@ -180,6 +189,10 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
 
   const drawerRef = useOnClickOutside(() => setOpen(false));
 
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const previousPositionsRef = useRef<Record<string, number>>({});
+  const isAnimatingRef = useRef(false);
+
   const orderedColumns = useMemo(() => {
     const map = new Map(columns.map((column) => [getColumnId(column), column]));
 
@@ -195,6 +208,70 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       ).length,
     [orderedColumns, columnVisibility],
   );
+
+  const setItemRef =
+    (field: string): RefCallback<HTMLDivElement> =>
+    (node) => {
+      itemRefs.current[field] = node;
+    };
+
+  const capturePositions = () => {
+    const nextPositions: Record<string, number> = {};
+
+    columnOrder.forEach((field) => {
+      const node = itemRefs.current[field];
+      if (!node) {
+        return;
+      }
+
+      nextPositions[field] = node.getBoundingClientRect().top;
+    });
+
+    previousPositionsRef.current = nextPositions;
+  };
+
+  useLayoutEffect(() => {
+    if (!isAnimatingRef.current) {
+      return;
+    }
+
+    columnOrder.forEach((field) => {
+      const node = itemRefs.current[field];
+      if (!node) {
+        return;
+      }
+
+      const previousTop = previousPositionsRef.current[field];
+      if (previousTop == null) {
+        return;
+      }
+
+      const nextTop = node.getBoundingClientRect().top;
+      const deltaY = previousTop - nextTop;
+
+      if (deltaY === 0) {
+        return;
+      }
+
+      node.style.transition = "none";
+      node.style.transform = `translateY(${deltaY}px)`;
+
+      requestAnimationFrame(() => {
+        node.style.transition = "transform 0.22s ease";
+        node.style.transform = "translateY(0)";
+      });
+
+      const handleTransitionEnd = () => {
+        node.style.transition = "";
+        node.style.transform = "";
+        node.removeEventListener("transitionend", handleTransitionEnd);
+      };
+
+      node.addEventListener("transitionend", handleTransitionEnd);
+    });
+
+    isAnimatingRef.current = false;
+  }, [columnOrder]);
 
   const handleDragStart =
     (field: string, disabled?: boolean) =>
@@ -252,7 +329,10 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       return;
     }
 
+    capturePositions();
+    isAnimatingRef.current = true;
     setColumnOrder(moveItem(columnOrder, fromIndex, toIndex));
+
     setDraggingField(null);
     setDragOverField(null);
   };
@@ -320,6 +400,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
               const field = getColumnId(column);
               const label = getColumnHeaderLabel(column);
               const isVisible = columnVisibility[field] !== false;
+
               const cannotHideLastVisible =
                 isVisible &&
                 visibleColumnCount <= 1 &&
@@ -338,6 +419,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
               return (
                 <ColumnCard
                   key={field}
+                  ref={setItemRef(field)}
                   $dragging={draggingField === field}
                   $dragOver={dragOverField === field}
                   onDragOver={handleDragOver(field)}
