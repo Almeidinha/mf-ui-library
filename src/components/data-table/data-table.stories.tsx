@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker/locale/pt_BR";
 import type { Meta, StoryObj } from "@storybook/react";
 import { IconMinor } from "components/icon";
+import { Flex } from "components/layout";
 
 import { DataTable } from "./data-table";
 import { DataTableColumn } from "./types";
@@ -84,9 +85,7 @@ const columns: DataTableColumn<PersonRow>[] = [
 const meta = {
   title: "Components/DataTable",
   component: DataTable,
-  parameters: {
-    layout: "centered",
-  },
+
   args: {
     rows: [],
     columns: [],
@@ -98,11 +97,20 @@ const meta = {
     pageSizeOptions: [5, 10, 25],
     searchable: true,
     checkboxSelection: true,
+    selectedRows: undefined,
     sortField: undefined,
     sortDirection: undefined,
+    columnVisibility: undefined,
+    defaultColumnVisibility: undefined,
+    columnOrder: undefined,
+    defaultColumnOrder: undefined,
+    pinnedColumns: undefined,
+    defaultPinnedColumns: undefined,
   },
   argTypes: {
     sortField: {
+      description:
+        "Controlled field used for sorting. Pair with `sortDirection` and `onSortChange`.",
       control: { type: "select" },
       options: ["id", "firstName", "lastName", "age", "fullName"],
       table: {
@@ -193,12 +201,118 @@ const meta = {
         defaultValue: { summary: "true" },
       },
     },
+    selectedRows: {
+      description:
+        "Controlled list of selected row keys. Use with `onSelectedRowsChange` to manage selection externally.",
+      control: { type: "object" },
+      table: {
+        category: "Selection",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onSelectedRowsChange: {
+      description:
+        "Called with the selected row keys and the selected row objects whenever selection changes.",
+      control: false,
+      table: {
+        category: "Selection",
+        defaultValue: { summary: "undefined" },
+      },
+    },
     sortDirection: {
       description: "Initial sort direction used with `sortField`.",
       control: { type: "select" },
       options: ["NONE", "ASC", "DESC"],
       table: {
         category: "Sorting",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onSortChange: {
+      description:
+        "Called when sorting changes, with the next sort field and direction.",
+      control: false,
+      table: {
+        category: "Sorting",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    columnVisibility: {
+      description:
+        "Controlled visibility map keyed by column field. `false` hides a column.",
+      control: { type: "object" },
+      table: {
+        category: "Column visibility",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    defaultColumnVisibility: {
+      description:
+        "Initial visibility map when column visibility is uncontrolled.",
+      control: { type: "object" },
+      table: {
+        category: "Column visibility",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onColumnVisibilityChange: {
+      description:
+        "Called whenever column visibility changes through the column manager.",
+      control: false,
+      table: {
+        category: "Column visibility",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    columnOrder: {
+      description:
+        "Controlled array describing the rendered column order by field id.",
+      control: { type: "object" },
+      table: {
+        category: "Column order",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    defaultColumnOrder: {
+      description: "Initial column order when ordering is uncontrolled.",
+      control: { type: "object" },
+      table: {
+        category: "Column order",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onColumnOrderChange: {
+      description:
+        "Called with the next ordered list of column field ids when the order changes.",
+      control: false,
+      table: {
+        category: "Column order",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    pinnedColumns: {
+      description:
+        "Controlled pinned column configuration with `left` and `right` field arrays.",
+      control: { type: "object" },
+      table: {
+        category: "Pinning",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    defaultPinnedColumns: {
+      description:
+        "Initial pinned column configuration when pinning is uncontrolled.",
+      control: { type: "object" },
+      table: {
+        category: "Pinning",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    onPinnedColumnsChange: {
+      description: "Called whenever the pinned column configuration changes.",
+      control: false,
+      table: {
+        category: "Pinning",
         defaultValue: { summary: "undefined" },
       },
     },
@@ -212,12 +326,14 @@ export const Primary: Story = {
   loaders: [() => ({ rows: getPersonRows() })],
   render: (args, { loaded: { rows } }) => {
     return (
-      <DataTable
-        {...args}
-        rows={rows as PersonRow[]}
-        columns={columns}
-        rowKey="id"
-      />
+      <Flex>
+        <DataTable
+          {...args}
+          rows={rows as PersonRow[]}
+          columns={columns}
+          rowKey="id"
+        />
+      </Flex>
     );
   },
 };

@@ -1,5 +1,5 @@
-export * from "./useControllableState";
 export * from "./useBreakpoint";
+export * from "./useControllableState";
 export * from "./useDebounce";
 export * from "./useIsMobile";
 export * from "./useKeyDown";
@@ -7,3 +7,4 @@ export * from "./useMediaQuery";
 export * from "./useMergedRefs";
 export * from "./useOnClickOutside";
 export * from "./useRepositionOnScroll";
+export * from "./useWindowEvent";

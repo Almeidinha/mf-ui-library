@@ -6,6 +6,7 @@ import { Label } from "components/typography";
 import { Background, Borders, Surface } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
+import { useWindowEvent } from "hooks/useWindowEvent";
 import {
   DragEvent,
   RefCallback,
@@ -37,6 +38,17 @@ function getColumnHeaderLabel<T extends Record<string, unknown>>(
   }
 
   return String(column.field);
+}
+
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+  if (fromIndex === toIndex) {
+    return items;
+  }
+
+  const next = [...items];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
 }
 
 type DataTableColumnManagerProps<T extends Record<string, unknown>> = {
@@ -122,10 +134,11 @@ const SectionTitle = styled(Label)`
   margin-bottom: ${Margin.s};
 `;
 
-const ColumnCard = styled.div<{ $dragging?: boolean; $dragOver?: boolean }>`
-  border: 1px solid
-    ${({ $dragOver }) =>
-      $dragOver ? Borders.Default.Default : Borders.Default.Default};
+const ColumnCard = styled.div<{
+  $dragging?: boolean;
+  $dragOver?: boolean;
+}>`
+  border: 1px solid ${Borders.Default.Default};
   border-radius: 8px;
   background: ${Background.Default};
   padding: ${Padding.m};
@@ -164,13 +177,6 @@ const ResetRow = styled(Flex)`
   flex-wrap: wrap;
 `;
 
-function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
-  const next = [...items];
-  const [item] = next.splice(fromIndex, 1);
-  next.splice(toIndex, 0, item);
-  return next;
-}
-
 export function DataTableColumnManager<T extends Record<string, unknown>>({
   columns,
   columnVisibility,
@@ -186,20 +192,36 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   const [open, setOpen] = useState(false);
   const [draggingField, setDraggingField] = useState<string | null>(null);
   const [dragOverField, setDragOverField] = useState<string | null>(null);
+  const [previewOrder, setPreviewOrderState] = useState<string[] | null>(null);
 
   const drawerRef = useOnClickOutside(() => setOpen(false));
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const autoScrollFrameRef = useRef<number | null>(null);
 
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const previousPositionsRef = useRef<Record<string, number>>({});
-  const isAnimatingRef = useRef(false);
+  const shouldAnimateRef = useRef(false);
+
+  const draggingFieldRef = useRef<string | null>(null);
+  const dragOverFieldRef = useRef<string | null>(null);
+  const previewOrderRef = useRef<string[] | null>(null);
+  const didDropRef = useRef(false);
+  const autoScrollDeltaRef = useRef(0);
+
+  const setPreviewOrder = (next: string[] | null) => {
+    previewOrderRef.current = next;
+    setPreviewOrderState(next);
+  };
+
+  const renderOrder = previewOrder ?? columnOrder;
 
   const orderedColumns = useMemo(() => {
     const map = new Map(columns.map((column) => [getColumnId(column), column]));
 
-    return columnOrder
+    return renderOrder
       .map((field) => map.get(field))
       .filter(Boolean) as DataTableColumn<T>[];
-  }, [columns, columnOrder]);
+  }, [columns, renderOrder]);
 
   const visibleColumnCount = useMemo(
     () =>
@@ -215,10 +237,10 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       itemRefs.current[field] = node;
     };
 
-  const capturePositions = () => {
+  const capturePositions = (fields: string[]) => {
     const nextPositions: Record<string, number> = {};
 
-    columnOrder.forEach((field) => {
+    fields.forEach((field) => {
       const node = itemRefs.current[field];
       if (!node) {
         return;
@@ -231,11 +253,11 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   };
 
   useLayoutEffect(() => {
-    if (!isAnimatingRef.current) {
+    if (!shouldAnimateRef.current) {
       return;
     }
 
-    columnOrder.forEach((field) => {
+    renderOrder.forEach((field) => {
       const node = itemRefs.current[field];
       if (!node) {
         return;
@@ -270,8 +292,117 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       node.addEventListener("transitionend", handleTransitionEnd);
     });
 
-    isAnimatingRef.current = false;
-  }, [columnOrder]);
+    shouldAnimateRef.current = false;
+  }, [renderOrder]);
+
+  const clearAutoScroll = () => {
+    if (autoScrollFrameRef.current != null) {
+      cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+
+    autoScrollDeltaRef.current = 0;
+  };
+
+  const clearDragState = () => {
+    clearAutoScroll();
+
+    draggingFieldRef.current = null;
+    dragOverFieldRef.current = null;
+    didDropRef.current = false;
+
+    setDraggingField(null);
+    setDragOverField(null);
+    setPreviewOrder(null);
+  };
+
+  useWindowEvent(
+    "dragend",
+    () => {
+      clearDragState();
+    },
+    Boolean(draggingField),
+  );
+
+  useWindowEvent(
+    "drop",
+    () => {
+      requestAnimationFrame(() => {
+        clearDragState();
+      });
+    },
+    Boolean(draggingField),
+  );
+
+  const startAutoScroll = () => {
+    if (autoScrollFrameRef.current != null) {
+      return;
+    }
+
+    const tick = () => {
+      const container = contentRef.current;
+      if (!container) {
+        clearAutoScroll();
+        return;
+      }
+
+      const delta = autoScrollDeltaRef.current;
+
+      if (delta === 0) {
+        clearAutoScroll();
+        return;
+      }
+
+      const previousScrollTop = container.scrollTop;
+      container.scrollTop += delta;
+
+      const didScroll = container.scrollTop !== previousScrollTop;
+
+      if (!didScroll) {
+        clearAutoScroll();
+        return;
+      }
+
+      autoScrollFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    autoScrollFrameRef.current = requestAnimationFrame(tick);
+  };
+
+  const autoScrollContent = (clientY: number) => {
+    const container = contentRef.current;
+    if (!container) {
+      clearAutoScroll();
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    const threshold = 72;
+    const minStep = 8;
+    const maxStep = 28;
+
+    let delta = 0;
+
+    if (clientY < rect.top + threshold) {
+      const distanceToEdge = clientY - rect.top;
+      const intensity =
+        1 - Math.max(0, Math.min(1, distanceToEdge / threshold));
+      delta = -Math.round(minStep + (maxStep - minStep) * intensity);
+    } else if (clientY > rect.bottom - threshold) {
+      const distanceToEdge = rect.bottom - clientY;
+      const intensity =
+        1 - Math.max(0, Math.min(1, distanceToEdge / threshold));
+      delta = Math.round(minStep + (maxStep - minStep) * intensity);
+    }
+
+    if (delta === 0) {
+      clearAutoScroll();
+      return;
+    }
+
+    autoScrollDeltaRef.current = delta;
+    startAutoScroll();
+  };
 
   const handleDragStart =
     (field: string, disabled?: boolean) =>
@@ -281,65 +412,85 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         return;
       }
 
+      didDropRef.current = false;
+      draggingFieldRef.current = field;
       setDraggingField(field);
+      setPreviewOrder(columnOrder);
+
       event.dataTransfer.effectAllowed = "move";
       event.dataTransfer.setData("text/plain", field);
     };
 
   const handleDragOver =
-    (field: string) => (event: DragEvent<HTMLDivElement>) => {
+    (targetField: string) => (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
+      autoScrollContent(event.clientY);
 
-      if (draggingField === field) {
+      const sourceField =
+        event.dataTransfer.getData("text/plain") || draggingFieldRef.current;
+
+      if (!sourceField || sourceField === targetField) {
         return;
       }
 
-      event.dataTransfer.dropEffect = "move";
-      setDragOverField(field);
+      const sourceColumn = columns.find(
+        (column) => getColumnId(column) === sourceField,
+      );
+
+      if (sourceColumn?.reorderable === false) {
+        return;
+      }
+
+      const baseOrder = previewOrderRef.current ?? columnOrder;
+      const fromIndex = baseOrder.indexOf(sourceField);
+      const toIndex = baseOrder.indexOf(targetField);
+
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+        dragOverFieldRef.current = targetField;
+        setDragOverField(targetField);
+        return;
+      }
+
+      const nextOrder = moveItem(baseOrder, fromIndex, toIndex);
+      const isSame =
+        nextOrder.length === baseOrder.length &&
+        nextOrder.every((value, index) => value === baseOrder[index]);
+
+      if (isSame) {
+        dragOverFieldRef.current = targetField;
+        setDragOverField(targetField);
+        return;
+      }
+
+      capturePositions(baseOrder);
+      shouldAnimateRef.current = true;
+      dragOverFieldRef.current = targetField;
+      setDragOverField(targetField);
+      setPreviewOrder(nextOrder);
     };
 
-  const handleDrop = (field: string) => (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
+  const handleDrop =
+    (_targetField: string) => (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
 
-    const sourceField =
-      event.dataTransfer.getData("text/plain") || draggingField;
+      didDropRef.current = true;
 
-    if (!sourceField || sourceField === field) {
-      setDraggingField(null);
-      setDragOverField(null);
-      return;
-    }
+      const nextOrder = previewOrderRef.current;
+      if (nextOrder) {
+        setColumnOrder(nextOrder);
+      }
 
-    const fromIndex = columnOrder.indexOf(sourceField);
-    const toIndex = columnOrder.indexOf(field);
-
-    if (fromIndex === -1 || toIndex === -1) {
-      setDraggingField(null);
-      setDragOverField(null);
-      return;
-    }
-
-    const sourceColumn = columns.find(
-      (column) => getColumnId(column) === sourceField,
-    );
-
-    if (sourceColumn?.reorderable === false) {
-      setDraggingField(null);
-      setDragOverField(null);
-      return;
-    }
-
-    capturePositions();
-    isAnimatingRef.current = true;
-    setColumnOrder(moveItem(columnOrder, fromIndex, toIndex));
-
-    setDraggingField(null);
-    setDragOverField(null);
-  };
+      clearDragState();
+    };
 
   const handleDragEnd = () => {
-    setDraggingField(null);
-    setDragOverField(null);
+    if (didDropRef.current) {
+      didDropRef.current = false;
+      clearAutoScroll();
+      return;
+    }
+
+    clearDragState();
   };
 
   return (
@@ -380,7 +531,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
           </Flex>
         </Header>
 
-        <Content>
+        <Content ref={contentRef}>
           <Flex column gap={Gap.m}>
             <ResetRow gap={Gap.xs}>
               <Button small onClick={resetColumnVisibility}>
@@ -421,7 +572,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
                   key={field}
                   ref={setItemRef(field)}
                   $dragging={draggingField === field}
-                  $dragOver={dragOverField === field}
+                  $dragOver={dragOverField === field && draggingField !== field}
                   onDragOver={handleDragOver(field)}
                   onDrop={handleDrop(field)}
                 >
