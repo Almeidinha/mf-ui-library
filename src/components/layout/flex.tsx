@@ -3,16 +3,19 @@ import { SPACING } from "foundation/spacing/spacing";
 import styled from "styled-components";
 
 export const Flex = styled.div.withConfig({
-  shouldForwardProp: (prop) => !["center", "column", "gap"].includes(prop),
+  shouldForwardProp: (prop) =>
+    !["center", "column", "gap", "justify"].includes(prop),
 })<{
   column?: boolean;
   center?: boolean;
   gap?: SPACING;
+  justify?: string;
 }>`
   display: flex;
   ${({ center }) => (is(center) ? "align-items: center;" : "")}
   flex-direction: ${({ column }) => (is(column) ? "column" : "row")};
   ${({ gap }) => (isDefined(gap) ? `gap: ${gap};` : "")}
+  ${({ justify }) => (isDefined(justify) ? `justify-content: ${justify};` : "")}
 `;
 
 export const SpaceBetween = styled(Flex).withConfig({

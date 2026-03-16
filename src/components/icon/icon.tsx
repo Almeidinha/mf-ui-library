@@ -187,6 +187,7 @@ export const IconMinor = {
   Comment: makeIconComponent(IconListMinor["comment"], true),
   CreditCard: makeIconComponent(IconListMinor["credit-card"], true),
   Desktop: makeIconComponent(IconListMinor["desktop"], true),
+  Drag: makeIconComponent(IconListMinor["drag"], true),
   EllipsisVertical: makeIconComponent(IconListMinor["ellipsis-vertical"], true),
   Envelope: makeIconComponent(IconListMinor["envelope"], true),
   Eye: makeIconComponent(IconListMinor["eye"], true),

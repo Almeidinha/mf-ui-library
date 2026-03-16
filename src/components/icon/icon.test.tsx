@@ -21,6 +21,14 @@ describe("Icon Tests", () => {
       expect(icon).toBeInTheDocument();
     });
 
+    it("should render the drag IconMinor", () => {
+      render(<IconMinor.Drag />);
+
+      const icon = screen.getByRole("img", { name: "icon" });
+
+      expect(icon).toBeInTheDocument();
+    });
+
     it("Change the color when styles inside a button", () => {
       render(
         <Button primary IconPrefix={IconMinor.Bookmark}>
