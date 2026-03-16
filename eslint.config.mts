@@ -33,6 +33,7 @@ export default defineConfig([
     },
     rules: {
       // --- TYPESCRIPT ---
+      "no-unused-vars": "off",
       "@typescript-eslint/naming-convention": [
         "error",
         {
@@ -122,6 +123,9 @@ export default defineConfig([
       "jsx-a11y": jsxA11y,
     },
     extends: ["js/recommended"],
+    rules: {
+      "no-unused-vars": "off",
+    },
     languageOptions: {
       globals: globals.browser,
       parserOptions: {

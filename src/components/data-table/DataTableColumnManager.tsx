@@ -9,7 +9,9 @@ import { useOnClickOutside } from "hooks/useOnClickOutside";
 import { useWindowEvent } from "hooks/useWindowEvent";
 import {
   DragEvent,
+  memo,
   RefCallback,
+  useCallback,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -177,6 +179,117 @@ const ResetRow = styled(Flex)`
   flex-wrap: wrap;
 `;
 
+type ColumnManagerItemProps = {
+  label: string;
+  isVisible: boolean;
+  cannotHideLastVisible: boolean;
+  pinState: DataTablePin | null;
+  reorderDisabled: boolean;
+  hideDisabled: boolean;
+  pinDisabled: boolean;
+  isDragging: boolean;
+  isDragOver: boolean;
+  setItemRef: RefCallback<HTMLDivElement>;
+  onDragOver: (event: DragEvent<HTMLDivElement>) => void;
+  onDrop: (event: DragEvent<HTMLDivElement>) => void;
+  onDragStart: (event: DragEvent<HTMLDivElement>) => void;
+  onDragEnd: () => void;
+  onToggleVisible: () => void;
+  onPinLeft: () => void;
+  onPinNone: () => void;
+  onPinRight: () => void;
+};
+
+const ColumnManagerItem = memo(function ColumnManagerItem({
+  label,
+  isVisible,
+  cannotHideLastVisible,
+  pinState,
+  reorderDisabled,
+  hideDisabled,
+  pinDisabled,
+  isDragging,
+  isDragOver,
+  setItemRef,
+  onDragOver,
+  onDrop,
+  onDragStart,
+  onDragEnd,
+  onToggleVisible,
+  onPinLeft,
+  onPinNone,
+  onPinRight,
+}: ColumnManagerItemProps) {
+  return (
+    <ColumnCard
+      ref={setItemRef}
+      $dragging={isDragging}
+      $dragOver={isDragOver}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
+      <Flex column gap={Gap.s}>
+        <Flex justify="space-between" center gap={Gap.s}>
+          <Flex center gap={Gap.s}>
+            <DragHandle
+              $disabled={reorderDisabled}
+              draggable={!reorderDisabled}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              aria-label={`Drag to reorder ${label}`}
+              title="Drag to reorder"
+            >
+              <IconMinor.Drag />
+            </DragHandle>
+
+            <Label>{label}</Label>
+          </Flex>
+
+          <InputCheckbox
+            checked={isVisible}
+            disabled={hideDisabled || cannotHideLastVisible}
+            onChange={onToggleVisible}
+            label="Visible"
+          />
+        </Flex>
+
+        <Flex justify="space-between" center gap={Gap.s}>
+          <SectionTitle subdued>Pin</SectionTitle>
+
+          <PinGroup>
+            <Button
+              small
+              primary={pinState === "left"}
+              disabled={pinDisabled}
+              onClick={onPinLeft}
+            >
+              Left
+            </Button>
+
+            <Button
+              small
+              primary={pinState === null}
+              disabled={pinDisabled}
+              onClick={onPinNone}
+            >
+              None
+            </Button>
+
+            <Button
+              small
+              primary={pinState === "right"}
+              disabled={pinDisabled}
+              onClick={onPinRight}
+            >
+              Right
+            </Button>
+          </PinGroup>
+        </Flex>
+      </Flex>
+    </ColumnCard>
+  );
+});
+
 export function DataTableColumnManager<T extends Record<string, unknown>>({
   columns,
   columnVisibility,
@@ -195,9 +308,8 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   const [previewOrder, setPreviewOrderState] = useState<string[] | null>(null);
 
   const drawerRef = useOnClickOutside(() => setOpen(false));
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const autoScrollFrameRef = useRef<number | null>(null);
 
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const previousPositionsRef = useRef<Record<string, number>>({});
   const shouldAnimateRef = useRef(false);
@@ -206,22 +318,73 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   const dragOverFieldRef = useRef<string | null>(null);
   const previewOrderRef = useRef<string[] | null>(null);
   const didDropRef = useRef(false);
+
+  const autoScrollFrameRef = useRef<number | null>(null);
   const autoScrollDeltaRef = useRef(0);
 
-  const setPreviewOrder = (next: string[] | null) => {
+  const pendingDragOverRef = useRef<string | null>(null);
+  const dragFrameRef = useRef<number | null>(null);
+  const lastDragClientYRef = useRef<number | null>(null);
+
+  const setPreviewOrder = useCallback((next: string[] | null) => {
     previewOrderRef.current = next;
     setPreviewOrderState(next);
-  };
+  }, []);
+
+  const clearAutoScroll = useCallback(() => {
+    if (autoScrollFrameRef.current != null) {
+      cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+
+    autoScrollDeltaRef.current = 0;
+  }, []);
+
+  const clearPendingDragFrame = useCallback(() => {
+    if (dragFrameRef.current != null) {
+      cancelAnimationFrame(dragFrameRef.current);
+      dragFrameRef.current = null;
+    }
+
+    pendingDragOverRef.current = null;
+    lastDragClientYRef.current = null;
+  }, []);
+
+  const clearDragState = useCallback(() => {
+    clearAutoScroll();
+    clearPendingDragFrame();
+
+    draggingFieldRef.current = null;
+    dragOverFieldRef.current = null;
+    didDropRef.current = false;
+
+    setDraggingField(null);
+    setDragOverField(null);
+    setPreviewOrder(null);
+  }, [clearAutoScroll, clearPendingDragFrame, setPreviewOrder]);
 
   const renderOrder = previewOrder ?? columnOrder;
 
-  const orderedColumns = useMemo(() => {
-    const map = new Map(columns.map((column) => [getColumnId(column), column]));
+  const columnMap = useMemo(
+    () => new Map(columns.map((column) => [getColumnId(column), column])),
+    [columns],
+  );
 
+  const leftPinnedSet = useMemo(
+    () => new Set(pinnedColumns.left),
+    [pinnedColumns.left],
+  );
+
+  const rightPinnedSet = useMemo(
+    () => new Set(pinnedColumns.right),
+    [pinnedColumns.right],
+  );
+
+  const orderedColumns = useMemo(() => {
     return renderOrder
-      .map((field) => map.get(field))
+      .map((field) => columnMap.get(field))
       .filter(Boolean) as DataTableColumn<T>[];
-  }, [columns, renderOrder]);
+  }, [columnMap, renderOrder]);
 
   const visibleColumnCount = useMemo(
     () =>
@@ -231,13 +394,15 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     [orderedColumns, columnVisibility],
   );
 
-  const setItemRef =
+  const setItemRef = useCallback(
     (field: string): RefCallback<HTMLDivElement> =>
-    (node) => {
-      itemRefs.current[field] = node;
-    };
+      (node) => {
+        itemRefs.current[field] = node;
+      },
+    [],
+  );
 
-  const capturePositions = (fields: string[]) => {
+  const capturePositions = useCallback((fields: string[]) => {
     const nextPositions: Record<string, number> = {};
 
     fields.forEach((field) => {
@@ -250,7 +415,161 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     });
 
     previousPositionsRef.current = nextPositions;
-  };
+  }, []);
+
+  const startAutoScroll = useCallback(() => {
+    if (autoScrollFrameRef.current != null) {
+      return;
+    }
+
+    const tick = () => {
+      const container = contentRef.current;
+      if (!container) {
+        clearAutoScroll();
+        return;
+      }
+
+      const delta = autoScrollDeltaRef.current;
+
+      if (delta === 0) {
+        clearAutoScroll();
+        return;
+      }
+
+      const previousScrollTop = container.scrollTop;
+      container.scrollTop += delta;
+
+      const didScroll = container.scrollTop !== previousScrollTop;
+
+      if (!didScroll) {
+        clearAutoScroll();
+        return;
+      }
+
+      autoScrollFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    autoScrollFrameRef.current = requestAnimationFrame(tick);
+  }, [clearAutoScroll]);
+
+  const autoScrollContent = useCallback(
+    (clientY: number) => {
+      const container = contentRef.current;
+      if (!container) {
+        clearAutoScroll();
+        return;
+      }
+
+      const rect = container.getBoundingClientRect();
+      const threshold = 72;
+      const minStep = 8;
+      const maxStep = 28;
+
+      let delta = 0;
+
+      if (clientY < rect.top + threshold) {
+        const distanceToEdge = clientY - rect.top;
+        const intensity =
+          1 - Math.max(0, Math.min(1, distanceToEdge / threshold));
+        delta = -Math.round(minStep + (maxStep - minStep) * intensity);
+      } else if (clientY > rect.bottom - threshold) {
+        const distanceToEdge = rect.bottom - clientY;
+        const intensity =
+          1 - Math.max(0, Math.min(1, distanceToEdge / threshold));
+        delta = Math.round(minStep + (maxStep - minStep) * intensity);
+      }
+
+      if (delta === 0) {
+        clearAutoScroll();
+        return;
+      }
+
+      autoScrollDeltaRef.current = delta;
+      startAutoScroll();
+    },
+    [clearAutoScroll, startAutoScroll],
+  );
+
+  const flushDragOver = useCallback(() => {
+    dragFrameRef.current = null;
+
+    const targetField = pendingDragOverRef.current;
+    const sourceField = draggingFieldRef.current;
+    const clientY = lastDragClientYRef.current;
+
+    if (!targetField || !sourceField || clientY == null) {
+      return;
+    }
+
+    const sourceColumn = columnMap.get(sourceField);
+    if (sourceColumn?.reorderable === false) {
+      return;
+    }
+
+    const baseOrder = previewOrderRef.current ?? columnOrder;
+    const fromIndex = baseOrder.indexOf(sourceField);
+    const toIndex = baseOrder.indexOf(targetField);
+
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
+      if (dragOverFieldRef.current !== targetField) {
+        dragOverFieldRef.current = targetField;
+        setDragOverField(targetField);
+      }
+      return;
+    }
+
+    const node = itemRefs.current[targetField];
+    if (!node) {
+      return;
+    }
+
+    const rect = node.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+    const movingDown = fromIndex < toIndex;
+    const crossedMidpoint = movingDown
+      ? clientY > midpoint
+      : clientY < midpoint;
+
+    if (!crossedMidpoint) {
+      if (dragOverFieldRef.current !== targetField) {
+        dragOverFieldRef.current = targetField;
+        setDragOverField(targetField);
+      }
+      return;
+    }
+
+    const nextOrder = moveItem(baseOrder, fromIndex, toIndex);
+    const isSame =
+      nextOrder.length === baseOrder.length &&
+      nextOrder.every((value, index) => value === baseOrder[index]);
+
+    if (dragOverFieldRef.current !== targetField) {
+      dragOverFieldRef.current = targetField;
+      setDragOverField(targetField);
+    }
+
+    if (isSame) {
+      return;
+    }
+
+    capturePositions(baseOrder);
+    shouldAnimateRef.current = true;
+    setPreviewOrder(nextOrder);
+  }, [capturePositions, columnMap, columnOrder, setPreviewOrder]);
+
+  const scheduleDragOver = useCallback(
+    (targetField: string, clientY: number) => {
+      pendingDragOverRef.current = targetField;
+      lastDragClientYRef.current = clientY;
+
+      if (dragFrameRef.current != null) {
+        return;
+      }
+
+      dragFrameRef.current = requestAnimationFrame(flushDragOver);
+    },
+    [flushDragOver],
+  );
 
   useLayoutEffect(() => {
     if (!shouldAnimateRef.current) {
@@ -295,27 +614,6 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     shouldAnimateRef.current = false;
   }, [renderOrder]);
 
-  const clearAutoScroll = () => {
-    if (autoScrollFrameRef.current != null) {
-      cancelAnimationFrame(autoScrollFrameRef.current);
-      autoScrollFrameRef.current = null;
-    }
-
-    autoScrollDeltaRef.current = 0;
-  };
-
-  const clearDragState = () => {
-    clearAutoScroll();
-
-    draggingFieldRef.current = null;
-    dragOverFieldRef.current = null;
-    didDropRef.current = false;
-
-    setDraggingField(null);
-    setDragOverField(null);
-    setPreviewOrder(null);
-  };
-
   useWindowEvent(
     "dragend",
     () => {
@@ -334,94 +632,26 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     Boolean(draggingField),
   );
 
-  const startAutoScroll = () => {
-    if (autoScrollFrameRef.current != null) {
-      return;
-    }
-
-    const tick = () => {
-      const container = contentRef.current;
-      if (!container) {
-        clearAutoScroll();
-        return;
-      }
-
-      const delta = autoScrollDeltaRef.current;
-
-      if (delta === 0) {
-        clearAutoScroll();
-        return;
-      }
-
-      const previousScrollTop = container.scrollTop;
-      container.scrollTop += delta;
-
-      const didScroll = container.scrollTop !== previousScrollTop;
-
-      if (!didScroll) {
-        clearAutoScroll();
-        return;
-      }
-
-      autoScrollFrameRef.current = requestAnimationFrame(tick);
-    };
-
-    autoScrollFrameRef.current = requestAnimationFrame(tick);
-  };
-
-  const autoScrollContent = (clientY: number) => {
-    const container = contentRef.current;
-    if (!container) {
-      clearAutoScroll();
-      return;
-    }
-
-    const rect = container.getBoundingClientRect();
-    const threshold = 72;
-    const minStep = 8;
-    const maxStep = 28;
-
-    let delta = 0;
-
-    if (clientY < rect.top + threshold) {
-      const distanceToEdge = clientY - rect.top;
-      const intensity =
-        1 - Math.max(0, Math.min(1, distanceToEdge / threshold));
-      delta = -Math.round(minStep + (maxStep - minStep) * intensity);
-    } else if (clientY > rect.bottom - threshold) {
-      const distanceToEdge = rect.bottom - clientY;
-      const intensity =
-        1 - Math.max(0, Math.min(1, distanceToEdge / threshold));
-      delta = Math.round(minStep + (maxStep - minStep) * intensity);
-    }
-
-    if (delta === 0) {
-      clearAutoScroll();
-      return;
-    }
-
-    autoScrollDeltaRef.current = delta;
-    startAutoScroll();
-  };
-
-  const handleDragStart =
+  const handleDragStart = useCallback(
     (field: string, disabled?: boolean) =>
-    (event: DragEvent<HTMLDivElement>) => {
-      if (disabled) {
-        event.preventDefault();
-        return;
-      }
+      (event: DragEvent<HTMLDivElement>) => {
+        if (disabled) {
+          event.preventDefault();
+          return;
+        }
 
-      didDropRef.current = false;
-      draggingFieldRef.current = field;
-      setDraggingField(field);
-      setPreviewOrder(columnOrder);
+        didDropRef.current = false;
+        draggingFieldRef.current = field;
+        setDraggingField(field);
+        setPreviewOrder(columnOrder);
 
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", field);
-    };
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", field);
+      },
+    [columnOrder, setPreviewOrder],
+  );
 
-  const handleDragOver =
+  const handleDragOver = useCallback(
     (targetField: string) => (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       autoScrollContent(event.clientY);
@@ -433,43 +663,12 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         return;
       }
 
-      const sourceColumn = columns.find(
-        (column) => getColumnId(column) === sourceField,
-      );
+      scheduleDragOver(targetField, event.clientY);
+    },
+    [autoScrollContent, scheduleDragOver],
+  );
 
-      if (sourceColumn?.reorderable === false) {
-        return;
-      }
-
-      const baseOrder = previewOrderRef.current ?? columnOrder;
-      const fromIndex = baseOrder.indexOf(sourceField);
-      const toIndex = baseOrder.indexOf(targetField);
-
-      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) {
-        dragOverFieldRef.current = targetField;
-        setDragOverField(targetField);
-        return;
-      }
-
-      const nextOrder = moveItem(baseOrder, fromIndex, toIndex);
-      const isSame =
-        nextOrder.length === baseOrder.length &&
-        nextOrder.every((value, index) => value === baseOrder[index]);
-
-      if (isSame) {
-        dragOverFieldRef.current = targetField;
-        setDragOverField(targetField);
-        return;
-      }
-
-      capturePositions(baseOrder);
-      shouldAnimateRef.current = true;
-      dragOverFieldRef.current = targetField;
-      setDragOverField(targetField);
-      setPreviewOrder(nextOrder);
-    };
-
-  const handleDrop =
+  const handleDrop = useCallback(
     (_targetField: string) => (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
 
@@ -481,17 +680,20 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       }
 
       clearDragState();
-    };
+    },
+    [clearDragState, setColumnOrder],
+  );
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     if (didDropRef.current) {
       didDropRef.current = false;
       clearAutoScroll();
+      clearPendingDragFrame();
       return;
     }
 
     clearDragState();
-  };
+  }, [clearAutoScroll, clearDragState, clearPendingDragFrame]);
 
   return (
     <Root>
@@ -557,96 +759,44 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
                 visibleColumnCount <= 1 &&
                 column.hideable !== false;
 
-              const pinState: DataTablePin | null = pinnedColumns.left.includes(
-                field,
-              )
+              const pinState: DataTablePin | null = leftPinnedSet.has(field)
                 ? "left"
-                : pinnedColumns.right.includes(field)
+                : rightPinnedSet.has(field)
                   ? "right"
                   : null;
 
               const reorderDisabled = column.reorderable === false;
+              const hideDisabled = column.hideable === false;
+              const pinDisabled = column.pinnable === false;
 
               return (
-                <ColumnCard
+                <ColumnManagerItem
                   key={field}
-                  ref={setItemRef(field)}
-                  $dragging={draggingField === field}
-                  $dragOver={dragOverField === field && draggingField !== field}
+                  label={label}
+                  isVisible={isVisible}
+                  cannotHideLastVisible={cannotHideLastVisible}
+                  pinState={pinState}
+                  reorderDisabled={reorderDisabled}
+                  hideDisabled={hideDisabled}
+                  pinDisabled={pinDisabled}
+                  isDragging={draggingField === field}
+                  isDragOver={
+                    dragOverField === field && draggingField !== field
+                  }
+                  setItemRef={setItemRef(field)}
                   onDragOver={handleDragOver(field)}
                   onDrop={handleDrop(field)}
-                >
-                  <Flex column gap={Gap.s}>
-                    <Flex justify="space-between" center gap={Gap.s}>
-                      <Flex center gap={Gap.s}>
-                        <DragHandle
-                          $disabled={reorderDisabled}
-                          draggable={!reorderDisabled}
-                          onDragStart={handleDragStart(field, reorderDisabled)}
-                          onDragEnd={handleDragEnd}
-                          aria-label={`Drag to reorder ${label}`}
-                          title="Drag to reorder"
-                        >
-                          <IconMinor.Drag />
-                        </DragHandle>
-
-                        <Label>{label}</Label>
-                      </Flex>
-
-                      <InputCheckbox
-                        checked={isVisible}
-                        disabled={
-                          column.hideable === false || cannotHideLastVisible
-                        }
-                        onChange={() => toggleColumnVisibility(field)}
-                        label="Visible"
-                      />
-                    </Flex>
-
-                    <Flex justify="space-between" center gap={Gap.s}>
-                      <SectionTitle subdued>Pin</SectionTitle>
-
-                      <PinGroup>
-                        <Button
-                          small
-                          primary={pinState === "left"}
-                          disabled={column.pinnable === false}
-                          onClick={() =>
-                            pinColumn(
-                              field,
-                              pinState === "left" ? null : "left",
-                            )
-                          }
-                        >
-                          Left
-                        </Button>
-
-                        <Button
-                          small
-                          primary={pinState === null}
-                          disabled={column.pinnable === false}
-                          onClick={() => pinColumn(field, null)}
-                        >
-                          None
-                        </Button>
-
-                        <Button
-                          small
-                          primary={pinState === "right"}
-                          disabled={column.pinnable === false}
-                          onClick={() =>
-                            pinColumn(
-                              field,
-                              pinState === "right" ? null : "right",
-                            )
-                          }
-                        >
-                          Right
-                        </Button>
-                      </PinGroup>
-                    </Flex>
-                  </Flex>
-                </ColumnCard>
+                  onDragStart={handleDragStart(field, reorderDisabled)}
+                  onDragEnd={handleDragEnd}
+                  onToggleVisible={() => toggleColumnVisibility(field)}
+                  onPinLeft={() =>
+                    pinColumn(field, pinState === "left" ? null : "left")
+                  }
+                  onPinNone={() => pinColumn(field, null)}
+                  onPinRight={() =>
+                    pinColumn(field, pinState === "right" ? null : "right")
+                  }
+                />
               );
             })}
           </Flex>
