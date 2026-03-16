@@ -17,6 +17,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import styled, { css } from "styled-components";
 
 import {
@@ -87,7 +88,7 @@ const Backdrop = styled.button`
   z-index: 999;
 `;
 
-const Drawer = styled.aside<{ $open: boolean }>`
+const Drawer = styled.aside`
   position: fixed;
   top: 0;
   right: 0;
@@ -98,14 +99,17 @@ const Drawer = styled.aside<{ $open: boolean }>`
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.22s ease;
+  transform: translateX(0);
+  animation: slideIn 0.22s ease;
 
-  ${({ $open }) =>
-    $open &&
-    css`
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
       transform: translateX(0);
-    `}
+    }
+  }
 `;
 
 const Header = styled.div`
@@ -619,7 +623,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     () => {
       clearDragState();
     },
-    Boolean(draggingField),
+    open && Boolean(draggingField),
   );
 
   useWindowEvent(
@@ -629,7 +633,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         clearDragState();
       });
     },
-    Boolean(draggingField),
+    open && Boolean(draggingField),
   );
 
   const handleDragStart = useCallback(
@@ -695,6 +699,116 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     clearDragState();
   }, [clearAutoScroll, clearDragState, clearPendingDragFrame]);
 
+  const overlay =
+    open && typeof document !== "undefined"
+      ? createPortal(
+          <>
+            <Backdrop
+              aria-label="Close column manager"
+              onClick={() => setOpen(false)}
+            />
+
+            <Drawer ref={drawerRef} aria-label="Column manager">
+              <Header>
+                <Flex justify="space-between" center>
+                  <Label strong>Manage columns</Label>
+
+                  <Button
+                    aria-label="Close column manager"
+                    onClick={() => setOpen(false)}
+                    primary
+                    IconPrefix={IconMinor.Xmark}
+                  />
+                </Flex>
+              </Header>
+
+              <Content ref={contentRef}>
+                <Flex column gap={Gap.m}>
+                  <ResetRow gap={Gap.xs}>
+                    <Button small onClick={resetColumnVisibility}>
+                      Reset visibility
+                    </Button>
+
+                    <Button small onClick={resetPinnedColumns}>
+                      Reset pinning
+                    </Button>
+
+                    <Button small onClick={resetColumnOrder}>
+                      Reset order
+                    </Button>
+                  </ResetRow>
+
+                  {orderedColumns.map((column) => {
+                    const field = getColumnId(column);
+                    const label = getColumnHeaderLabel(column);
+                    const isVisible = columnVisibility[field] !== false;
+
+                    const cannotHideLastVisible =
+                      isVisible &&
+                      visibleColumnCount <= 1 &&
+                      column.hideable !== false;
+
+                    const pinState: DataTablePin | null = leftPinnedSet.has(
+                      field,
+                    )
+                      ? "left"
+                      : rightPinnedSet.has(field)
+                        ? "right"
+                        : null;
+
+                    const reorderDisabled = column.reorderable === false;
+                    const hideDisabled = column.hideable === false;
+                    const pinDisabled = column.pinnable === false;
+
+                    return (
+                      <ColumnManagerItem
+                        key={field}
+                        label={label}
+                        isVisible={isVisible}
+                        cannotHideLastVisible={cannotHideLastVisible}
+                        pinState={pinState}
+                        reorderDisabled={reorderDisabled}
+                        hideDisabled={hideDisabled}
+                        pinDisabled={pinDisabled}
+                        isDragging={draggingField === field}
+                        isDragOver={
+                          dragOverField === field && draggingField !== field
+                        }
+                        setItemRef={setItemRef(field)}
+                        onDragOver={handleDragOver(field)}
+                        onDrop={handleDrop(field)}
+                        onDragStart={handleDragStart(field, reorderDisabled)}
+                        onDragEnd={handleDragEnd}
+                        onToggleVisible={() => toggleColumnVisibility(field)}
+                        onPinLeft={() =>
+                          pinColumn(field, pinState === "left" ? null : "left")
+                        }
+                        onPinNone={() => pinColumn(field, null)}
+                        onPinRight={() =>
+                          pinColumn(
+                            field,
+                            pinState === "right" ? null : "right",
+                          )
+                        }
+                      />
+                    );
+                  })}
+                </Flex>
+              </Content>
+
+              <Footer>
+                <Flex justify="flex-end">
+                  <Button primary onClick={() => setOpen(false)}>
+                    Done
+                  </Button>
+                </Flex>
+              </Footer>
+            </Drawer>
+          </>,
+          document.body,
+        )
+      : null;
+
   return (
     <Root>
       <TriggerRow>
@@ -707,109 +821,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         </Button>
       </TriggerRow>
 
-      {open ? (
-        <Backdrop
-          aria-label="Close column manager"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
-
-      <Drawer
-        ref={drawerRef}
-        $open={open}
-        aria-hidden={!open}
-        aria-label="Column manager"
-      >
-        <Header>
-          <Flex justify="space-between" center>
-            <Label strong>Manage columns</Label>
-
-            <Button
-              aria-label="Close column manager"
-              onClick={() => setOpen(false)}
-              primary
-              IconPrefix={IconMinor.Xmark}
-            />
-          </Flex>
-        </Header>
-
-        <Content ref={contentRef}>
-          <Flex column gap={Gap.m}>
-            <ResetRow gap={Gap.xs}>
-              <Button small onClick={resetColumnVisibility}>
-                Reset visibility
-              </Button>
-
-              <Button small onClick={resetPinnedColumns}>
-                Reset pinning
-              </Button>
-
-              <Button small onClick={resetColumnOrder}>
-                Reset order
-              </Button>
-            </ResetRow>
-
-            {orderedColumns.map((column) => {
-              const field = getColumnId(column);
-              const label = getColumnHeaderLabel(column);
-              const isVisible = columnVisibility[field] !== false;
-
-              const cannotHideLastVisible =
-                isVisible &&
-                visibleColumnCount <= 1 &&
-                column.hideable !== false;
-
-              const pinState: DataTablePin | null = leftPinnedSet.has(field)
-                ? "left"
-                : rightPinnedSet.has(field)
-                  ? "right"
-                  : null;
-
-              const reorderDisabled = column.reorderable === false;
-              const hideDisabled = column.hideable === false;
-              const pinDisabled = column.pinnable === false;
-
-              return (
-                <ColumnManagerItem
-                  key={field}
-                  label={label}
-                  isVisible={isVisible}
-                  cannotHideLastVisible={cannotHideLastVisible}
-                  pinState={pinState}
-                  reorderDisabled={reorderDisabled}
-                  hideDisabled={hideDisabled}
-                  pinDisabled={pinDisabled}
-                  isDragging={draggingField === field}
-                  isDragOver={
-                    dragOverField === field && draggingField !== field
-                  }
-                  setItemRef={setItemRef(field)}
-                  onDragOver={handleDragOver(field)}
-                  onDrop={handleDrop(field)}
-                  onDragStart={handleDragStart(field, reorderDisabled)}
-                  onDragEnd={handleDragEnd}
-                  onToggleVisible={() => toggleColumnVisibility(field)}
-                  onPinLeft={() =>
-                    pinColumn(field, pinState === "left" ? null : "left")
-                  }
-                  onPinNone={() => pinColumn(field, null)}
-                  onPinRight={() =>
-                    pinColumn(field, pinState === "right" ? null : "right")
-                  }
-                />
-              );
-            })}
-          </Flex>
-        </Content>
-
-        <Footer>
-          <Flex justify="flex-end">
-            <Button primary onClick={() => setOpen(false)}>
-              Done
-            </Button>
-          </Flex>
-        </Footer>
-      </Drawer>
+      {overlay}
     </Root>
   );
 }
