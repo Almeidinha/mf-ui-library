@@ -129,11 +129,12 @@ export type ButtonProps = IButtonProps & ButtonTypeProps & ButtonSizeProps;
 function makeButtonConfig(props: ButtonProps) {
   const buttonType = getButtonType(props);
   const isDisabled = getIsDisabled(props);
+  const hasExplicitSize = props.small || props.default || props.large;
   const backgroundColor = isDisabled
     ? getBackgroundColorDisabledByType(buttonType)
     : getBackgroundColorByType(buttonType);
   const buttonPadding = getPaddingBySize(props);
-  const buttonOverridePadding = getPaddingByType(buttonType);
+  const buttonOverridePadding = hasExplicitSize ? "" : getPaddingByType(buttonType);
   const cursor = getCursor(props);
   const backgroundHover = getBackgroundColorHoverByType(buttonType);
   const textDecorationHover = getTextDecorationHoverByType(buttonType);
