@@ -5,6 +5,7 @@ import { Button } from "components/molecules/button";
 import { Label } from "components/typography";
 import { Background, Borders, Surface } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
+import { toCssSize } from "helpers/css-helpers";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
 import { useWindowEvent } from "hooks/useWindowEvent";
 import React, {
@@ -52,18 +53,6 @@ function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
   const [item] = next.splice(fromIndex, 1);
   next.splice(toIndex, 0, item);
   return next;
-}
-
-function toCssSize(value?: number | string, fallback?: string) {
-  if (typeof value === "number") {
-    return `${value}px`;
-  }
-
-  if (typeof value === "string") {
-    return value;
-  }
-
-  return fallback;
 }
 
 export type DataTableColumnManagerMode = "portal" | "inline";
@@ -410,6 +399,18 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   const resolvedShowBackdrop = showBackdrop ?? isPortalMode;
   const drawerWidth = toCssSize(width, "420px")!;
   const inlineDrawerMaxHeight = toCssSize(inlineMaxHeight, "70vh")!;
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const contentId = React.useId();
+  const titleId = React.useId();
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    closeButtonRef.current?.focus();
+  }, [open]);
 
   const setPreviewOrder = useCallback((next: string[] | null) => {
     previewOrderRef.current = next;
@@ -652,20 +653,19 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     [flushDragOver],
   );
 
-  const openManager = useCallback(() => {
-    if (isPortalMode) {
-      setOpen(true);
-      return;
+  const openManager = React.useCallback(() => {
+    if (!isPortalMode) {
+      setInlineMountNode(inlineContainerRef?.current ?? null);
     }
 
-    setInlineMountNode(inlineContainerRef?.current ?? null);
     setOpen(true);
   }, [inlineContainerRef, isPortalMode]);
 
-  const closeManager = useCallback(() => {
+  const closeManager = React.useCallback(() => {
     clearDragState();
     setOpen(false);
     setInlineMountNode(null);
+    triggerRef.current?.focus();
   }, [clearDragState]);
 
   useLayoutEffect(() => {
@@ -727,6 +727,16 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       });
     },
     open && Boolean(draggingField),
+  );
+
+  useWindowEvent(
+    "keydown",
+    (event) => {
+      if (event.key === "Escape") {
+        closeManager();
+      }
+    },
+    open,
   );
 
   const handleDragStart = useCallback(
@@ -796,9 +806,12 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     <>
       <Header>
         <Flex justify="space-between" center>
-          <Label strong>Manage columns</Label>
+          <Label strong id={titleId}>
+            Manage columns
+          </Label>
 
           <Button
+            ref={closeButtonRef}
             aria-label="Close column manager"
             onClick={closeManager}
             primary
@@ -807,7 +820,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         </Flex>
       </Header>
 
-      <Content ref={contentRef}>
+      <Content ref={contentRef} id={contentId}>
         <Flex column gap={Gap.m}>
           <ResetRow gap={Gap.xs}>
             <Button small onClick={resetColumnVisibility}>
@@ -898,7 +911,10 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       {isPortalMode ? (
         <PortalDrawer
           ref={drawerRef}
-          aria-label="Column manager"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          aria-describedby={contentId}
           $width={drawerWidth}
         >
           {drawerBody}
@@ -906,7 +922,10 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       ) : (
         <InlineDrawer
           ref={drawerRef}
-          aria-label="Column manager"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby={titleId}
+          aria-describedby={contentId}
           $width={drawerWidth}
           $inlineMaxHeight={inlineDrawerMaxHeight}
         >
@@ -930,7 +949,10 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     <Root>
       <TriggerRow>
         <Button
+          ref={triggerRef}
           aria-label="Manage columns"
+          aria-expanded={open}
+          aria-controls={contentId}
           onClick={openManager}
           IconPrefix={IconMinor.Gear}
         >

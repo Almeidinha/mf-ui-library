@@ -145,7 +145,7 @@ const meta = {
     rows: [],
     columns: [],
     rowKey: "id",
-    responsive: true,
+    layoutMode: "responsive",
     tableWidth: undefined,
     minTableWidth: undefined,
     paginated: true,
@@ -202,13 +202,14 @@ const meta = {
         defaultValue: { summary: "id" },
       },
     },
-    responsive: {
+    layoutMode: {
       description:
-        "When enabled, the table stretches to the container width and uses automatic layout. Disable it to honor explicit table sizing.",
-      control: "boolean",
+        "When responsive, the table stretches to the container width and uses automatic layout. When fixed, it honors explicit table sizing.",
+      control: { type: "radio" },
+      options: ["responsive", "fixed"],
       table: {
         category: "Layout",
-        defaultValue: { summary: "true" },
+        defaultValue: { summary: "responsive" },
       },
     },
     tableWidth: {
@@ -441,6 +442,7 @@ export const Primary: Story = {
       <Flex>
         <DataTable
           {...args}
+          key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
           rows={rows as PersonRow[]}
           columns={columns}
           rowKey="id"
@@ -453,9 +455,9 @@ export const Primary: Story = {
 export const FixedWidth: Story = {
   args: {
     mode: "inline",
-    responsive: false,
-    tableWidth: "1200px",
-    minTableWidth: "1200px",
+    layoutMode: "fixed",
+    tableWidth: "800px",
+    minTableWidth: "800px",
     showBackdrop: true,
   },
 
@@ -465,7 +467,7 @@ export const FixedWidth: Story = {
     return (
       <Flex>
         <DataTable
-          key={args.responsive ? "responsive" : "fixed"}
+          key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
           {...args}
           rows={rows as PersonRow[]}
           columns={columns}

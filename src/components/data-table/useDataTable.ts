@@ -13,6 +13,27 @@ import {
   UseDataTableResult,
 } from "./types";
 
+function readStoredState(storageKey?: string) {
+  if (!storageKey || typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) {
+      return null;
+    }
+
+    return JSON.parse(raw) as {
+      columnVisibility?: DataTableColumnVisibility;
+      columnOrder?: string[];
+      pinnedColumns?: DataTablePinnedColumns;
+    };
+  } catch {
+    return null;
+  }
+}
+
 function getRowKeyValue<T extends Record<string, unknown>>(
   row: T,
   rowKey: keyof T | ((row: T) => React.Key),
@@ -149,19 +170,36 @@ export function useDataTable<T extends Record<string, unknown>>(
     onPinnedColumnsChange,
   } = props;
 
+  const storedState = useMemo(
+    () => readStoredState(props.storageKey),
+    [props.storageKey],
+  );
+
   const defaultVisibilityState = useMemo(
-    () => buildDefaultVisibility(columns, defaultColumnVisibility),
-    [columns, defaultColumnVisibility],
+    () =>
+      buildDefaultVisibility(
+        columns,
+        storedState?.columnVisibility ?? defaultColumnVisibility,
+      ),
+    [columns, defaultColumnVisibility, storedState],
   );
 
   const defaultOrderState = useMemo(
-    () => buildDefaultOrder(columns, defaultColumnOrder),
-    [columns, defaultColumnOrder],
+    () =>
+      buildDefaultOrder(
+        columns,
+        storedState?.columnOrder ?? defaultColumnOrder,
+      ),
+    [columns, defaultColumnOrder, storedState],
   );
 
   const defaultPinnedState = useMemo(
-    () => normalizePinnedColumns(defaultOrderState, defaultPinnedColumns),
-    [defaultOrderState, defaultPinnedColumns],
+    () =>
+      normalizePinnedColumns(
+        defaultOrderState,
+        storedState?.pinnedColumns ?? defaultPinnedColumns,
+      ),
+    [defaultOrderState, defaultPinnedColumns, storedState],
   );
 
   const [search, setSearch] = useState("");
@@ -193,6 +231,25 @@ export function useDataTable<T extends Record<string, unknown>>(
     controlledColumnVisibility ?? internalColumnVisibility;
   const columnOrder = controlledColumnOrder ?? internalColumnOrder;
   const pinnedColumns = controlledPinnedColumns ?? internalPinnedColumns;
+
+  React.useEffect(() => {
+    if (!props.storageKey || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        props.storageKey,
+        JSON.stringify({
+          columnVisibility,
+          columnOrder,
+          pinnedColumns,
+        }),
+      );
+    } catch {
+      // ignore storage failures
+    }
+  }, [props.storageKey, columnVisibility, columnOrder, pinnedColumns]);
 
   const setSort = (nextField: string | null, nextDirection: SortDirection) => {
     if (onSortChange) {

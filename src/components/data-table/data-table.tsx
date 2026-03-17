@@ -109,12 +109,13 @@ export function DataTable<T extends Record<string, unknown>>(
     emptyMessage = "No rows found.",
     showBackdrop,
     mode,
-    responsive = true,
+    layoutMode = "responsive",
     tableWidth,
     minTableWidth,
   } = props;
 
   const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
+  const isResponsive = layoutMode === "responsive";
 
   const {
     search,
@@ -307,13 +308,13 @@ export function DataTable<T extends Record<string, unknown>>(
 
       <TableScroll ref={tableAreaRef}>
         <Table
-          $width={responsive ? "100%" : tableWidth || "auto"}
+          $width={isResponsive ? "100%" : tableWidth || "auto"}
           $minWidth={
-            responsive ? undefined : minTableWidth || computedColumnWidth
+            isResponsive ? undefined : minTableWidth || computedColumnWidth
           }
           style={{
-            overflowX: responsive ? "hidden" : "auto",
-            display: responsive ? "table" : "block",
+            overflowX: isResponsive ? "hidden" : "auto",
+            display: isResponsive ? "table" : "block",
           }}
         >
           <colgroup>

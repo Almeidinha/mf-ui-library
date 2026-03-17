@@ -9,6 +9,8 @@ export type DataTableRowKey<T> = keyof T | ((row: T) => React.Key);
 
 export type DataTableColumnManagerMode = "portal" | "inline";
 
+export type DataTableLayoutMode = "responsive" | "fixed";
+
 export type DataTableAction<T extends Record<string, unknown>> = {
   key: string;
   label: ReactNode;
@@ -83,9 +85,11 @@ export type DataTableProps<T extends Record<string, unknown>> = {
 
   rowKey: DataTableRowKey<T>;
 
-  responsive?: boolean;
+  layoutMode?: DataTableLayoutMode;
   tableWidth?: number | string;
   minTableWidth?: number | string;
+
+  storageKey?: string;
 
   paginated?: boolean;
   defaultPageSize?: number;
