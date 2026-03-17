@@ -13,6 +13,11 @@ type PersonRow = {
   age: number | null;
   role?: "user" | "admin" | "owner";
   isActive?: boolean;
+  city?: string;
+  state?: string;
+  country?: string;
+  company?: string;
+  birth?: string;
 };
 
 const getPersonRows = (): PersonRow[] => {
@@ -23,6 +28,11 @@ const getPersonRows = (): PersonRow[] => {
     age: faker.number.int({ min: 18, max: 80 }),
     role: faker.helpers.arrayElement(["user", "admin", "owner"]),
     isActive: faker.datatype.boolean(),
+    city: faker.location.city(),
+    state: faker.location.state(),
+    country: faker.location.country(),
+    company: faker.company.name(),
+    birth: faker.date.birthdate().toISOString().split("T")[0],
   }));
 };
 
@@ -31,24 +41,70 @@ const columns: DataTableColumn<PersonRow>[] = [
     field: "id",
     headerName: "ID",
     width: 70,
-    fitContent: true,
     sortable: true,
   },
-  { field: "firstName", headerName: "First name", sortable: true },
-  { field: "lastName", headerName: "Last name", sortable: true },
+  {
+    field: "firstName",
+    headerName: "First name",
+    sortable: true,
+    fitContent: true,
+  },
+  {
+    field: "lastName",
+    headerName: "Last name",
+    sortable: true,
+    fitContent: true,
+  },
   {
     field: "age",
     headerName: "Age",
+    width: 70,
     sortable: true,
-    fitContent: true,
     align: "right",
   },
   {
     field: "fullName",
     headerName: "Full name",
     sortable: false,
+    fitContent: true,
     valueGetter: (_, row) =>
       `${row.firstName ?? ""} ${row.lastName ?? ""}`.trim(),
+  },
+  {
+    field: "role",
+    headerName: "Role",
+    sortable: true,
+    fitContent: true,
+  },
+  {
+    field: "city",
+    headerName: "City",
+    sortable: true,
+    fitContent: true,
+  },
+  {
+    field: "state",
+    headerName: "State",
+    sortable: true,
+    fitContent: true,
+  },
+  {
+    field: "country",
+    headerName: "Country",
+    sortable: true,
+    fitContent: true,
+  },
+  {
+    field: "company",
+    headerName: "Company",
+    sortable: true,
+    fitContent: true,
+  },
+  {
+    field: "birth",
+    headerName: "Birth",
+    sortable: true,
+    width: 100,
   },
   {
     field: "actions",
@@ -56,7 +112,6 @@ const columns: DataTableColumn<PersonRow>[] = [
     width: 50,
     headerName: "",
     align: "center",
-    fitContent: true,
     getActions: (row: PersonRow) => [
       {
         key: "edit",
@@ -90,6 +145,9 @@ const meta = {
     rows: [],
     columns: [],
     rowKey: "id",
+    responsive: true,
+    tableWidth: undefined,
+    minTableWidth: undefined,
     paginated: true,
     searchPlaceholder: "Search...",
     emptyMessage: "No rows found...",
@@ -142,6 +200,33 @@ const meta = {
       table: {
         category: "Data",
         defaultValue: { summary: "id" },
+      },
+    },
+    responsive: {
+      description:
+        "When enabled, the table stretches to the container width and uses automatic layout. Disable it to honor explicit table sizing.",
+      control: "boolean",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "true" },
+      },
+    },
+    tableWidth: {
+      description:
+        "Explicit table width used when `responsive` is disabled. Accepts a number in pixels or any valid CSS width string.",
+      control: "text",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    minTableWidth: {
+      description:
+        "Minimum table width used when `responsive` is disabled. Useful for forcing horizontal scrolling while preserving column sizing.",
+      control: "text",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "undefined" },
       },
     },
     paginated: {
@@ -346,7 +431,7 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     mode: "inline",
-    showBackdrop: true
+    showBackdrop: true,
   },
 
   loaders: [() => ({ rows: getPersonRows() })],
@@ -362,5 +447,31 @@ export const Primary: Story = {
         />
       </Flex>
     );
-  }
+  },
+};
+
+export const FixedWidth: Story = {
+  args: {
+    mode: "inline",
+    responsive: false,
+    tableWidth: "1200px",
+    minTableWidth: "1200px",
+    showBackdrop: true,
+  },
+
+  loaders: [() => ({ rows: getPersonRows() })],
+
+  render: (args, { loaded: { rows } }) => {
+    return (
+      <Flex>
+        <DataTable
+          key={args.responsive ? "responsive" : "fixed"}
+          {...args}
+          rows={rows as PersonRow[]}
+          columns={columns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
 };

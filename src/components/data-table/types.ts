@@ -83,6 +83,10 @@ export type DataTableProps<T extends Record<string, unknown>> = {
 
   rowKey: DataTableRowKey<T>;
 
+  responsive?: boolean;
+  tableWidth?: number | string;
+  minTableWidth?: number | string;
+
   paginated?: boolean;
   defaultPageSize?: number;
   pageSizeOptions?: number[];

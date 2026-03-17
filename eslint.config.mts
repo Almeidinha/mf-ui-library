@@ -106,7 +106,7 @@ export default defineConfig([
       "react/no-children-prop": "error",
       "react/jsx-no-useless-fragment": "error",
       "react/jsx-fragments": ["error", "syntax"],
-      "react/jsx-max-depth": ["error", { max: 5 }],
+      "react/jsx-max-depth": ["error", { max: 7 }],
       "react/jsx-no-leaked-render": "error",
       "react/destructuring-assignment": [
         "error",

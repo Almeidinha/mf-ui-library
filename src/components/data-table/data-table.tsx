@@ -20,10 +20,26 @@ import { DataTableColumn, DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";
 
 const TableScroll = styled.div`
-  width: 100%;
   position: relative;
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
 `;
+
+const headerSelectStickyStyle: React.CSSProperties = {
+  position: "sticky",
+  left: 0,
+  zIndex: 3,
+  background: "inherit",
+};
+
+const bodySelectStickyStyle: React.CSSProperties = {
+  position: "sticky",
+  left: 0,
+  zIndex: 2,
+  background: "inherit",
+};
 
 function getTextAlign(
   align?: DataTableColumn<Record<string, unknown>>["align"],
@@ -67,6 +83,21 @@ function getColumnEstimatedWidth(width?: number | string) {
   return 160;
 }
 
+function getResolvedColumnWidth<T extends Record<string, unknown>>(
+  column: DataTableColumn<T>,
+) {
+  return column.width ?? (column.fitContent ? 120 : 160);
+}
+
+type RenderedColumn<T extends Record<string, unknown>> = {
+  column: DataTableColumn<T>;
+  field: string;
+  sortable: boolean | undefined;
+  currentSort: DataTableProps<T>["sortDirection"];
+  textAlign: ReturnType<typeof getTextAlign>;
+  stickyStyle?: React.CSSProperties;
+};
+
 export function DataTable<T extends Record<string, unknown>>(
   props: DataTableProps<T>,
 ) {
@@ -78,6 +109,9 @@ export function DataTable<T extends Record<string, unknown>>(
     emptyMessage = "No rows found.",
     showBackdrop,
     mode,
+    responsive = true,
+    tableWidth,
+    minTableWidth,
   } = props;
 
   const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
@@ -126,6 +160,28 @@ export function DataTable<T extends Record<string, unknown>>(
 
   const colSpan = visibleColumns.length + (checkboxSelection ? 1 : 0);
 
+  const leftPinnedSet = React.useMemo(
+    () => new Set(pinnedColumns.left),
+    [pinnedColumns.left],
+  );
+
+  const rightPinnedSet = React.useMemo(
+    () => new Set(pinnedColumns.right),
+    [pinnedColumns.right],
+  );
+
+  const columnWidthMap = React.useMemo(() => {
+    const map: Record<string, number> = {};
+
+    visibleColumns.forEach((column) => {
+      map[getColumnId(column)] = getColumnEstimatedWidth(
+        getResolvedColumnWidth(column),
+      );
+    });
+
+    return map;
+  }, [visibleColumns]);
+
   const leftOffsets = React.useMemo(() => {
     let offset = checkboxSelection ? 56 : 0;
     const map: Record<string, number> = {};
@@ -133,14 +189,14 @@ export function DataTable<T extends Record<string, unknown>>(
     visibleColumns.forEach((column) => {
       const field = getColumnId(column);
 
-      if (pinnedColumns.left.includes(field)) {
+      if (leftPinnedSet.has(field)) {
         map[field] = offset;
-        offset += getColumnEstimatedWidth(column.width);
+        offset += columnWidthMap[field];
       }
     });
 
     return map;
-  }, [visibleColumns, pinnedColumns.left, checkboxSelection]);
+  }, [visibleColumns, leftPinnedSet, columnWidthMap, checkboxSelection]);
 
   const rightOffsets = React.useMemo(() => {
     let offset = 0;
@@ -149,49 +205,88 @@ export function DataTable<T extends Record<string, unknown>>(
     [...visibleColumns].reverse().forEach((column) => {
       const field = getColumnId(column);
 
-      if (pinnedColumns.right.includes(field)) {
+      if (rightPinnedSet.has(field)) {
         map[field] = offset;
-        offset += getColumnEstimatedWidth(column.width);
+        offset += columnWidthMap[field];
       }
     });
 
     return map;
-  }, [visibleColumns, pinnedColumns.right]);
+  }, [visibleColumns, rightPinnedSet, columnWidthMap]);
 
-  const getStickyStyle = (field: string): React.CSSProperties | undefined => {
-    if (pinnedColumns.left.includes(field)) {
+  const computedColumnWidth = React.useMemo(() => {
+    return visibleColumns.reduce(
+      (total, column) => {
+        return total + columnWidthMap[getColumnId(column)];
+      },
+      checkboxSelection ? 56 : 0,
+    );
+  }, [visibleColumns, columnWidthMap, checkboxSelection]);
+
+  const stickyStyles = React.useMemo(() => {
+    const map: Record<string, React.CSSProperties | undefined> = {};
+
+    visibleColumns.forEach((column) => {
+      const field = getColumnId(column);
+
+      if (leftPinnedSet.has(field)) {
+        map[field] = {
+          position: "sticky",
+          left: leftOffsets[field],
+          zIndex: 2,
+          background: "inherit",
+        };
+        return;
+      }
+
+      if (rightPinnedSet.has(field)) {
+        map[field] = {
+          position: "sticky",
+          right: rightOffsets[field],
+          zIndex: 2,
+          background: "inherit",
+        };
+        return;
+      }
+
+      map[field] = undefined;
+    });
+
+    return map;
+  }, [
+    visibleColumns,
+    leftPinnedSet,
+    rightPinnedSet,
+    leftOffsets,
+    rightOffsets,
+  ]);
+
+  const renderedColumns = React.useMemo<RenderedColumn<T>[]>(() => {
+    return visibleColumns.map((column) => {
+      const field = getColumnId(column);
+      const sortable = !isActionsColumn(column) && column.sortable;
+
       return {
-        position: "sticky",
-        left: leftOffsets[field],
-        zIndex: 2,
-        background: "inherit",
+        column,
+        field,
+        sortable,
+        currentSort: sortField === field ? sortDirection : "NONE",
+        textAlign: getTextAlign(column.align),
+        stickyStyle: stickyStyles[field],
       };
-    }
-
-    if (pinnedColumns.right.includes(field)) {
-      return {
-        position: "sticky",
-        right: rightOffsets[field],
-        zIndex: 2,
-        background: "inherit",
-      };
-    }
-
-    return undefined;
-  };
+    });
+  }, [visibleColumns, sortField, sortDirection, stickyStyles]);
 
   return (
     <Flex column gap={Gap.l}>
       <Flex justify="space-between" center gap={Gap.m}>
-        {searchable ? (
+        <If is={searchable}>
           <InputText
             value={search}
             onChange={setSearch}
             placeholder={searchPlaceholder}
           />
-        ) : (
-          <div />
-        )}
+        </If>
 
         <DataTableColumnManager
           columns={columns}
@@ -211,10 +306,39 @@ export function DataTable<T extends Record<string, unknown>>(
       </Flex>
 
       <TableScroll ref={tableAreaRef}>
-        <Table>
+        <Table
+          $width={responsive ? "100%" : tableWidth || "auto"}
+          $minWidth={
+            responsive ? undefined : minTableWidth || computedColumnWidth
+          }
+          style={{
+            overflowX: responsive ? "hidden" : "auto",
+            display: responsive ? "table" : "block",
+          }}
+        >
+          <colgroup>
+            <If is={checkboxSelection}>
+              <col style={{ width: 55, minWidth: 55 }} />
+            </If>
+
+            {renderedColumns.map(({ column, field }) => {
+              const width = getResolvedColumnWidth(column);
+
+              return (
+                <col
+                  key={field}
+                  style={{
+                    width: column.fitContent ? "fit-content" : width,
+                    minWidth: width,
+                  }}
+                />
+              );
+            })}
+          </colgroup>
+
           <TableHead>
             <TableRow>
-              {checkboxSelection ? (
+              <If is={checkboxSelection}>
                 <TableHeaderCell.Select
                   checked={
                     allVisibleSelected
@@ -224,37 +348,33 @@ export function DataTable<T extends Record<string, unknown>>(
                         : false
                   }
                   onChange={toggleAllVisible}
-                  style={{
-                    position: "sticky",
-                    left: 0,
-                    zIndex: 3,
-                    background: "inherit",
-                  }}
+                  style={headerSelectStickyStyle}
                 />
-              ) : null}
+              </If>
 
-              {visibleColumns.map((column) => {
-                const field = getColumnId(column);
-                const currentSort =
-                  sortField === field ? sortDirection : "NONE";
-                const sortable = !isActionsColumn(column) && column.sortable;
-
-                return (
+              {renderedColumns.map(
+                ({
+                  field,
+                  sortable,
+                  currentSort,
+                  textAlign,
+                  stickyStyle,
+                  column,
+                }) => (
                   <TableHeaderCell
                     key={field}
                     sort={sortable ? currentSort : undefined}
                     onSortClick={() => toggleSort(field, sortable)}
                     style={{
-                      width: column.width,
-                      textAlign: getTextAlign(column.align),
-                      ...getStickyStyle(field),
+                      textAlign,
+                      ...stickyStyle,
                     }}
                     title={column.description}
                   >
                     {column.headerName ?? ""}
                   </TableHeaderCell>
-                );
-              })}
+                ),
+              )}
             </TableRow>
           </TableHead>
 
@@ -272,78 +392,74 @@ export function DataTable<T extends Record<string, unknown>>(
 
                 return (
                   <TableRow key={key} selected={isSelected}>
-                    {checkboxSelection ? (
+                    <If is={checkboxSelection}>
                       <TableBodyCell.Select
                         selected={isSelected}
                         onChange={() => toggleRow(row)}
-                        style={{
-                          position: "sticky",
-                          left: 0,
-                          zIndex: 2,
-                          background: "inherit",
-                        }}
+                        style={bodySelectStickyStyle}
                       />
-                    ) : null}
+                    </If>
 
-                    {visibleColumns.map((column) => {
-                      const field = getColumnId(column);
+                    {renderedColumns.map(
+                      ({ field, textAlign, stickyStyle, column }) => {
+                        if (isActionsColumn(column)) {
+                          const actions = column
+                            .getActions(row)
+                            .filter(
+                              (action) =>
+                                !resolveActionFlag(action.hidden, row),
+                            );
 
-                      if (isActionsColumn(column)) {
-                        const actions = column
-                          .getActions(row)
-                          .filter(
-                            (action) => !resolveActionFlag(action.hidden, row),
+                          return (
+                            <TableBodyCell.Actions
+                              key={field}
+                              fitContent={column.fitContent ?? true}
+                              style={{
+                                textAlign,
+                                ...stickyStyle,
+                              }}
+                            >
+                              {actions.map((action) => {
+                                const isDisabled = resolveActionFlag(
+                                  action.disabled,
+                                  row,
+                                );
+
+                                return (
+                                  <TableBodyCell.Action
+                                    key={`${field}-${action.key}`}
+                                    onClick={() => action.onClick(row)}
+                                    disabled={isDisabled}
+                                    destructive={action.destructive}
+                                    icon={action.icon}
+                                  >
+                                    {action.label}
+                                  </TableBodyCell.Action>
+                                );
+                              })}
+                            </TableBodyCell.Actions>
                           );
+                        }
+
+                        const rawValue = getColumnRawValue(row, column);
+                        const content = column.renderCell
+                          ? column.renderCell(row, rawValue)
+                          : rawValue;
 
                         return (
-                          <TableBodyCell.Actions
+                          <TableBodyCell
                             key={field}
-                            fitContent={column.fitContent ?? true}
+                            fitContent={column.fitContent}
                             style={{
-                              textAlign: getTextAlign(column.align),
-                              ...getStickyStyle(field),
+                              textAlign,
+                              ...stickyStyle,
                             }}
                           >
-                            {actions.map((action) => {
-                              const isDisabled = resolveActionFlag(
-                                action.disabled,
-                                row,
-                              );
-
-                              return (
-                                <TableBodyCell.Action
-                                  key={`${field}-${action.key}`}
-                                  onClick={() => action.onClick(row)}
-                                  disabled={isDisabled}
-                                  destructive={action.destructive}
-                                  icon={action.icon}
-                                >
-                                  {action.label}
-                                </TableBodyCell.Action>
-                              );
-                            })}
-                          </TableBodyCell.Actions>
+                            {content}
+                          </TableBodyCell>
                         );
-                      }
-
-                      const rawValue = getColumnRawValue(row, column);
-                      const content = column.renderCell
-                        ? column.renderCell(row, rawValue)
-                        : rawValue;
-
-                      return (
-                        <TableBodyCell
-                          key={field}
-                          fitContent={column.fitContent}
-                          style={{
-                            textAlign: getTextAlign(column.align),
-                            ...getStickyStyle(field),
-                          }}
-                        >
-                          {content}
-                        </TableBodyCell>
-                      );
-                    })}
+                      },
+                    )}
                   </TableRow>
                 );
               })

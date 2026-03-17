@@ -60,8 +60,19 @@ export interface ITableCellProps extends TdHTMLAttributes<HTMLTableCellElement> 
   fitContent?: boolean;
 }
 
-export const Table = styled.table<{ $bordered?: boolean }>`
-  width: 100%;
+export const Table = styled.table<{
+  $bordered?: boolean;
+  $width?: number | string;
+  $minWidth?: number | string;
+}>`
+  width: ${({ $width }) =>
+    $width ? (typeof $width === "number" ? `${$width}px` : $width) : "100%"};
+  min-width: ${({ $minWidth }) =>
+    $minWidth
+      ? typeof $minWidth === "number"
+        ? `${$minWidth}px`
+        : $minWidth
+      : "auto"};
   border-spacing: 0;
   overflow: hidden;
   table-layout: fixed;
@@ -90,7 +101,7 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
   $bordered?: boolean;
 }>`
   text-align: left;
-  padding: ${Padding.m} ${Padding.l};
+  padding: ${Padding.m};
   border-top: ${({ $bordered = true }) =>
     $bordered ? "none" : `1px solid ${Borders.Default.Subdued}`};
   border-bottom: 1px solid ${Borders.Default.Subdued};
@@ -98,8 +109,7 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
 `;
 
 const TableBodyCellFrame = styled.td<{ $fitContent?: boolean }>`
-  padding: ${Padding.none} ${Padding.s};
-  padding: ${Padding.m} ${Padding.l};
+  padding: ${Padding.m};
   ${Typography.Body}
 
   ${({ $fitContent }) =>
@@ -126,12 +136,10 @@ export const TableRow = styled.tr<{ selected?: boolean }>`
 
 export const TableHead = styled.thead``;
 
-const TableHeaderSelectFrame = styled(TableHeaderFrame)`
-  padding: ${Padding.m} ${Padding.l};
-`;
+const TableHeaderSelectFrame = styled(TableHeaderFrame)``;
 
 const TableCellSelectSelectFrame = styled.td`
-  padding: ${Padding.m} ${Padding.l};
+  padding: ${Padding.m};
 `;
 
 const Controls = styled(IconMinor.EllipsisVertical)`
