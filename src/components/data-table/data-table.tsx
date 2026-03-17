@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "components/table";
 import { Label } from "components/typography";
+import { Borders, Surface } from "foundation/colors";
 import { Gap } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import React from "react";
@@ -27,17 +28,11 @@ const TableScroll = styled.div`
   overflow-y: hidden;
 `;
 
-const headerSelectStickyStyle: React.CSSProperties = {
-  position: "sticky",
-  left: 0,
-  zIndex: 3,
-  background: "inherit",
-};
+const CHECKBOX_COLUMN_WIDTH = 55;
 
-const bodySelectStickyStyle: React.CSSProperties = {
+const checkboxStickyStyle: React.CSSProperties = {
   position: "sticky",
   left: 0,
-  zIndex: 2,
   background: "inherit",
 };
 
@@ -171,6 +166,30 @@ export function DataTable<T extends Record<string, unknown>>(
     [pinnedColumns.right],
   );
 
+  const lastLeftPinnedField = React.useMemo(() => {
+    const leftPinnedVisible = visibleColumns.filter((column) =>
+      leftPinnedSet.has(getColumnId(column)),
+    );
+
+    if (leftPinnedVisible.length === 0) {
+      return null;
+    }
+
+    return getColumnId(leftPinnedVisible[leftPinnedVisible.length - 1]);
+  }, [visibleColumns, leftPinnedSet]);
+
+  const firstRightPinnedField = React.useMemo(() => {
+    const rightPinnedVisible = visibleColumns.filter((column) =>
+      rightPinnedSet.has(getColumnId(column)),
+    );
+
+    if (rightPinnedVisible.length === 0) {
+      return null;
+    }
+
+    return getColumnId(rightPinnedVisible[0]);
+  }, [visibleColumns, rightPinnedSet]);
+
   const columnWidthMap = React.useMemo(() => {
     const map: Record<string, number> = {};
 
@@ -184,7 +203,7 @@ export function DataTable<T extends Record<string, unknown>>(
   }, [visibleColumns]);
 
   const leftOffsets = React.useMemo(() => {
-    let offset = checkboxSelection ? 56 : 0;
+    let offset = checkboxSelection ? CHECKBOX_COLUMN_WIDTH : 0;
     const map: Record<string, number> = {};
 
     visibleColumns.forEach((column) => {
@@ -220,7 +239,7 @@ export function DataTable<T extends Record<string, unknown>>(
       (total, column) => {
         return total + columnWidthMap[getColumnId(column)];
       },
-      checkboxSelection ? 56 : 0,
+      checkboxSelection ? CHECKBOX_COLUMN_WIDTH : 0,
     );
   }, [visibleColumns, columnWidthMap, checkboxSelection]);
 
@@ -236,6 +255,10 @@ export function DataTable<T extends Record<string, unknown>>(
           left: leftOffsets[field],
           zIndex: 2,
           background: "inherit",
+          borderRight:
+            field === lastLeftPinnedField
+              ? `1px solid ${Borders.Default.Default}`
+              : undefined,
         };
         return;
       }
@@ -246,6 +269,10 @@ export function DataTable<T extends Record<string, unknown>>(
           right: rightOffsets[field],
           zIndex: 2,
           background: "inherit",
+          borderLeft:
+            field === firstRightPinnedField
+              ? `1px solid ${Borders.Default.Default}`
+              : undefined,
         };
         return;
       }
@@ -260,6 +287,8 @@ export function DataTable<T extends Record<string, unknown>>(
     rightPinnedSet,
     leftOffsets,
     rightOffsets,
+    lastLeftPinnedField,
+    firstRightPinnedField,
   ]);
 
   const renderedColumns = React.useMemo<RenderedColumn<T>[]>(() => {
@@ -319,7 +348,12 @@ export function DataTable<T extends Record<string, unknown>>(
         >
           <colgroup>
             <If is={checkboxSelection}>
-              <col style={{ width: 55, minWidth: 55 }} />
+              <col
+                style={{
+                  width: CHECKBOX_COLUMN_WIDTH,
+                  minWidth: CHECKBOX_COLUMN_WIDTH,
+                }}
+              />
             </If>
 
             {renderedColumns.map(({ column, field }) => {
@@ -349,7 +383,13 @@ export function DataTable<T extends Record<string, unknown>>(
                         : false
                   }
                   onChange={toggleAllVisible}
-                  style={headerSelectStickyStyle}
+                  style={{
+                    ...checkboxStickyStyle,
+                    background: Surface.Default.Subdued,
+                    borderRight: !lastLeftPinnedField
+                      ? `1px solid ${Borders.Default.Default}`
+                      : undefined,
+                  }}
                 />
               </If>
 
@@ -369,6 +409,7 @@ export function DataTable<T extends Record<string, unknown>>(
                     style={{
                       textAlign,
                       ...stickyStyle,
+                      background: Surface.Default.Subdued,
                     }}
                     title={column.description}
                   >
@@ -397,7 +438,15 @@ export function DataTable<T extends Record<string, unknown>>(
                       <TableBodyCell.Select
                         selected={isSelected}
                         onChange={() => toggleRow(row)}
-                        style={bodySelectStickyStyle}
+                        style={{
+                          ...checkboxStickyStyle,
+                          background: isSelected
+                            ? Surface.Selected.Default
+                            : checkboxStickyStyle.background,
+                          borderRight: !lastLeftPinnedField
+                            ? `1px solid ${Borders.Default.Default}`
+                            : undefined,
+                        }}
                       />
                     </If>
 
@@ -454,6 +503,9 @@ export function DataTable<T extends Record<string, unknown>>(
                             style={{
                               textAlign,
                               ...stickyStyle,
+                              background: isSelected
+                                ? Surface.Selected.Default
+                                : stickyStyle?.background,
                             }}
                           >
                             {content}

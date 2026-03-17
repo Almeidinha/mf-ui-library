@@ -1,9 +1,9 @@
-import { Background, Surface } from "foundation/colors";
+import { Overlay } from "components/overlay";
+import { Surface } from "foundation/colors";
 import { shadowXl } from "foundation/shadows";
 import { useKeyDown } from "hooks";
 import React, {
   HTMLAttributes,
-  MouseEvent,
   ReactNode,
   useEffect,
   useMemo,
@@ -13,11 +13,6 @@ import { createPortal } from "react-dom";
 import styled, { css, keyframes } from "styled-components";
 
 const ESC_KEYS = ["Escape", "Esc"] as const;
-
-const fadeIn = keyframes`
-  from { opacity: .4; }
-  to { opacity: 1; }
-`;
 
 const grow = keyframes`
   from { transform: scale(.96); opacity: .96; }
@@ -36,43 +31,6 @@ export type ModalMaxWidthPreset = keyof typeof MODAL_MAX_WIDTH;
 export type ModalMaxWidth = ModalMaxWidthPreset | false | (string & {});
 
 export type ModalScroll = "paper" | "body";
-
-const OverlayFrame = styled.div<{
-  $scroll: ModalScroll;
-  $fullScreen: boolean;
-}>`
-  position: fixed;
-  inset: 0;
-  z-index: 20000;
-  background-color: ${Background.Overlay};
-  display: grid;
-  animation: ${fadeIn} 0.2s ease-out;
-
-  ${({ $fullScreen }) =>
-    $fullScreen
-      ? css`
-          padding: 0;
-        `
-      : css`
-          padding: 16px;
-        `}
-
-  ${({ $scroll, $fullScreen }) =>
-    $scroll === "body"
-      ? css`
-          place-items: ${$fullScreen ? "stretch" : "start center"};
-          overflow-y: auto;
-          overflow-x: hidden;
-        `
-      : css`
-          place-items: center;
-          overflow: hidden;
-        `}
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-`;
 
 const ModalFrame = styled.div<{
   $resolvedMaxWidth: string;
@@ -194,7 +152,6 @@ export function ModalBase({
 }: ModalBaseProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
-  const previousOverflowRef = useRef<string>("");
 
   const resolvedMaxWidth = useMemo(() => resolveMaxWidth(maxWidth), [maxWidth]);
 
@@ -216,8 +173,6 @@ export function ModalBase({
     if (typeof document !== "undefined") {
       previousActiveElementRef.current =
         document.activeElement as HTMLElement | null;
-      previousOverflowRef.current = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
     }
 
     const raf = requestAnimationFrame(() => {
@@ -230,11 +185,6 @@ export function ModalBase({
 
     return () => {
       cancelAnimationFrame(raf);
-
-      if (typeof document !== "undefined") {
-        document.body.style.overflow = previousOverflowRef.current || "";
-      }
-
       previousActiveElementRef.current?.focus?.();
     };
   }, [open, initialFocusRef]);
@@ -245,11 +195,7 @@ export function ModalBase({
 
   const computedAriaLabel = ariaLabelledby || ariaLabel ? ariaLabel : "Dialog";
 
-  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) {
-      return;
-    }
-
+  const handleOverlayClick = () => {
     onOverlayClick?.();
 
     if (closeOnOverlayClick) {
@@ -258,11 +204,15 @@ export function ModalBase({
   };
 
   const content = (
-    <OverlayFrame
-      onClick={handleOverlayClick}
-      data-testid="modal-overlay"
-      $scroll={scroll}
-      $fullScreen={fullScreen}
+    <Overlay
+      open={open}
+      lockBodyScroll
+      zIndex={20000}
+      onOverlayClick={handleOverlayClick}
+      transparent={false}
+      padded={!fullScreen}
+      scroll={scroll === "body" ? "body" : "content"}
+      fullScreen={fullScreen}
     >
       <ModalFrame
         {...rest}
@@ -283,7 +233,7 @@ export function ModalBase({
       >
         {children}
       </ModalFrame>
-    </OverlayFrame>
+    </Overlay>
   );
 
   if (!usePortal) {

@@ -2,6 +2,7 @@ import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { InputCheckbox } from "components/molecules";
 import { Button } from "components/molecules/button";
+import { Overlay } from "components/overlay";
 import { Label } from "components/typography";
 import { Background, Borders, Surface } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
@@ -88,16 +89,6 @@ const TriggerRow = styled(Flex)`
   justify-content: flex-end;
 `;
 
-const Backdrop = styled.button`
-  position: fixed;
-  inset: 0;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  z-index: 999;
-`;
-
 const InlineBackdrop = styled.button`
   position: absolute;
   inset: 0;
@@ -147,7 +138,6 @@ const InlineDrawer = styled.aside<{
   height: stretch;
   width: ${({ $width }) => $width};
   max-width: min(100%, ${({ $width }) => $width});
-  max-height: ${({ $inlineMaxHeight }) => $inlineMaxHeight};
   border: 1px solid ${Borders.Default.Default};
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
@@ -170,7 +160,7 @@ const InlineDrawer = styled.aside<{
 `;
 
 const Header = styled.div`
-  padding: ${Padding.l};
+  padding: ${Padding.s};
   border-bottom: 1px solid ${Borders.Default.Default};
   position: sticky;
   top: 0;
@@ -182,14 +172,6 @@ const Content = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: ${Padding.l};
-`;
-
-const Footer = styled.div`
-  padding: ${Padding.l};
-  border-top: 1px solid ${Borders.Default.Default};
-  background: ${Surface.Default.Default};
-  position: sticky;
-  bottom: 0;
 `;
 
 const SectionTitle = styled(Label)`
@@ -816,7 +798,9 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
             onClick={closeManager}
             primary
             IconPrefix={IconMinor.Xmark}
-          />
+          >
+            Done
+          </Button>
         </Flex>
       </Header>
 
@@ -884,31 +868,21 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
           })}
         </Flex>
       </Content>
-
-      <Footer>
-        <Flex justify="flex-end">
-          <Button primary onClick={closeManager}>
-            Done
-          </Button>
-        </Flex>
-      </Footer>
     </>
   );
 
   const overlayContent = open ? (
-    <>
-      {resolvedShowBackdrop ? (
-        isPortalMode ? (
-          <Backdrop aria-label="Close column manager" onClick={closeManager} />
-        ) : (
-          <InlineBackdrop
-            aria-label="Close column manager"
-            onClick={closeManager}
-          />
-        )
-      ) : null}
-
-      {isPortalMode ? (
+    isPortalMode ? (
+      <Overlay
+        open={open}
+        onOverlayClick={closeManager}
+        lockBodyScroll={resolvedShowBackdrop}
+        zIndex={999}
+        transparent={!resolvedShowBackdrop}
+        padded={false}
+        scroll="none"
+        fullScreen
+      >
         <PortalDrawer
           ref={drawerRef}
           role="dialog"
@@ -919,7 +893,16 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         >
           {drawerBody}
         </PortalDrawer>
-      ) : (
+      </Overlay>
+    ) : (
+      <>
+        {resolvedShowBackdrop ? (
+          <InlineBackdrop
+            aria-label="Close column manager"
+            onClick={closeManager}
+          />
+        ) : null}
+
         <InlineDrawer
           ref={drawerRef}
           role="dialog"
@@ -931,8 +914,8 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
         >
           {drawerBody}
         </InlineDrawer>
-      )}
-    </>
+      </>
+    )
   ) : null;
 
   const portalOverlay =

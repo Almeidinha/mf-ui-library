@@ -89,10 +89,11 @@ export const Table = styled.table<{
 `;
 
 export const TableBody = styled.tbody`
-  tr:nth-child(odd) {
+  tr:nth-child(odd):not([aria-selected="true"]) {
     background-color: ${Surface.Default.Default};
   }
-  tr:nth-child(even) {
+
+  tr:nth-child(even):not([aria-selected="true"]) {
     background-color: ${Surface.Default.Subdued};
   }
 `;
@@ -125,18 +126,19 @@ const TableBodyCellFrame = styled.td<{ $fitContent?: boolean }>`
         `}
 `;
 
-export const TableRow = styled.tr<{ selected?: boolean }>`
+export const TableRow = styled.tr.attrs<{ selected?: boolean }>(
+  ({ selected }) => ({
+    "aria-selected": selected ? "true" : undefined,
+  }),
+)`
   ${({ selected }) =>
-    is(selected)
-      ? css`
-          background-color: ${Surface.Selected.Default}!important;
-        `
-      : ""}
+    selected &&
+    css`
+      background-color: ${Surface.Selected.Default};
+    `}
 `;
 
 export const TableHead = styled.thead``;
-
-const TableHeaderSelectFrame = styled(TableHeaderFrame)``;
 
 const TableCellSelectSelectFrame = styled.td`
   padding: ${Padding.m};
@@ -235,22 +237,23 @@ export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
   return <TableBodyCellFrame {...props} $fitContent={fitContent} />;
 };
 
-const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect(
-  props: TableHeadSelectProps,
-) {
+const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
+  style,
+  ...rest
+}: TableHeadSelectProps) {
   return (
-    <TableHeaderSelectFrame>
-      <Checkbox {...props} indeterminate />
-    </TableHeaderSelectFrame>
+    <TableHeaderFrame style={style}>
+      <Checkbox {...rest} indeterminate />
+    </TableHeaderFrame>
   );
 };
 
 const TableCellSelect: FC<CheckboxProps & { selected?: boolean }> =
-  function TableCellSelect({ selected, checked: checkedProp, ...rest }) {
+  function TableCellSelect({ style, selected, checked: checkedProp, ...rest }) {
     const checked = is(checkedProp) || is(selected);
 
     return (
-      <TableCellSelectSelectFrame>
+      <TableCellSelectSelectFrame style={style}>
         <Checkbox {...rest} checked={checked} />
       </TableCellSelectSelectFrame>
     );

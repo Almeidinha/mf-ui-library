@@ -110,7 +110,6 @@ const columns: DataTableColumn<PersonRow>[] = [
     field: "actions",
     type: "actions",
     width: 50,
-    headerName: "",
     align: "center",
     getActions: (row: PersonRow) => [
       {
@@ -159,11 +158,17 @@ const meta = {
     sortField: undefined,
     sortDirection: undefined,
     columnVisibility: undefined,
-    defaultColumnVisibility: undefined,
+    defaultColumnVisibility: {
+      role: false,
+      city: false,
+      state: false,
+      country: false,
+      company: false,
+    },
     columnOrder: undefined,
     defaultColumnOrder: undefined,
     pinnedColumns: undefined,
-    defaultPinnedColumns: undefined,
+    defaultPinnedColumns: { left: ["id", "firstName"], right: [] },
     mode: "portal",
     showBackdrop: false,
   },
@@ -459,6 +464,11 @@ export const FixedWidth: Story = {
     tableWidth: "800px",
     minTableWidth: "800px",
     showBackdrop: true,
+    defaultColumnVisibility: {
+      role: false,
+      city: false,
+      state: false,
+    },
   },
 
   loaders: [() => ({ rows: getPersonRows() })],

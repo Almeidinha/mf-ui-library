@@ -138,6 +138,24 @@ function normalizePinnedColumns(
   return { left, right };
 }
 
+function buildDefaultPinnedColumns<T extends Record<string, unknown>>(
+  columns: DataTableColumn<T>[],
+  order: string[],
+  defaultPinnedColumns?: Partial<DataTablePinnedColumns>,
+): DataTablePinnedColumns {
+  const defaultLeft = defaultPinnedColumns?.left ?? [];
+  const defaultRight = defaultPinnedColumns?.right ?? [];
+
+  const actionFields = columns
+    .filter((column) => column.type === "actions")
+    .map((column) => String(column.field));
+
+  return normalizePinnedColumns(order, {
+    left: defaultLeft,
+    right: [...defaultRight, ...actionFields],
+  });
+}
+
 export function useDataTable<T extends Record<string, unknown>>(
   props: UseDataTableProps<T>,
 ): UseDataTableResult<T> {
@@ -195,11 +213,12 @@ export function useDataTable<T extends Record<string, unknown>>(
 
   const defaultPinnedState = useMemo(
     () =>
-      normalizePinnedColumns(
+      buildDefaultPinnedColumns(
+        columns,
         defaultOrderState,
         storedState?.pinnedColumns ?? defaultPinnedColumns,
       ),
-    [defaultOrderState, defaultPinnedColumns, storedState],
+    [columns, defaultOrderState, defaultPinnedColumns, storedState],
   );
 
   const [search, setSearch] = useState("");

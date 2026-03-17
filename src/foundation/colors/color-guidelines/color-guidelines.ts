@@ -36,6 +36,8 @@ export const Surface = {
   },
 
   Warning: {
+    Light: ORANGE[50],
+    Hover: ORANGE[100],
     Default: ORANGE[200],
     Subdued: ORANGE[50],
   },
