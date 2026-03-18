@@ -1,9 +1,28 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Divider } from "components/divider";
 import { Label } from "components/typography";
+import type { ComponentProps } from "react";
 import styled from "styled-components";
 
 import { Box, Container, Paper, Stack } from "./index";
+
+type StackDirection = "column" | "column-reverse" | "row" | "row-reverse";
+
+type StackStoryArgs = Omit<
+  ComponentProps<typeof Stack>,
+  "children" | "direction" | "divider" | "spacing"
+> & {
+  direction: StackDirection;
+  showDivider: boolean;
+  spacing: number;
+};
+
+const defaultStackPlaygroundArgs: StackStoryArgs = {
+  direction: "column",
+  spacing: 2,
+  showDivider: true,
+  useFlexGap: false,
+};
 
 const Page = styled.div`
   display: grid;
@@ -18,7 +37,10 @@ const Surface = styled.div`
 `;
 
 const DemoBlock = styled.div`
+  min-width: max-content;
   min-height: 56px;
+  padding: 0 16px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,14 +50,69 @@ const DemoBlock = styled.div`
   font-weight: 600;
 `;
 
+const StackPlaygroundItem = styled(DemoBlock)<{ $isHorizontal: boolean }>`
+  width: ${({ $isHorizontal }) => ($isHorizontal ? "auto" : "100%")};
+  min-width: ${({ $isHorizontal }) => ($isHorizontal ? "140px" : "0")};
+  flex: ${({ $isHorizontal }) => ($isHorizontal ? "0 0 auto" : "1 1 100%")};
+`;
+
 const ContainerFrame = styled.div`
   width: 100%;
   background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
   border: 1px solid #dbeafe;
 `;
 
-const meta = {
-  title: "Components/Layout Primitives",
+const StackStoryDivider = styled.div<{ $direction: StackDirection }>`
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: ${({ $direction }) => ($direction.startsWith("row") ? "1px" : "100%")};
+  min-width: ${({ $direction }) =>
+    $direction.startsWith("row") ? "1px" : "auto"};
+  height: ${({ $direction }) =>
+    $direction.startsWith("row") ? "auto" : "1px"};
+  background: #d0d7de;
+`;
+
+function StackPlaygroundPreview({
+  direction,
+  showDivider,
+  spacing,
+  ...args
+}: StackStoryArgs) {
+  const isHorizontal = direction.startsWith("row");
+
+  return (
+    <Surface>
+      <Stack
+        {...args}
+        direction={direction}
+        spacing={spacing}
+        divider={
+          showDivider ? <StackStoryDivider $direction={direction} /> : undefined
+        }
+        sx={{
+          justifyContent: isHorizontal ? "center" : "flex-start",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        <StackPlaygroundItem $isHorizontal={isHorizontal}>
+          Item 1
+        </StackPlaygroundItem>
+        <StackPlaygroundItem $isHorizontal={isHorizontal}>
+          Item 2
+        </StackPlaygroundItem>
+        <StackPlaygroundItem $isHorizontal={isHorizontal}>
+          Item 3
+        </StackPlaygroundItem>
+      </Stack>
+    </Surface>
+  );
+}
+
+const meta: Meta<StackStoryArgs> = {
+  title: "Foundations/Layout Primitives",
+  component: StackPlaygroundPreview,
   parameters: {
     layout: "padded",
     docs: {
@@ -51,11 +128,11 @@ MUI-like layout primitives implemented for this library's token system.
       },
     },
   },
-} satisfies Meta;
+};
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<StackStoryArgs>;
 
 export const Docs: Story = {
   render: () => (
@@ -115,5 +192,37 @@ export const Docs: Story = {
         </Surface>
       </section>
     </Page>
+  ),
+};
+
+export const StackPlayground: Story = {
+  args: defaultStackPlaygroundArgs,
+  argTypes: {
+    direction: {
+      control: { type: "select" },
+      options: ["column", "column-reverse", "row", "row-reverse"],
+      description: "Changes the stacking axis and item order.",
+    },
+    spacing: {
+      control: { type: "number" },
+      description:
+        "Applies Stack spacing using the same 8px scale used by the layout system.",
+    },
+    showDivider: {
+      control: { type: "boolean" },
+      description: "Toggles a visual divider between each item.",
+    },
+    useFlexGap: {
+      control: { type: "boolean" },
+      description:
+        "Exposes the Stack prop even though spacing uses native gap.",
+    },
+    children: { control: false, table: { disable: true } },
+    divider: { control: false, table: { disable: true } },
+    component: { control: false, table: { disable: true } },
+    sx: { control: false, table: { disable: true } },
+  },
+  render: (args) => (
+    <StackPlaygroundPreview {...defaultStackPlaygroundArgs} {...args} />
   ),
 };

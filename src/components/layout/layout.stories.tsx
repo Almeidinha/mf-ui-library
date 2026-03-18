@@ -76,6 +76,7 @@ const Td = styled.td`
 
 const DemoBox = styled.div`
   min-height: 44px;
+  min-width: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,6 +89,7 @@ const DemoBox = styled.div`
 `;
 
 const GridCellBox = styled(DemoBox)`
+  min-width: max-content;
   min-height: 56px;
   background: #dcfce7;
   color: #166534;
@@ -193,7 +195,7 @@ function PropsTable({
 }
 
 const meta = {
-  title: "Components/Layout",
+  title: "Foundations/Layout",
   tags: ["autodocs"],
   parameters: {
     viewMode: "docs",
