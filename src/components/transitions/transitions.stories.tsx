@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Card } from "components/card";
-import { Flex, SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Button } from "components/molecules";
 import { CardFrame } from "components/shared-styled-components";
 import { Typography } from "components/typography";
@@ -387,7 +387,7 @@ export const Playground: Story = {
 
     return (
       <>
-        <SpaceBetween style={{ padding: "16px 0", alignItems: "center" }}>
+        <Flex justify="space-between" align="center" style={{ padding: "16px 0" }}>
           <Typography variant="body">
             Current state: {isOpen ? "visible" : "hidden"}. Use the controls
             panel to switch transition strategies.
@@ -395,7 +395,7 @@ export const Playground: Story = {
           <Button primary onClick={() => updateArgs({ in: !isOpen })}>
             {isOpen ? "Hide preview" : "Show preview"}
           </Button>
-        </SpaceBetween>
+        </Flex>
         <StoryTransitionPreview {...args} in={isOpen} />
       </>
     );

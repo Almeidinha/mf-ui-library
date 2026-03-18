@@ -1,4 +1,4 @@
-import { Flex, SpaceBetween } from "@components";
+import { Flex } from "@components";
 import { FC, Hex, isDefined } from "@helpers";
 import { Caption, Label } from "components/typography";
 import styled from "styled-components";
@@ -60,10 +60,10 @@ export const ColorRectangle: FC<IColorRectangleProps> = ({
   return (
     <div>
       <RectangularColorSample color={hex} border={border} />
-      <SpaceBetween>
+      <Flex justify="space-between">
         <Caption>{name}</Caption>
         <Caption subdued>{hex}</Caption>
-      </SpaceBetween>
+      </Flex>
     </div>
   );
 };

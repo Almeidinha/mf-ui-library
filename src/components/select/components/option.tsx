@@ -48,7 +48,7 @@ const OptionComponentImpl = <T,>({
     <OptionItem
       className={composedClassName}
       data-role="option"
-      center
+      align="center"
       state={getOptionState(active, selected)}
       height={height}
       onClick={onClick}

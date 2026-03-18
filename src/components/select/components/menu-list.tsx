@@ -1,4 +1,4 @@
-import { SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Heading4, Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
@@ -53,7 +53,7 @@ const MenuListFrame = styled.div<{ $height?: number }>`
   ${shadowMd};
 `;
 
-const MenuRow = styled(SpaceBetween)<{ $active?: boolean }>`
+const MenuRow = styled(Flex).attrs({ justify: "space-between" })<{ $active?: boolean }>`
   border: none;
   text-align: left;
   padding: ${Padding.s};
@@ -137,7 +137,7 @@ const Row = <T,>({
   return (
     <MenuRow
       className="menu-row"
-      center
+      align="center"
       $active={currentValue.some(
         (val) => getOptionKey(val) === getOptionKey(option.value),
       )}

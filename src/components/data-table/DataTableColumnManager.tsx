@@ -259,8 +259,8 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
       onDrop={onDrop}
     >
       <Flex column gap={Gap.xs}>
-        <Flex justify="space-between" center gap={Gap.s}>
-          <Flex center gap={Gap.s}>
+        <Flex justify="space-between" align="center" gap={Gap.s}>
+          <Flex align="center" gap={Gap.s}>
             <DragHandle
               $disabled={reorderDisabled}
               draggable={!reorderDisabled}
@@ -284,7 +284,7 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
           />
         </Flex>
         <Divider />
-        <Flex justify="space-between" center gap={Gap.s}>
+        <Flex justify="space-between" align="center" gap={Gap.s}>
           <Label subdued>Pin</Label>
 
           <ButtonGroup size="small">
@@ -772,7 +772,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
   const drawerBody = (
     <>
       <Header>
-        <Flex justify="space-between" center>
+        <Flex justify="space-between" align="center">
           <Label strong id={titleId}>
             Manage columns
           </Label>

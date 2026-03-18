@@ -156,10 +156,10 @@ export const Pagination = ({
   const showTextNext = Boolean(nextLabel);
 
   return (
-    <Flex center gap={Gap.l}>
+    <Flex align="center" gap={Gap.l}>
       <If is={showPageInfo}>
         <Body>
-          <Flex center>
+          <Flex align="center">
             <LeftInputText>Page</LeftInputText>
             <PaginationInput
               aria-label="Current page"

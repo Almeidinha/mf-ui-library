@@ -10,10 +10,10 @@ import { getSlot, Slot } from "helpers/slots";
 import { InputHTMLAttributes, useId } from "react";
 import styled, { css } from "styled-components";
 
-import { Flex, SpaceBetween } from "../layout";
+import { Flex } from "../layout";
 import { LabeledInput } from "./components";
 
-const InputBorder = styled(SpaceBetween)<{
+const InputBorder = styled(Flex).attrs({ justify: "space-between" })<{
   $invalid?: boolean;
   $disabled?: boolean;
 }>`
@@ -139,7 +139,7 @@ const InputFrame = styled.label.withConfig({
   }}
 `;
 
-const ControlsFrame = styled(Flex)`
+const ControlsFrame = styled(Flex).attrs({ align: "center" })`
   margin-left: ${Margin.s};
 `;
 
@@ -214,10 +214,10 @@ export const InputField = forwardRef<
         </InputLayout>
       </InputFrame>
       <If is={icon}>
-        <ControlsFrame center>{icon}</ControlsFrame>
+        <ControlsFrame>{icon}</ControlsFrame>
       </If>
       <If is={controls}>
-        <ControlsFrame center>{controls}</ControlsFrame>
+        <ControlsFrame>{controls}</ControlsFrame>
       </If>
     </InputBorder>
   );

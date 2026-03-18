@@ -1,42 +1,44 @@
 import { is, isDefined } from "@helpers";
 import { SPACING } from "foundation/spacing/spacing";
+import React, { forwardRef } from "react";
 import styled from "styled-components";
 
-export const Flex = styled.div.withConfig({
-  shouldForwardProp: (prop) =>
-    !["center", "column", "gap", "justify"].includes(prop),
-})<{
+type FlexAlign = "flex-start" | "center" | "flex-end";
+type FlexJustify =
+  | "flex-start"
+  | "center"
+  | "flex-end"
+  | "space-between"
+  | "space-around"
+  | "space-evenly";
+
+export type FlexProps = React.HTMLAttributes<HTMLElement> & {
+  align?: FlexAlign;
   column?: boolean;
-  center?: boolean;
+  component?: React.ElementType;
   gap?: SPACING;
-  justify?: string;
+  justify?: FlexJustify;
+};
+
+const FlexRoot = styled.div.withConfig({
+  shouldForwardProp: (prop) =>
+    !["align", "column", "gap", "justify"].includes(prop),
+})<{
+  align?: FlexAlign;
+  column?: boolean;
+  gap?: SPACING;
+  justify?: FlexJustify;
 }>`
   display: flex;
-  ${({ center }) => (is(center) ? "align-items: center;" : "")}
+  ${({ align }) => (isDefined(align) ? `align-items: ${align};` : "")}
   flex-direction: ${({ column }) => (is(column) ? "column" : "row")};
   ${({ gap }) => (isDefined(gap) ? `gap: ${gap};` : "")}
   ${({ justify }) => (isDefined(justify) ? `justify-content: ${justify};` : "")}
 `;
 
-export const SpaceBetween = styled(Flex).withConfig({
-  shouldForwardProp: (prop) => !["align"].includes(prop),
-})<{
-  align?: "left" | "center" | "right";
-}>`
-  text-align: ${({ align }) => align || "left"};
-  justify-content: space-between;
-`;
-
-export const SpaceAround = styled(Flex).withConfig({
-  shouldForwardProp: (prop) => !["align"].includes(prop),
-})<{
-  align?: "left" | "center" | "right";
-}>`
-  text-align: ${({ align }) => align || "left"};
-  justify-content: space-around;
-`;
-
-export const Center = styled(Flex)`
-  align-items: center;
-  justify-content: space-around;
-`;
+export const Flex = forwardRef<HTMLElement, FlexProps>(function Flex(
+  { component = "div", ...props },
+  ref,
+) {
+  return <FlexRoot as={component} ref={ref} {...props} />;
+});

@@ -177,7 +177,7 @@ const OptionMultiLevelExpandedComponentImpl = <T,>({
       <OptionItem
         ref={anchorRef}
         data-role="option"
-        center
+        align="center"
         state={getOptionState(active, selected)}
         height={height}
         onClick={onClick}

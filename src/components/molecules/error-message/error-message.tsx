@@ -22,7 +22,7 @@ export const ErrorMessage: React.FC<{
   className?: string;
 }> = ({ message, className }) => {
   return (
-    <ErrorMessageWrapper center className={className}>
+    <ErrorMessageWrapper align="center" className={className}>
       <IconMinor.CircleExclamation />
       <Body>{message}</Body>
     </ErrorMessageWrapper>

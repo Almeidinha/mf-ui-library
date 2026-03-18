@@ -1,5 +1,5 @@
 import { InputText } from "components/input-field";
-import { Flex, SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Pagination } from "components/pagination";
 import {
   Table,
@@ -323,7 +323,7 @@ export function DataTable<T extends Record<string, unknown>>(
 
   return (
     <Flex column gap={Gap.l}>
-      <Flex justify="space-between" center gap={Gap.m}>
+      <Flex justify="space-between" align="center" gap={Gap.m}>
         <If is={searchable}>
           <InputText
             value={search}
@@ -534,7 +534,7 @@ export function DataTable<T extends Record<string, unknown>>(
       </TableFrame>
 
       <If is={paginated}>
-        <SpaceBetween align="center">
+        <Flex justify="space-between" align="center">
           <Label subdued>
             {totalRows === 0
               ? "0 results"
@@ -553,7 +553,7 @@ export function DataTable<T extends Record<string, unknown>>(
             showPageSizeSelector
             pageSizeOptions={pageSizeOptions}
           />
-        </SpaceBetween>
+        </Flex>
       </If>
     </Flex>
   );

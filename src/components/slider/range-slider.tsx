@@ -1,4 +1,4 @@
-import { Center } from "components/layout";
+import { Flex } from "components/layout";
 import { Label } from "components/typography";
 import { Margin, Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
@@ -24,7 +24,7 @@ export type RangeSliderProps = {
   onKeyUp?: (value: number) => void;
 };
 
-const GridContainer = styled(Center)`
+const GridContainer = styled(Flex).attrs({ align: "center", justify: "space-around" })`
   margin-top: ${Margin.s};
   justify-content: space-around;
   width: 100%;
@@ -44,7 +44,7 @@ const ValueLabel = styled(Label)`
   font-variant-numeric: tabular-nums;
 `;
 
-const SlideWrapper = styled(Center)`
+const SlideWrapper = styled(Flex).attrs({ align: "center", justify: "space-around" })`
   gap: 12px;
   display: flex;
   flex-direction: column;

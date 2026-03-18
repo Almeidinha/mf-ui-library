@@ -1,5 +1,5 @@
 import { IconMinor } from "components/icon";
-import { SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Label } from "components/typography";
 import { Borders, Icons, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
@@ -12,7 +12,7 @@ interface IOptionItemProps {
   height?: number;
 }
 
-export const OptionItem = styled(SpaceBetween)<IOptionItemProps>`
+export const OptionItem = styled(Flex).attrs({ justify: "space-between" })<IOptionItemProps>`
   height: ${({ height = DEFAULT_ROW_HEIGHT }) => height}px;
   min-width: 0;
   cursor: pointer;

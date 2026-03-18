@@ -1,4 +1,4 @@
-import { SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Heading4 } from "components/typography";
 import { Borders } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
@@ -31,7 +31,7 @@ const SectionFrame = styled.section`
   ${Typography.Body}
 `;
 
-const SubheadingFrame = styled(SpaceBetween)`
+const SubheadingFrame = styled(Flex).attrs({ justify: "space-between" })`
   margin: ${Margin.none} ${Margin.none} ${Margin.m} ${Margin.none};
 `;
 

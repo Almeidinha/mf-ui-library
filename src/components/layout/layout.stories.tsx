@@ -1,17 +1,9 @@
-/* eslint-disable react/jsx-max-depth */
 import type { Meta, StoryObj } from "@storybook/react";
 import { Body, Caption, Heading3, Label } from "components/typography";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
-import {
-  Center,
-  Flex,
-  gridLayoutGenerator,
-  leftRightLayoutGenerator,
-  SpaceAround,
-  SpaceBetween,
-} from "./index";
+import { Flex, gridLayoutGenerator, leftRightLayoutGenerator } from "./index";
 
 const { Grid, Cell } = gridLayoutGenerator();
 const { Layout } = leftRightLayoutGenerator();
@@ -110,18 +102,18 @@ const LeftRightBox = styled.div`
 
 const flexCode = `import { Flex } from "./index";
 
-<Flex column center gap={Gap.m}>
+<Flex column align="center" gap={Gap.m}>
   <div>One</div>
   <div>Two</div>
   <div>Three</div>
 </Flex>`;
 
-const spaceBetweenCode = `import { SpaceBetween } from "./index";
+const alignmentCode = `import { Flex } from "./index";
 
-<SpaceBetween align="center" gap={Gap.s}>
+<Flex justify="space-between" align="center" gap={Gap.s}>
   <div>Label</div>
   <div>Value</div>
-</SpaceBetween>`;
+</Flex>`;
 
 const gridCode = `import { Grid, Cell } from "./index";
 
@@ -242,10 +234,17 @@ export const Docs: Story = {
               defaultValue: "false",
             },
             {
-              name: "center",
-              type: "boolean",
-              description: "Applies align-items: center.",
-              defaultValue: "false",
+              name: "align",
+              type: '"flex-start" | "center" | "flex-end"',
+              description: "Controls cross-axis alignment with align-items.",
+              defaultValue: "undefined",
+            },
+            {
+              name: "justify",
+              type: '"flex-start" | "center" | "flex-end" | "space-between" | "space-around" | "space-evenly"',
+              description:
+                "Controls main-axis distribution with justify-content.",
+              defaultValue: "undefined",
             },
             {
               name: "gap",
@@ -253,6 +252,13 @@ export const Docs: Story = {
               description:
                 "Applies the CSS gap property using the spacing tokens from the design system.",
               defaultValue: "undefined",
+            },
+            {
+              name: "component",
+              type: "React.ElementType",
+              description:
+                "Changes the rendered HTML element while preserving the Flex behavior.",
+              defaultValue: '"div"',
             },
           ]}
         />
@@ -274,10 +280,17 @@ export const Docs: Story = {
             </Flex>
           </DemoSurface>
           <DemoSurface>
-            <Label>center</Label>
-            <Flex center gap={Gap.s} style={{ minHeight: 72 }}>
+            <Label>align</Label>
+            <Flex align="center" gap={Gap.s} style={{ minHeight: 72 }}>
               <DemoBox>Centered</DemoBox>
               <DemoBox>Items</DemoBox>
+            </Flex>
+          </DemoSurface>
+          <DemoSurface>
+            <Label>justify</Label>
+            <Flex justify="space-between" align="center" gap={Gap.s}>
+              <DemoBox>Left</DemoBox>
+              <DemoBox>Right</DemoBox>
             </Flex>
           </DemoSurface>
         </ExampleGrid>
@@ -285,62 +298,59 @@ export const Docs: Story = {
       </Section>
 
       <Section>
-        <Heading3>Spacing Variants</Heading3>
+        <Heading3>Alignment Examples</Heading3>
         <Description>
-          <code>SpaceBetween</code>, <code>SpaceAround</code>, and{" "}
-          <code>Center</code>
-          are convenience variants built on top of <code>Flex</code>.
+          The old layout helper variants now map directly to <code>Flex</code>
+          props. Use <code>justify</code> and <code>align</code> on the base
+          component instead of reaching for separate wrappers.
         </Description>
         <PropsTable
           rows={[
             {
-              name: "align",
-              type: '"left" | "center" | "right"',
+              name: 'justify="space-between"',
+              type: "Flex usage",
               description:
-                "Sets text alignment for SpaceBetween and SpaceAround content.",
-              defaultValue: "left",
+                "Replaces the old SpaceBetween helper for distributing items across the row.",
             },
             {
-              name: "gap",
-              type: "SPACING",
+              name: 'justify="space-around"',
+              type: "Flex usage",
               description:
-                "Inherited from Flex. Adds spacing between items when needed.",
-              defaultValue: "undefined",
+                "Replaces the old SpaceAround helper while keeping the same visual intent.",
             },
             {
-              name: "column / center",
-              type: "boolean",
+              name: 'align="center" + justify="space-around"',
+              type: "Flex usage",
               description:
-                "Inherited Flex props remain available where applicable.",
-              defaultValue: "false",
+                "Replaces the old Center helper when you want centered cross-axis alignment plus distributed items.",
             },
           ]}
         />
         <ExampleGrid>
           <DemoSurface>
-            <Label>SpaceBetween</Label>
-            <SpaceBetween align="center">
+            <Label>space-between</Label>
+            <Flex justify="space-between" align="center">
               <DemoBox>Left</DemoBox>
               <DemoBox>Right</DemoBox>
-            </SpaceBetween>
+            </Flex>
           </DemoSurface>
           <DemoSurface>
-            <Label>SpaceAround</Label>
-            <SpaceAround>
+            <Label>space-around</Label>
+            <Flex justify="space-around">
               <DemoBox>A</DemoBox>
               <DemoBox>B</DemoBox>
               <DemoBox>C</DemoBox>
-            </SpaceAround>
+            </Flex>
           </DemoSurface>
           <DemoSurface>
-            <Label>Center</Label>
-            <Center>
+            <Label>aligned + distributed</Label>
+            <Flex align="center" justify="space-around">
               <DemoBox>Centered</DemoBox>
               <DemoBox>Layout</DemoBox>
-            </Center>
+            </Flex>
           </DemoSurface>
         </ExampleGrid>
-        <CodeBlock>{spaceBetweenCode}</CodeBlock>
+        <CodeBlock>{alignmentCode}</CodeBlock>
       </Section>
 
       <Section>

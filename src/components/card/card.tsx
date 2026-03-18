@@ -1,4 +1,4 @@
-import { SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { CardFrame } from "components/shared-styled-components";
 import { Heading3 } from "components/typography";
 import { Margin, Padding } from "foundation/spacing";
@@ -17,7 +17,7 @@ import {
   CardSectionSlot,
 } from "./components";
 
-const CardHeading = styled(SpaceBetween)`
+const CardHeading = styled(Flex).attrs({ justify: "space-between" })`
   margin: ${Margin.none} ${Margin.l} ${Margin.none} ${Margin.l};
   padding-top: ${Padding.l};
 `;

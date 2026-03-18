@@ -13,7 +13,7 @@ import {
 import { Badge } from "components/badge";
 import { IconMinor } from "components/icon/icon";
 import { InputField } from "components/input-field";
-import { Flex, SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Pagination } from "components/pagination";
 import { Body, Label } from "components/typography";
 import { FC } from "helpers/generic-types";
@@ -591,7 +591,7 @@ for (let i = 0; i < 10000; i++) {
   );
 }
 
-const ActionsWrapper = styled(SpaceBetween)`
+const ActionsWrapper = styled(Flex).attrs({ justify: "space-between" })`
   border: 1px solid #d1d5db;
   padding: 8px 12px;
   box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);

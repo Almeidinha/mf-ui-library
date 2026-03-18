@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { IconMinor } from "components/icon";
-import { Flex, SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Button } from "components/molecules";
 import { BodyLarge } from "components/typography";
 import { Gap, Padding } from "foundation/spacing";
@@ -364,11 +364,11 @@ export const ControlsExample: Story = {
           type="number"
         >
           <InputField.Controls>
-            <SpaceBetween style={{ width: Padding.xll }}>
+            <Flex justify="space-between" style={{ width: Padding.xll }}>
               <div onClick={onLike}>️👍</div>
               <div>/</div>
               <div onClick={onDislike}>👎️</div>
-            </SpaceBetween>
+            </Flex>
           </InputField.Controls>
         </InputField>
       </Flex>

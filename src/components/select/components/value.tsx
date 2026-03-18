@@ -1,5 +1,5 @@
 import { IconMinor } from "components/icon";
-import { Flex, SpaceBetween } from "components/layout";
+import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { TransformIconWrapper } from "components/shared-styled-components";
 import { Body, Label } from "components/typography";
@@ -41,7 +41,7 @@ interface IValueContainerProps {
   $iconPosition?: "left" | "right";
 }
 
-const ValueContainer = styled(SpaceBetween)<IValueContainerProps>`
+const ValueContainer = styled(Flex).attrs({ justify: "space-between" })<IValueContainerProps>`
   pointer-events: ${({ disabled }) => (is(disabled) ? "none" : "auto")};
   padding: ${Padding.xs} ${Padding.none};
   background: ${({ $invalid, disabled }) =>
@@ -410,7 +410,7 @@ const ValueImpl = <T,>({
         $menuIsOpen={open}
         tabIndex={0}
         onClick={onContainerClick}
-        center
+        align="center"
         $iconPosition={iconPosition}
         onFocus={onSearchFocus}
       >
@@ -441,7 +441,7 @@ const ValueImpl = <T,>({
             subtle
           />
         </If>
-        <ValueRight className="value-right" center $iconPosition={iconPosition}>
+        <ValueRight className="value-right" align="center" $iconPosition={iconPosition}>
           {isDefined(customIcon) ? (
             customIcon
           ) : is(searchable) ? (

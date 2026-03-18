@@ -1,4 +1,4 @@
-import { Center } from "components/layout";
+import { Flex } from "components/layout";
 import { Icons, Surface } from "foundation/colors";
 import { Gap } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
@@ -15,7 +15,7 @@ const Controls = styled.div`
   }
 `;
 
-const ButtonBox = styled(Center)`
+const ButtonBox = styled(Flex).attrs({ align: "center", justify: "space-around" })`
   background: ${Surface.Neutral.Default};
   width: 18px;
   height: 14px;

@@ -6,16 +6,14 @@ import { If, Nothing } from "helpers/nothing";
 import { isDefined, isEmpty, isNil } from "helpers/safe-navigation";
 import styled from "styled-components";
 
-import { SpaceAround } from "../../layout/";
+import { Flex } from "../../layout/";
 import {
   AvatarSizeProps,
   getNodeToRenderText,
   getValuesBySize,
 } from "./avatar-size-flags";
 
-const Container = styled(SpaceAround)`
-  align-items: center;
-`;
+const Container = styled(Flex).attrs({ align: "center", justify: "space-around" })``;
 
 const Circle = styled.div<{ size: string }>`
   width: ${({ size }) => size};

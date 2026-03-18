@@ -1,4 +1,4 @@
-import { Center } from "components/layout";
+import { Flex } from "components/layout";
 import { Label } from "components/typography";
 import { Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
@@ -19,12 +19,12 @@ export type SliderProps = {
   onKeyUp?: (value: number) => void;
 };
 
-const ComponentWrapper = styled(Center)`
+const ComponentWrapper = styled(Flex).attrs({ align: "center", justify: "space-around" })`
   gap: 12px;
   flex-wrap: nowrap;
 `;
 
-const SlideWrapper = styled(Center)`
+const SlideWrapper = styled(Flex).attrs({ align: "center", justify: "space-around" })`
   gap: 12px;
   width: 100%;
 `;

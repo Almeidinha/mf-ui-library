@@ -426,8 +426,8 @@ export const Destructive: Story = {
   },
   args: {
     children: (
-      <Flex center column>
-        <IconFrame center>
+      <Flex align="center" column>
+        <IconFrame align="center">
           <ExclamationIcon />
         </IconFrame>
         <BodyLarge strong>Delete Account</BodyLarge>
