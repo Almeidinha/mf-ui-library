@@ -134,7 +134,9 @@ function makeButtonConfig(props: ButtonProps) {
     ? getBackgroundColorDisabledByType(buttonType)
     : getBackgroundColorByType(buttonType);
   const buttonPadding = getPaddingBySize(props);
-  const buttonOverridePadding = hasExplicitSize ? "" : getPaddingByType(buttonType);
+  const buttonOverridePadding = hasExplicitSize
+    ? ""
+    : getPaddingByType(buttonType);
   const cursor = getCursor(props);
   const backgroundHover = getBackgroundColorHoverByType(buttonType);
   const textDecorationHover = getTextDecorationHoverByType(buttonType);
@@ -187,7 +189,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         type={type}
         {...buttonConfig}
         data-testid="button-test"
-        role="button"
       >
         {isDefined(IconPrefix) && (
           <IconContainer $isLoading={is(loading)}>

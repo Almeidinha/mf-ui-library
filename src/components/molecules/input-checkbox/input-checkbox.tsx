@@ -12,18 +12,19 @@ const Text = styled(Label)`
   flex: 1;
 `;
 
-const Wrapper = styled.label`
+const Wrapper = styled.label<{ $fullWidth: boolean }>`
   display: flex;
-  width: 100%;
+  width: ${({ $fullWidth }) => ($fullWidth ? "100%" : "auto")};
   align-items: center;
 `;
 
 export type InputCheckboxProps = CheckboxProps & {
   label: string;
+  fullWidth?: boolean;
 };
 
 const InputCheckboxImpl = (
-  { label = "", name, ...rest }: InputCheckboxProps,
+  { label = "", fullWidth = true, name, ...rest }: InputCheckboxProps,
   ref: React.Ref<HTMLInputElement>,
 ) => {
   if (isEmpty(label)) {
@@ -31,7 +32,7 @@ const InputCheckboxImpl = (
   }
 
   return (
-    <Wrapper>
+    <Wrapper $fullWidth={fullWidth}>
       <Checkbox {...rest} ref={ref} name={isDefined(name) ? name : label} />
       <Text>{label}</Text>
     </Wrapper>

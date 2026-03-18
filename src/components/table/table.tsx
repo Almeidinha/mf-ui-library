@@ -14,7 +14,7 @@ import { Button } from "components/molecules/button";
 import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
-import { Margin, Padding } from "foundation/spacing";
+import { Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { If, Nothing } from "helpers/nothing";
@@ -27,6 +27,7 @@ import {
   ReactElement,
   TdHTMLAttributes,
   ThHTMLAttributes,
+  useRef,
 } from "react";
 import styled, { css } from "styled-components";
 
@@ -58,6 +59,7 @@ export interface ITableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> 
 
 export interface ITableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
   fitContent?: boolean;
+  allowOverflow?: boolean;
 }
 
 export const Table = styled.table<{
@@ -74,7 +76,6 @@ export const Table = styled.table<{
         : $minWidth
       : "auto"};
   border-spacing: 0;
-  overflow: hidden;
   table-layout: fixed;
   word-break: break-word;
   border: ${({ $bordered = true }) =>
@@ -109,9 +110,14 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
   background-color: ${Surface.Default.Subdued};
 `;
 
-const TableBodyCellFrame = styled.td<{ $fitContent?: boolean }>`
+const TableBodyCellFrame = styled.td<{
+  $fitContent?: boolean;
+  $allowOverflow?: boolean;
+}>`
   padding: ${Padding.m};
   ${Typography.Body}
+  position: relative;
+  overflow: ${({ $allowOverflow }) => ($allowOverflow ? "visible" : "hidden")};
 
   ${({ $fitContent }) =>
     is($fitContent)
@@ -120,7 +126,6 @@ const TableBodyCellFrame = styled.td<{ $fitContent?: boolean }>`
           width: 1%;
         `
       : css`
-          overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         `}
@@ -148,19 +153,19 @@ const Controls = styled(IconMinor.EllipsisVertical)`
   display: block;
 `;
 
-const ActionsCell = styled.div`
+const ActionsCell = styled.div<{ $isOpen: boolean }>`
   position: relative;
   display: inline-flex;
   align-items: center;
+  z-index: ${({ $isOpen }) => ($isOpen ? 20 : "auto")};
 `;
 
 const Menu = styled(SimpleMenu)`
-  position: absolute;
-  top: ${Margin.xs};
   width: max-content;
+  position: absolute;
+  top: calc(100% + 4px);
   right: 0;
-  margin: ${Margin.none};
-  z-index: 10;
+  z-index: 31;
 `;
 
 const SortButton = styled(Button).attrs({
@@ -232,9 +237,16 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
 
 export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
   fitContent,
+  allowOverflow,
   ...props
 }) {
-  return <TableBodyCellFrame {...props} $fitContent={fitContent} />;
+  return (
+    <TableBodyCellFrame
+      {...props}
+      $fitContent={fitContent}
+      $allowOverflow={allowOverflow}
+    />
+  );
 };
 
 const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
@@ -292,6 +304,8 @@ const TableCellActions: FC<ITableCellProps> = function TableCellActions({
     closeOnItemSelect: true,
   });
 
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
   const items = Children.map(children, (child) => {
     if (!isTDActionElement(child)) {
       return child;
@@ -311,9 +325,18 @@ const TableCellActions: FC<ITableCellProps> = function TableCellActions({
   });
 
   return (
-    <TableBodyCell {...tdProps}>
-      <ActionsCell ref={clickOutsideRef}>
+    <TableBodyCell
+      {...tdProps}
+      fitContent
+      allowOverflow
+      style={{
+        ...tdProps.style,
+        zIndex: isOpen ? 30 : tdProps.style?.zIndex,
+      }}
+    >
+      <ActionsCell ref={clickOutsideRef} $isOpen={isOpen}>
         <Button
+          ref={triggerRef}
           plain
           subtle
           type="button"
@@ -325,7 +348,16 @@ const TableCellActions: FC<ITableCellProps> = function TableCellActions({
         </Button>
 
         <If is={isOpen}>
-          <Menu>{items}</Menu>
+          <Menu
+            usePortal
+            open={isOpen}
+            onClose={close}
+            anchorRef={triggerRef}
+            position="bottom-end"
+            zIndex={4000}
+          >
+            {items}
+          </Menu>
         </If>
       </ActionsCell>
     </TableBodyCell>

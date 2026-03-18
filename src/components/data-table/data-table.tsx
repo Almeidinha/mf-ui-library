@@ -11,6 +11,7 @@ import {
 } from "components/table";
 import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
+import { shadowMd } from "foundation/shadows";
 import { Gap } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import React from "react";
@@ -19,6 +20,19 @@ import styled from "styled-components";
 import { DataTableColumnManager } from "./DataTableColumnManager";
 import { DataTableColumn, DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";
+
+const TableFrame = styled.div<{ $responsive: boolean }>`
+  border: 1px solid ${Borders.Default.Default};
+  ${shadowMd};
+  background: ${Surface.Default.Default};
+  overflow: hidden;
+
+  & table {
+    display: ${(props) => (props.$responsive ? "table" : "block")};
+    border: none;
+    box-shadow: none;
+  }
+`;
 
 const TableScroll = styled.div`
   position: relative;
@@ -334,192 +348,190 @@ export function DataTable<T extends Record<string, unknown>>(
           inlineContainerRef={tableAreaRef}
         />
       </Flex>
-
-      <TableScroll ref={tableAreaRef}>
-        <Table
-          $width={isResponsive ? "100%" : tableWidth || "auto"}
-          $minWidth={
-            isResponsive ? undefined : minTableWidth || computedColumnWidth
-          }
-          style={{
-            overflowX: isResponsive ? "hidden" : "auto",
-            display: isResponsive ? "table" : "block",
-          }}
-        >
-          <colgroup>
-            <If is={checkboxSelection}>
-              <col
-                style={{
-                  width: CHECKBOX_COLUMN_WIDTH,
-                  minWidth: CHECKBOX_COLUMN_WIDTH,
-                }}
-              />
-            </If>
-
-            {renderedColumns.map(({ column, field }) => {
-              const width = getResolvedColumnWidth(column);
-
-              return (
-                <col
-                  key={field}
-                  style={{
-                    width: column.fitContent ? "fit-content" : width,
-                    minWidth: width,
-                  }}
-                />
-              );
-            })}
-          </colgroup>
-
-          <TableHead>
-            <TableRow>
+      <TableFrame $responsive={isResponsive}>
+        <TableScroll ref={tableAreaRef}>
+          <Table
+            $width={isResponsive ? "100%" : tableWidth || "auto"}
+            $minWidth={
+              isResponsive ? undefined : minTableWidth || computedColumnWidth
+            }
+          >
+            <colgroup>
               <If is={checkboxSelection}>
-                <TableHeaderCell.Select
-                  checked={
-                    allVisibleSelected
-                      ? true
-                      : someVisibleSelected
-                        ? undefined
-                        : false
-                  }
-                  onChange={toggleAllVisible}
+                <col
                   style={{
-                    ...checkboxStickyStyle,
-                    background: Surface.Default.Subdued,
-                    borderRight: !lastLeftPinnedField
-                      ? `1px solid ${Borders.Default.Default}`
-                      : undefined,
+                    width: CHECKBOX_COLUMN_WIDTH,
+                    minWidth: CHECKBOX_COLUMN_WIDTH,
                   }}
                 />
               </If>
 
-              {renderedColumns.map(
-                ({
-                  field,
-                  sortable,
-                  currentSort,
-                  textAlign,
-                  stickyStyle,
-                  column,
-                }) => (
-                  <TableHeaderCell
-                    key={field}
-                    sort={sortable ? currentSort : undefined}
-                    onSortClick={() => toggleSort(field, sortable)}
-                    style={{
-                      textAlign,
-                      ...stickyStyle,
-                      background: Surface.Default.Subdued,
-                    }}
-                    title={column.description}
-                  >
-                    {column.headerName ?? ""}
-                  </TableHeaderCell>
-                ),
-              )}
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {visibleRows.length === 0 ? (
-              <TableRow>
-                <TableBodyCell colSpan={colSpan}>
-                  <Label subdued>{emptyMessage}</Label>
-                </TableBodyCell>
-              </TableRow>
-            ) : (
-              visibleRows.map((row) => {
-                const key = getRowKey(row);
-                const isSelected = selectedKeys.includes(key);
+              {renderedColumns.map(({ column, field }) => {
+                const width = getResolvedColumnWidth(column);
 
                 return (
-                  <TableRow key={key} selected={isSelected}>
-                    <If is={checkboxSelection}>
-                      <TableBodyCell.Select
-                        selected={isSelected}
-                        onChange={() => toggleRow(row)}
-                        style={{
-                          ...checkboxStickyStyle,
-                          background: isSelected
-                            ? Surface.Selected.Default
-                            : checkboxStickyStyle.background,
-                          borderRight: !lastLeftPinnedField
-                            ? `1px solid ${Borders.Default.Default}`
-                            : undefined,
-                        }}
-                      />
-                    </If>
+                  <col
+                    key={field}
+                    style={{
+                      width: column.fitContent ? "fit-content" : width,
+                      minWidth: width,
+                    }}
+                  />
+                );
+              })}
+            </colgroup>
 
-                    {renderedColumns.map(
-                      ({ field, textAlign, stickyStyle, column }) => {
-                        if (isActionsColumn(column)) {
-                          const actions = column
-                            .getActions(row)
-                            .filter(
-                              (action) =>
-                                !resolveActionFlag(action.hidden, row),
+            <TableHead>
+              <TableRow>
+                <If is={checkboxSelection}>
+                  <TableHeaderCell.Select
+                    checked={
+                      allVisibleSelected
+                        ? true
+                        : someVisibleSelected
+                          ? undefined
+                          : false
+                    }
+                    onChange={toggleAllVisible}
+                    style={{
+                      ...checkboxStickyStyle,
+                      background: Surface.Default.Subdued,
+                      borderRight: !lastLeftPinnedField
+                        ? `1px solid ${Borders.Default.Default}`
+                        : undefined,
+                    }}
+                  />
+                </If>
+
+                {renderedColumns.map(
+                  ({
+                    field,
+                    sortable,
+                    currentSort,
+                    textAlign,
+                    stickyStyle,
+                    column,
+                  }) => (
+                    <TableHeaderCell
+                      key={field}
+                      sort={sortable ? currentSort : undefined}
+                      onSortClick={() => toggleSort(field, sortable)}
+                      style={{
+                        textAlign,
+                        ...stickyStyle,
+                        background: Surface.Default.Subdued,
+                      }}
+                      title={column.description}
+                    >
+                      {column.headerName ?? ""}
+                    </TableHeaderCell>
+                  ),
+                )}
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {visibleRows.length === 0 ? (
+                <TableRow>
+                  <TableBodyCell colSpan={colSpan}>
+                    <Label subdued>{emptyMessage}</Label>
+                  </TableBodyCell>
+                </TableRow>
+              ) : (
+                visibleRows.map((row) => {
+                  const key = getRowKey(row);
+                  const isSelected = selectedKeys.includes(key);
+
+                  return (
+                    <TableRow key={key} selected={isSelected}>
+                      <If is={checkboxSelection}>
+                        <TableBodyCell.Select
+                          selected={isSelected}
+                          onChange={() => toggleRow(row)}
+                          style={{
+                            ...checkboxStickyStyle,
+                            background: isSelected
+                              ? Surface.Selected.Default
+                              : checkboxStickyStyle.background,
+                            borderRight: !lastLeftPinnedField
+                              ? `1px solid ${Borders.Default.Default}`
+                              : undefined,
+                            zIndex: 2,
+                          }}
+                        />
+                      </If>
+
+                      {renderedColumns.map(
+                        ({ field, textAlign, stickyStyle, column }) => {
+                          if (isActionsColumn(column)) {
+                            const actions = column
+                              .getActions(row)
+                              .filter(
+                                (action) =>
+                                  !resolveActionFlag(action.hidden, row),
+                              );
+
+                            return (
+                              <TableBodyCell.Actions
+                                key={field}
+                                fitContent={column.fitContent ?? true}
+                                style={{
+                                  textAlign,
+                                  ...stickyStyle,
+                                }}
+                              >
+                                {actions.map((action) => {
+                                  const isDisabled = resolveActionFlag(
+                                    action.disabled,
+                                    row,
+                                  );
+
+                                  return (
+                                    <TableBodyCell.Action
+                                      key={`${field}-${action.key}`}
+                                      onClick={() => action.onClick(row)}
+                                      disabled={isDisabled}
+                                      destructive={action.destructive}
+                                      icon={action.icon}
+                                    >
+                                      {action.label}
+                                    </TableBodyCell.Action>
+                                  );
+                                })}
+                              </TableBodyCell.Actions>
                             );
+                          }
+
+                          const rawValue = getColumnRawValue(row, column);
+                          const content = column.renderCell
+                            ? column.renderCell(row, rawValue)
+                            : rawValue;
 
                           return (
-                            <TableBodyCell.Actions
+                            <TableBodyCell
                               key={field}
-                              fitContent={column.fitContent ?? true}
+                              fitContent={column.fitContent}
                               style={{
                                 textAlign,
                                 ...stickyStyle,
+                                background: isSelected
+                                  ? Surface.Selected.Default
+                                  : stickyStyle?.background,
                               }}
                             >
-                              {actions.map((action) => {
-                                const isDisabled = resolveActionFlag(
-                                  action.disabled,
-                                  row,
-                                );
-
-                                return (
-                                  <TableBodyCell.Action
-                                    key={`${field}-${action.key}`}
-                                    onClick={() => action.onClick(row)}
-                                    disabled={isDisabled}
-                                    destructive={action.destructive}
-                                    icon={action.icon}
-                                  >
-                                    {action.label}
-                                  </TableBodyCell.Action>
-                                );
-                              })}
-                            </TableBodyCell.Actions>
+                              {content}
+                            </TableBodyCell>
                           );
-                        }
-
-                        const rawValue = getColumnRawValue(row, column);
-                        const content = column.renderCell
-                          ? column.renderCell(row, rawValue)
-                          : rawValue;
-
-                        return (
-                          <TableBodyCell
-                            key={field}
-                            fitContent={column.fitContent}
-                            style={{
-                              textAlign,
-                              ...stickyStyle,
-                              background: isSelected
-                                ? Surface.Selected.Default
-                                : stickyStyle?.background,
-                            }}
-                          >
-                            {content}
-                          </TableBodyCell>
-                        );
-                      },
-                    )}
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableScroll>
+                        },
+                      )}
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </TableScroll>
+      </TableFrame>
 
       <If is={paginated}>
         <SpaceBetween align="center">

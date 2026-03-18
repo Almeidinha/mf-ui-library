@@ -49,7 +49,6 @@ type ITransientTextComponentProps = ITransientTextAspectProps & {
 function toTransientProps(
   props: ITextComponentProps,
 ): ITransientTextComponentProps {
-  // eslint-disable-next-line no-unused-vars
   const { onCritical, onPrimary, emphasis, children, as, ...rest } = props;
 
   return {
@@ -155,7 +154,7 @@ export const Caption: FC<ITextComponentProps> = ({ children, ...props }) => {
   return <CAPTION {...toTransientProps(props)}>{children}</CAPTION>;
 };
 
-export const LABEL = styled.div.withConfig({
+export const LABEL = styled.label.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & LabelProps>`
   ${FoundationTypography.Label};

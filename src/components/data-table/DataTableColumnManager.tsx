@@ -1,11 +1,12 @@
+import { Divider } from "components/divider";
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
-import { InputCheckbox } from "components/molecules";
+import { ButtonGroup, InputCheckbox } from "components/molecules";
 import { Button } from "components/molecules/button";
 import { Overlay } from "components/overlay";
 import { Label } from "components/typography";
 import { Background, Borders, Surface } from "foundation/colors";
-import { Gap, Margin, Padding } from "foundation/spacing";
+import { Gap, Padding } from "foundation/spacing";
 import { toCssSize } from "helpers/css-helpers";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
 import { useWindowEvent } from "hooks/useWindowEvent";
@@ -171,12 +172,7 @@ const Header = styled.div`
 const Content = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: ${Padding.l};
-`;
-
-const SectionTitle = styled(Label)`
-  display: block;
-  margin-bottom: ${Margin.s};
+  padding: ${Padding.m};
 `;
 
 const ColumnCard = styled.div<{
@@ -186,7 +182,7 @@ const ColumnCard = styled.div<{
   border: 1px solid ${Borders.Default.Default};
   border-radius: 8px;
   background: ${Background.Default};
-  padding: ${Padding.m};
+  padding: ${Padding.xs};
   opacity: ${({ $dragging }) => ($dragging ? 0.55 : 1)};
   transition:
     opacity 0.18s ease,
@@ -207,19 +203,10 @@ const ColumnCard = styled.div<{
     `}
 `;
 
-const PinGroup = styled.div`
-  display: inline-flex;
-  gap: ${Gap.xs};
-`;
-
 const DragHandle = styled.div<{ $disabled?: boolean }>`
   cursor: ${({ $disabled }) => ($disabled ? "default" : "grab")};
   user-select: none;
   opacity: ${({ $disabled }) => ($disabled ? 0.45 : 1)};
-`;
-
-const ResetRow = styled(Flex)`
-  flex-wrap: wrap;
 `;
 
 type ColumnManagerItemProps = {
@@ -271,7 +258,7 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
       onDragOver={onDragOver}
       onDrop={onDrop}
     >
-      <Flex column gap={Gap.s}>
+      <Flex column gap={Gap.xs}>
         <Flex justify="space-between" center gap={Gap.s}>
           <Flex center gap={Gap.s}>
             <DragHandle
@@ -289,19 +276,19 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
           </Flex>
 
           <InputCheckbox
+            fullWidth={false}
             checked={isVisible}
             disabled={hideDisabled || cannotHideLastVisible}
             onChange={onToggleVisible}
             label="Visible"
           />
         </Flex>
-
+        <Divider />
         <Flex justify="space-between" center gap={Gap.s}>
-          <SectionTitle subdued>Pin</SectionTitle>
+          <Label subdued>Pin</Label>
 
-          <PinGroup>
+          <ButtonGroup size="small">
             <Button
-              small
               primary={pinState === "left"}
               disabled={pinDisabled}
               onClick={onPinLeft}
@@ -310,7 +297,6 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
             </Button>
 
             <Button
-              small
               primary={pinState === null}
               disabled={pinDisabled}
               onClick={onPinNone}
@@ -319,14 +305,13 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
             </Button>
 
             <Button
-              small
               primary={pinState === "right"}
               disabled={pinDisabled}
               onClick={onPinRight}
             >
               Right
             </Button>
-          </PinGroup>
+          </ButtonGroup>
         </Flex>
       </Flex>
     </ColumnCard>
@@ -805,8 +790,11 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       </Header>
 
       <Content ref={contentRef} id={contentId}>
-        <Flex column gap={Gap.m}>
-          <ResetRow gap={Gap.xs}>
+        <Flex column gap={Gap.xxs}>
+          <ButtonGroup
+            style={{ margin: "auto", paddingBottom: Padding.xs }}
+            size="small"
+          >
             <Button small onClick={resetColumnVisibility}>
               Reset visibility
             </Button>
@@ -818,7 +806,7 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
             <Button small onClick={resetColumnOrder}>
               Reset order
             </Button>
-          </ResetRow>
+          </ButtonGroup>
 
           {orderedColumns.map((column) => {
             const field = getColumnId(column);
