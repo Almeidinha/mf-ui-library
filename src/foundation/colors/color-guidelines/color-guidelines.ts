@@ -43,12 +43,16 @@ export const Surface = {
   },
 
   Success: {
+    Light: GREEN[50],
+    Hover: GREEN[100],
     Default: GREEN[200],
     Subdued: GREEN[50],
     Depressed: GREEN[500],
   },
 
   Highlight: {
+    Light: BLUE[50],
+    Hover: BLUE[100],
     Default: BLUE[200],
     Subdued: BLUE[50],
   },
@@ -76,11 +80,16 @@ export const Borders = {
     Subdued: ORANGE[300],
   },
   Success: {
-    Subdued: GREEN[300],
+    Light: GREEN[50],
+    Default: GREEN[200],
+    Subdued: GREEN[50],
+    Depressed: GREEN[500],
   },
   Highlight: {
-    Default: BLUE[600],
-    Subdued: BLUE[300],
+    Light: BLUE[50],
+    Default: BLUE[200],
+    Subdued: BLUE[50],
+    Depressed: BLUE[500],
   },
 };
 
@@ -95,6 +104,7 @@ export const Text = {
   Light: GRAY[400],
   Critical: RED[600],
   Success: GREEN[600],
+  Active: BLUE[600],
   OnPrimary: WHITE,
   OnCritical: WHITE,
 };
