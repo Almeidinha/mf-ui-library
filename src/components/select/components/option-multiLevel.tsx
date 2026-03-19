@@ -1,5 +1,6 @@
 import { IconMinor } from "components/icon";
 import { Label } from "components/typography";
+import { Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { If } from "helpers/nothing";
 import { is, isNilOrEmpty } from "helpers/safe-navigation";
@@ -32,11 +33,15 @@ const ParentLabel = styled.div`
   font-weight: 700;
 `;
 
+const ValueLabel = styled(Label)`
+  padding-left: ${Padding.xs};
+`;
+
 // eslint-disable-next-line comma-spacing
 const OptionMultiLevelComponentImp = <T,>({
   active,
   selected,
-  labelComponent = Label,
+  labelComponent = ValueLabel,
   option,
   height,
   onSelect,

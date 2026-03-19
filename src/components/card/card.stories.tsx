@@ -290,7 +290,7 @@ export const LeftRightLayoutExample: Story = {
           <Layout>
             <Layout.Left>
               <Heading3>Personal Information</Heading3>
-              <Body subdued>
+              <Body muted>
                 This information will be seen by whoever is viewing this card.
               </Body>
             </Layout.Left>

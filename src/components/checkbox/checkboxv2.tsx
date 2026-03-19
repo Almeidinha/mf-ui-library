@@ -1,7 +1,7 @@
 import {
   Actions,
   Borders,
-  Focused,
+  Focus,
   Interactive,
   Surface,
 } from "foundation/colors";
@@ -50,7 +50,7 @@ const StyledCheckbox = styled.input<{ $error?: boolean }>`
       ${({ $error }) =>
         $error ? Borders.Critical.Default : Interactive.Default.Disabled};
     background: ${({ $error }) =>
-      $error ? Surface.Critical.Subdued : Surface.Default.Default};
+      $error ? Surface.Critical.Muted : Surface.Default.Default};
   }
 
   &:checked::before,
@@ -84,7 +84,7 @@ const StyledCheckbox = styled.input<{ $error?: boolean }>`
   }
 
   &:focus-visible::before {
-    outline: 2px solid ${Focused.Default};
+    outline: 2px solid ${Focus.Default};
     outline-offset: 2px;
   }
 
@@ -93,7 +93,7 @@ const StyledCheckbox = styled.input<{ $error?: boolean }>`
   }
 
   &:disabled::before {
-    background: ${Surface.Default.Subdued};
+    background: ${Surface.Default.Muted};
     border-color: ${Borders.Default.Default};
   }
 

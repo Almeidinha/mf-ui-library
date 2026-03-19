@@ -1,6 +1,6 @@
 import { Spinner } from "components/spinner";
 import { Label } from "components/typography";
-import { Focused } from "foundation/colors";
+import { Focus } from "foundation/colors";
 import { forwardRef } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { is, isDefined } from "helpers/safe-navigation";
@@ -81,7 +81,7 @@ const ButtonFrame = styled.button.withConfig({
       outline-offset: -2px;
       &:focus,
       :focus-visible {
-        outline: 2px solid ${Focused.Default};
+        outline: 2px solid ${Focus.Default};
       }
 
       &:active {

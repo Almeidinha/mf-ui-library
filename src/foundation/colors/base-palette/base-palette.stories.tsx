@@ -18,54 +18,63 @@ import {
   SHADES,
 } from "./base-palette";
 
+const STORY_HEADING = "Color System: Base Palette";
+
 const paletteConfig = {
   Gray: {
     palette: GRAY,
     description:
-      "These colors are used as supporting colors in backgrounds, text colors, separators, modals, etc.",
+      "Foundation neutrals used for surfaces, borders, muted text, overlays, and structural chrome.",
   },
   Blue: {
     palette: BLUE,
     description:
-      "These colors are used across interactive elements such as CTAs, links, active states, etc.",
+      "Primary interactive ramp used for actions, links, focus, and selected states.",
   },
   Green: {
     palette: GREEN,
-    description: "These colors depict positivity. Used across success states.",
+    description:
+      "Positive ramp used for success surfaces, borders, and completion states.",
   },
   Orange: {
     palette: ORANGE,
-    description: "These colors depict caution. Used across warning states.",
+    description: "Caution ramp used for warning feedback and attention states.",
   },
   Red: {
     palette: RED,
     description:
-      "These colors depict negativity. Used across destructive states.",
+      "Critical ramp used for destructive actions, errors, and high-risk states.",
   },
   Shades: {
     palette: SHADES,
     description:
-      "White for text on primary buttons. Black opacities for shadows.",
+      "Absolute values used for high-contrast text, inverse content, and shadow composition.",
   },
   Brand: {
     palette: BRAND,
-    description: "App brand color.",
+    description:
+      "Reserved brand accent. Use sparingly and prefer semantic tokens in components.",
   },
 } as const;
 
-const PalleStory = ({
-  heading,
+const paletteEntries = Object.entries(paletteConfig) as Array<
+  [
+    keyof typeof paletteConfig,
+    (typeof paletteConfig)[keyof typeof paletteConfig],
+  ]
+>;
+
+const PaletteStory = ({
   colorName,
   colorPalette,
   description,
 }: {
-  heading: string;
   colorName: string;
   colorPalette: ColorPalette;
   description: string;
 }) => {
   return (
-    <Card heading={heading}>
+    <Card heading={STORY_HEADING}>
       <Card.Section>
         <Hue
           colorName={colorName}
@@ -74,83 +83,6 @@ const PalleStory = ({
         />
       </Card.Section>
     </Card>
-  );
-};
-
-const Gray = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Gray"
-      colorPalette={paletteConfig.Gray.palette}
-      description={paletteConfig.Gray.description}
-    />
-  );
-};
-
-const Blue = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Blue"
-      colorPalette={paletteConfig.Blue.palette}
-      description={paletteConfig.Blue.description}
-    />
-  );
-};
-
-const Green = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Green"
-      colorPalette={paletteConfig.Green.palette}
-      description={paletteConfig.Green.description}
-    />
-  );
-};
-
-const Orange = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Orange"
-      colorPalette={paletteConfig.Orange.palette}
-      description={paletteConfig.Orange.description}
-    />
-  );
-};
-
-const Red = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Red"
-      colorPalette={paletteConfig.Red.palette}
-      description={paletteConfig.Red.description}
-    />
-  );
-};
-
-const Shades = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Shades"
-      colorPalette={paletteConfig.Shades.palette}
-      description={paletteConfig.Shades.description}
-    />
-  );
-};
-
-const Brand = () => {
-  return (
-    <PalleStory
-      heading="Color System: Base Palette"
-      colorName="Brand"
-      colorPalette={paletteConfig.Brand.palette}
-      description={paletteConfig.Brand.description}
-    />
   );
 };
 
@@ -167,7 +99,7 @@ const Hue: FC<IHueProps> = ({ colorName, colorPalette, description }) => {
     <Layout>
       <Layout.Left>
         <Layout.HeadingText>{colorName}</Layout.HeadingText>
-        <Layout.HelpText subdued>{description}</Layout.HelpText>
+        <Layout.HelpText muted>{description}</Layout.HelpText>
       </Layout.Left>
       <Layout.Right>
         <Palette colors={colorPalette} />
@@ -191,7 +123,7 @@ const Palette: FC<IPaletteProps> = ({ colors }) => {
   return (
     <Grid>
       {Object.entries(colors).map(([name, hex]) => (
-        <Cell key={hex}>
+        <Cell key={name}>
           <ColorRectangle name={name} hex={hex} />
         </Cell>
       ))}
@@ -207,6 +139,17 @@ const meta = {
     previewTabs: {
       canvas: { hidden: true },
     },
+    docs: {
+      description: {
+        component: `
+The base palette is the raw source color ramp for the library.
+
+Components should generally consume semantic tokens from the color guidelines instead of using these values directly.
+
+Use this page to inspect hue ramps, verify spacing between steps, and review which families exist before mapping them into semantic roles.
+        `,
+      },
+    },
   },
 } satisfies Meta;
 
@@ -216,13 +159,14 @@ type Story = StoryObj<typeof meta>;
 export const Docs: Story = {
   render: () => (
     <>
-      <Gray />
-      <Blue />
-      <Green />
-      <Orange />
-      <Red />
-      <Shades />
-      <Brand />
+      {paletteEntries.map(([name, config]) => (
+        <PaletteStory
+          key={name}
+          colorName={name}
+          colorPalette={config.palette}
+          description={config.description}
+        />
+      ))}
     </>
   ),
 };

@@ -62,7 +62,7 @@ export const ColorRectangle: FC<IColorRectangleProps> = ({
       <RectangularColorSample color={hex} border={border} />
       <Flex justify="space-between">
         <Caption>{name}</Caption>
-        <Caption subdued>{hex}</Caption>
+        <Caption muted>{hex}</Caption>
       </Flex>
     </div>
   );
@@ -104,7 +104,7 @@ export const ColorSquare: FC<IColorSquareProps> = ({
       <SquareColorSample color={hex} border={border} />
       <Details column>
         <ColorName strong>{name}</ColorName>
-        <ColorId subdued>{colorId}</ColorId>
+        <ColorId muted>{colorId}</ColorId>
       </Details>
     </ColorFrame>
   );

@@ -95,7 +95,7 @@ export const TableBody = styled.tbody`
   }
 
   tr:nth-child(even):not([aria-selected="true"]) {
-    background-color: ${Surface.Default.Subdued};
+    background-color: ${Surface.Default.Muted};
   }
 `;
 
@@ -105,9 +105,9 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
   text-align: left;
   padding: ${Padding.m};
   border-top: ${({ $bordered = true }) =>
-    $bordered ? "none" : `1px solid ${Borders.Default.Subdued}`};
-  border-bottom: 1px solid ${Borders.Default.Subdued};
-  background-color: ${Surface.Default.Subdued};
+    $bordered ? "none" : `1px solid ${Borders.Default.Muted}`};
+  border-bottom: 1px solid ${Borders.Default.Muted};
+  background-color: ${Surface.Default.Muted};
 `;
 
 const TableBodyCellFrame = styled.td<{
@@ -199,7 +199,7 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
   const content = (
     <Flex>
       {isString(children) ? (
-        <Label strong subdued>
+        <Label strong muted>
           {children}
         </Label>
       ) : (

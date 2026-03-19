@@ -431,7 +431,7 @@ export const Destructive: Story = {
           <ExclamationIcon />
         </IconFrame>
         <BodyLarge strong>Delete Account</BodyLarge>
-        <MainText subdued>
+        <MainText muted>
           Are you sure you want to delete your account? All of your data will be
           permanently removed. This action cannot be undone.
         </MainText>

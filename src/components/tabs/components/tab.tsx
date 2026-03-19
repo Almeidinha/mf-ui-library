@@ -1,5 +1,5 @@
 import { Label } from "components/typography";
-import { Borders, Focused, Surface } from "foundation/colors";
+import { Borders, Focus, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { Nothing } from "helpers/nothing";
@@ -34,7 +34,7 @@ const TabFrame = styled.div<{
     !$disabled &&
     css`
       &:focus-visible {
-        outline: 2px solid ${Focused.Default};
+        outline: 2px solid ${Focus.Default};
         outline-offset: -2px;
 
         ${!$secondary &&
@@ -51,9 +51,9 @@ const TabFrame = styled.div<{
           padding: ${Padding.xs} ${Padding.m};
           border: ${$selected
             ? "1px solid transparent"
-            : `1px solid ${Surface.Default.Depressed}`};
+            : `1px solid ${Surface.Default.Active}`};
           background: ${$selected
-            ? Surface.Default.Depressed
+            ? Surface.Default.Active
             : Surface.Default.Default};
           border-radius: 18px;
 
@@ -61,7 +61,7 @@ const TabFrame = styled.div<{
           css`
             &:hover {
               background: ${$selected
-                ? Surface.Default.Depressed
+                ? Surface.Default.Active
                 : Surface.Default.Hover};
             }
           `}
@@ -81,7 +81,7 @@ const TabFrame = styled.div<{
             &:hover {
               border-bottom-color: ${$selected
                 ? Borders.Highlight.Default
-                : Borders.Default.Subdued};
+                : Borders.Default.Muted};
             }
           `}
         `}
@@ -114,7 +114,7 @@ export const Tab = forwardRef<HTMLDivElement, TabProps>((props, ref) => {
         <Nothing />
       )}
 
-      <Label strong subdued={!selected && !secondary}>
+      <Label strong muted={!selected && !secondary}>
         {children}
       </Label>
     </TabFrame>

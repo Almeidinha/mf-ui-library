@@ -2,7 +2,7 @@ import { IconMinor } from "components/icon";
 import { TransformIconWrapper } from "components/shared-styled-components";
 import { Slide } from "components/transitions/slide";
 import { Typography } from "components/typography";
-import { Borders, Focused, Surface } from "foundation/colors";
+import { Borders, Focus, Surface } from "foundation/colors";
 import { useControllableState } from "hooks/useControllableState";
 import React, {
   ButtonHTMLAttributes,
@@ -134,7 +134,7 @@ const ItemRoot = styled.div<{ $hasDivider: boolean }>`
 
   &:has([data-slot="accordion-header"]:focus-visible) {
     z-index: 1;
-    box-shadow: inset 0 0 0 2px ${Focused.Default};
+    box-shadow: inset 0 0 0 2px ${Focus.Default};
   }
 
   &:has([data-slot="accordion-header"]:focus-visible):first-child {

@@ -36,7 +36,7 @@ const MenuWrapper = styled.div<IMenuWrapperProps>`
       $menuPosition === menuPositionType.BOTTOM
         ? "0px 2px 10px 0px rgba(0, 0, 0, 0.10)"
         : "0px -2px 10px 0px rgba(0, 0, 0, 0.10)"};
-    border: 1px solid ${Borders.Default.Subdued};
+    border: 1px solid ${Borders.Default.Muted};
     background-color: ${Surface.Default.Default};
     border-radius: 6px;
     padding: ${Padding.xxs};

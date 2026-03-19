@@ -7,6 +7,7 @@ export const HTMLAnchor = styled.a<{
   $disabled: boolean;
   $initialColor: string;
   $interactionColor: string;
+  $pressedColor: string;
 }>`
   color: ${({ $initialColor }) => $initialColor};
   text-decoration: underline;
@@ -29,6 +30,7 @@ export const HTMLAnchor = styled.a<{
 
       &:active {
         text-decoration: underline;
+        color: ${({ $pressedColor }) => $pressedColor};
       }
     `}
 `;
@@ -56,6 +58,10 @@ const getInteractionColor = ({ subtle }: Pick<ActionLinkProps, "subtle">) => {
   return subtle ? Interactive.Subtle.Hover : Interactive.Default.Hover;
 };
 
+const getPressedColor = ({ subtle }: Pick<ActionLinkProps, "subtle">) => {
+  return subtle ? Interactive.Subtle.Pressed : Interactive.Default.Pressed;
+};
+
 export const ActionLink: FC<ActionLinkProps> = ({
   children,
   disabled = false,
@@ -68,6 +74,7 @@ export const ActionLink: FC<ActionLinkProps> = ({
 }) => {
   const initialColor = getInitialColor({ subtle, disabled });
   const interactionColor = getInteractionColor({ subtle });
+  const pressedColor = getPressedColor({ subtle });
 
   return (
     <HTMLAnchor
@@ -81,6 +88,7 @@ export const ActionLink: FC<ActionLinkProps> = ({
       $disabled={disabled}
       $initialColor={initialColor}
       $interactionColor={interactionColor}
+      $pressedColor={pressedColor}
     >
       {children}
     </HTMLAnchor>

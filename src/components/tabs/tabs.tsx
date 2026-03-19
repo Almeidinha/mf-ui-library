@@ -34,7 +34,7 @@ const TabListSecondary = styled(TabList)`
 `;
 
 const TabListPrimary = styled(TabList)`
-  border-bottom: 1px solid ${Borders.Default.Subdued};
+  border-bottom: 1px solid ${Borders.Default.Muted};
 `;
 
 class Content extends StylableSlot {}

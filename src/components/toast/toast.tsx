@@ -1,7 +1,7 @@
 import { IconMinor } from "components/icon";
 import { Button } from "components/molecules";
 import { Body, Heading3 } from "components/typography";
-import { Borders, Focused, Surface, Text } from "foundation/colors";
+import { Borders, Focus, Surface, Text } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
@@ -75,19 +75,19 @@ export type StandaloneToastProps = ToastSharedProps & {
 };
 
 const BACKGROUND_MAP: Record<ToastVariant, string> = {
-  info: Surface.Highlight.Subdued,
-  success: Surface.Success.Subdued,
-  warning: Surface.Warning.Subdued,
-  error: Surface.Critical.Subdued,
-  default: Surface.Neutral.Subdued,
+  info: Surface.Highlight.Muted,
+  success: Surface.Success.Muted,
+  warning: Surface.Warning.Muted,
+  error: Surface.Critical.Muted,
+  default: Surface.Neutral.Muted,
 };
 
 const BORDER_COLOR_MAP: Record<ToastVariant, string> = {
-  info: Borders.Highlight.Subdued,
-  success: Borders.Success.Subdued,
-  warning: Borders.Warning.Subdued,
-  error: Borders.Critical.Subdued,
-  default: Borders.Default.Subdued,
+  info: Borders.Highlight.Muted,
+  success: Borders.Success.Muted,
+  warning: Borders.Warning.Muted,
+  error: Borders.Critical.Muted,
+  default: Borders.Default.Muted,
 };
 
 const VIEW_PORT_POSITION_MAP: Record<ToastPosition, RuleSet<object>> = {
@@ -276,7 +276,7 @@ const ToastClose = styled(Button).attrs({
   &:focus {
     border: none;
     outline: none;
-    border-bottom: 2px solid ${Focused.Default};
+    border-bottom: 2px solid ${Focus.Default};
     border-radius: 0;
   }
 `;
@@ -288,12 +288,12 @@ const ActionButton = styled(Button).attrs({
 })`
   padding: ${Padding.none};
   > div {
-    color: ${Text.Subdued};
+    color: ${Text.Muted};
   }
   &:focus {
     border: none;
     outline: none;
-    border-bottom: 2px solid ${Focused.Default};
+    border-bottom: 2px solid ${Focus.Default};
     border-radius: 0;
   }
 `;

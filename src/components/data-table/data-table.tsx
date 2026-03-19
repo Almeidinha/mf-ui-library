@@ -395,7 +395,7 @@ export function DataTable<T extends Record<string, unknown>>(
                     onChange={toggleAllVisible}
                     style={{
                       ...checkboxStickyStyle,
-                      background: Surface.Default.Subdued,
+                      background: Surface.Default.Muted,
                       borderRight: !lastLeftPinnedField
                         ? `1px solid ${Borders.Default.Default}`
                         : undefined,
@@ -419,7 +419,7 @@ export function DataTable<T extends Record<string, unknown>>(
                       style={{
                         textAlign,
                         ...stickyStyle,
-                        background: Surface.Default.Subdued,
+                        background: Surface.Default.Muted,
                       }}
                       title={column.description}
                     >
@@ -434,7 +434,7 @@ export function DataTable<T extends Record<string, unknown>>(
               {visibleRows.length === 0 ? (
                 <TableRow>
                   <TableBodyCell colSpan={colSpan}>
-                    <Label subdued>{emptyMessage}</Label>
+                    <Label muted>{emptyMessage}</Label>
                   </TableBodyCell>
                 </TableRow>
               ) : (
@@ -535,7 +535,7 @@ export function DataTable<T extends Record<string, unknown>>(
 
       <If is={paginated}>
         <Flex justify="space-between" align="center">
-          <Label subdued>
+          <Label muted>
             {totalRows === 0
               ? "0 results"
               : `${page * pageSize + 1}-${Math.min(

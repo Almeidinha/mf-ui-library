@@ -129,8 +129,8 @@ const rows: TypographyRow[] = [
     spacing: "0px",
   },
   {
-    id: "label-subdued",
-    preview: "Label/Subdued",
+    id: "label-muted",
+    preview: "Label/Muted",
     weight: "Regular 400",
     size: "13px (0.8125 rem)",
     lineHeight: "16px",
@@ -166,8 +166,8 @@ function renderTypographyPreview(row: TypographyRow) {
       return <Label strong>{row.preview}</Label>;
     case "label-default":
       return <Label>{row.preview}</Label>;
-    case "label-subdued":
-      return <Label subdued>{row.preview}</Label>;
+    case "label-muted":
+      return <Label muted>{row.preview}</Label>;
     default:
       return row.preview;
   }

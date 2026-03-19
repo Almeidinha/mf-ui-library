@@ -12,7 +12,9 @@ interface IOptionItemProps {
   height?: number;
 }
 
-export const OptionItem = styled(Flex).attrs({ justify: "space-between" })<IOptionItemProps>`
+export const OptionItem = styled(Flex).attrs({
+  justify: "space-between",
+})<IOptionItemProps>`
   height: ${({ height = DEFAULT_ROW_HEIGHT }) => height}px;
   min-width: 0;
   cursor: pointer;
@@ -66,7 +68,8 @@ export const OptionItem = styled(Flex).attrs({ justify: "space-between" })<IOpti
 export const EmptyOptionItem = styled(OptionItem)<{
   $menuPosition?: "top" | "bottom";
 }>`
-  border: 1px solid ${Borders.Default.Subdued};
+  padding-left: ${Padding.xs};
+  border: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Default};
   position: absolute;
   margin: ${Margin.none};

@@ -25,14 +25,14 @@ describe("Divider Tests", () => {
       expect(divider).toHaveStyle({ borderTopColor: Borders.Default.Default });
     });
 
-    it("should render the Divider with subdued color", () => {
-      render(<Divider subdued />);
+    it("should render the Divider with muted color", () => {
+      render(<Divider muted />);
 
       const divider = screen.getByTestId("divider-test");
       expect(divider).toBeInTheDocument();
       expect(divider).toHaveStyle({ borderTopWidth: "1px" });
       expect(divider).toHaveStyle({ borderTopStyle: "solid" });
-      expect(divider).toHaveStyle({ borderTopColor: Borders.Default.Subdued });
+      expect(divider).toHaveStyle({ borderTopColor: Borders.Default.Muted });
     });
   });
 });

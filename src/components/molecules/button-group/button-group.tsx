@@ -61,7 +61,7 @@ const GroupItem = styled.div<{
             bottom: 0;
             left: 0;
             width: 1px;
-            background: ${Borders.Default.Subdued};
+            background: ${Borders.Default.Muted};
             z-index: 2;
             pointer-events: none;
           }
@@ -74,7 +74,7 @@ const GroupItem = styled.div<{
             left: 0;
             right: 0;
             height: 1px;
-            background: ${Borders.Default.Subdued};
+            background: ${Borders.Default.Muted};
             z-index: 2;
             pointer-events: none;
           }

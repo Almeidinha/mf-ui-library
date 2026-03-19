@@ -20,7 +20,7 @@ const TickItem = styled.div<{ $percent: number }>`
   margin-top: ${Margin.s};
   width: 1px;
   height: 5px;
-  background-color: ${Surface.Default.Subdued};
+  background-color: ${Surface.Default.Muted};
   left: ${({ $percent }) => `${$percent}%`};
 `;
 

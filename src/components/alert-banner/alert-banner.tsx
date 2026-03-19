@@ -2,6 +2,7 @@ import { IconMinor } from "components/icon";
 import { Button } from "components/molecules/button";
 import { CardFrame } from "components/shared-styled-components";
 import { Body } from "components/typography";
+import { Focus } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { If, Nothing } from "helpers/nothing";
@@ -75,8 +76,8 @@ const CloseButton = styled.button`
   padding: ${Padding.xs};
   cursor: pointer;
 
-  &:focus {
-    outline: 2px solid Highlight;
+  &:focus-visible {
+    outline: 2px solid ${Focus.Default};
   }
 `;
 

@@ -62,14 +62,14 @@ describe("Typography", () => {
     expect(screen.getByText("My Text Here")).toBeTruthy();
   });
 
-  it("should render Subdued successfully", () => {
-    render(<Body subdued>My Text Here</Body>);
+  it("should render Muted successfully", () => {
+    render(<Body muted>My Text Here</Body>);
 
     expect(screen.getByText("My Text Here")).toBeTruthy();
   });
 
-  it("should render Light successfully", () => {
-    render(<Body light>My Text Here</Body>);
+  it("should render Soft successfully", () => {
+    render(<Body soft>My Text Here</Body>);
 
     expect(screen.getByText("My Text Here")).toBeTruthy();
   });

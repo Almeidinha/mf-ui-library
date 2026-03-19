@@ -46,7 +46,7 @@ export const LabeledInput: FC<ILabeledInputProps> = ({
         <ErrorMessage key={e.message} message={e.message} />
       ))}
       <If is={helpText}>
-        <HelpText subdued>{helpText}</HelpText>
+        <HelpText muted>{helpText}</HelpText>
       </If>
     </HTMLLabel>
   );

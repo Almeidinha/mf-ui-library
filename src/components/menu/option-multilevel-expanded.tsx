@@ -50,7 +50,7 @@ const PortalMenuFrame = styled.div<{
   $maxHeight: number;
   $width?: number;
 }>`
-  border: 1px solid ${Borders.Default.Subdued};
+  border: 1px solid ${Borders.Default.Muted};
   border-radius: 5px;
   box-sizing: border-box;
   background-color: ${Surface.Default.Default};

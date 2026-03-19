@@ -40,7 +40,7 @@ export const BarChartComponent: FC<IProps> = ({ data, highlight }) => {
         fill:
           datum.value >= highlightMin && datum.value <= highlightMax
             ? Surface.Selected.Hover
-            : Surface.Neutral.Subdued,
+            : Surface.Neutral.Muted,
       };
     });
   }, [baseData, highlight]);

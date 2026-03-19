@@ -1,7 +1,11 @@
+import { Container, Flex } from "components/layout";
+import { Button } from "components/molecules";
 import { ProgressBar } from "components/progress-bar";
 import { Borders, Surface, Text } from "foundation/colors";
 import { Typography } from "foundation/typography";
+import { If } from "helpers/nothing";
 import { clamp } from "helpers/numbers";
+import { defaultTo } from "helpers/safe-navigation";
 import type { ReactNode } from "react";
 import styled, { css } from "styled-components";
 
@@ -20,11 +24,10 @@ export type MobileStepperProps = {
   "aria-label"?: string;
 };
 
-const MobileRoot = styled.div<{
+const MobileRoot = styled(Flex)<{
   $position: "static" | "sticky" | "fixed";
 }>`
   width: 100%;
-  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -32,6 +35,20 @@ const MobileRoot = styled.div<{
   background: ${Surface.Neutral.Default};
   border-top: 1px solid ${Borders.Default.Default};
   border-bottom: 1px solid ${Borders.Default.Default};
+
+  > :nth-child(1),
+  > :nth-child(3) {
+    flex: 1; /* 25% each */
+  }
+
+  > :nth-child(2) {
+    flex: 2; /* 50% */
+  }
+
+  > *:last-child {
+    display: flex;
+    justify-content: flex-end;
+  }
 
   ${({ $position }) =>
     $position === "sticky"
@@ -52,10 +69,8 @@ const MobileRoot = styled.div<{
           `}
 `;
 
-const MobileCenter = styled.div`
-  flex: 1;
+const MobileCenter = styled(Flex)`
   min-width: 0;
-  display: flex;
   justify-content: center;
   align-items: center;
 `;
@@ -78,30 +93,14 @@ const Dot = styled.span<{
   height: 8px;
   border-radius: 999px;
   background: ${({ $active }) =>
-    $active ? Surface.Selected.Depressed : Surface.Default.Default};
+    $active ? Surface.Selected.Active : Surface.Default.Default};
 `;
 
-const NavButton = styled.button`
-  ${Typography.Label}
-  appearance: none;
-  border: 0;
-  background: transparent;
-  padding: 6px 8px;
-  border-radius: 6px;
-  font: inherit;
-  color: ${Text.Active};
-  cursor: pointer;
-
-  &:disabled {
-    color: ${Text.Subdued};
-    cursor: not-allowed;
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${Borders.Highlight.Default};
-    outline-offset: 2px;
-  }
-`;
+const NavButton = styled(Button).attrs({
+  small: true,
+  outline: true,
+  plainSubtle: true,
+})``;
 
 export const MobileStepper = ({
   steps,
@@ -138,35 +137,37 @@ export const MobileStepper = ({
       $position={position}
       aria-label={ariaLabel}
     >
-      <div>
-        {backButton ?? (
-          <NavButton type="button" onClick={onBack} disabled={isFirstStep}>
+      <Container disableGutters>
+        {defaultTo(
+          backButton,
+          <NavButton onClick={onBack} disabled={isFirstStep}>
             Back
-          </NavButton>
+          </NavButton>,
         )}
-      </div>
+      </Container>
 
       <MobileCenter>
-        {variant === "text" && (
+        <If is={variant === "text"}>
           <TextIndicator>
             {safeActiveStep + 1} / {safeSteps}
           </TextIndicator>
-        )}
-
-        {variant === "dots" && <Dots aria-hidden="true">{dots}</Dots>}
-
-        {variant === "progress" && (
+        </If>
+        <If is={variant === "dots"}>
+          <Dots aria-hidden="true">{dots}</Dots>
+        </If>
+        <If is={variant === "progress"}>
           <ProgressBar size="small" pulse progress={progressPercent} />
-        )}
+        </If>
       </MobileCenter>
 
-      <div>
-        {nextButton ?? (
-          <NavButton type="button" onClick={onNext} disabled={isLastStep}>
+      <Container disableGutters style={{ textAlign: "right" }}>
+        {defaultTo(
+          nextButton,
+          <NavButton onClick={onNext} disabled={isLastStep}>
             Next
-          </NavButton>
+          </NavButton>,
         )}
-      </div>
+      </Container>
     </MobileRoot>
   );
 };

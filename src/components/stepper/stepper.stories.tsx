@@ -1,14 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { Container, Flex } from "components/layout";
+import { Button } from "components/molecules";
+import { Gap } from "foundation/spacing";
 import { useState } from "react";
 import styled from "styled-components";
 
 import { StepItem, Stepper } from "./stepper";
-
-const Container = styled.div`
-  width: 100%;
-  max-width: 900px;
-  padding: 24px;
-`;
 
 const VerticalContent = styled.div`
   padding: 12px 0;
@@ -265,35 +262,33 @@ export const NonLinear: Story = {
     };
 
     return (
-      <Container>
-        <div style={{ display: "grid", gap: 16 }}>
-          <Stepper
-            steps={steps}
-            activeStep={activeStep}
-            nonLinear
-            onStepClick={setActiveStep}
-          />
+      <Container style={{ display: "grid", gap: 16, paddingTop: 32 }}>
+        <Stepper
+          steps={steps}
+          activeStep={activeStep}
+          nonLinear
+          onStepClick={setActiveStep}
+        />
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => setActiveStep((prev) => Math.max(prev - 1, 0))}
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setActiveStep((prev) => Math.min(prev + 1, steps.length - 1))
-              }
-            >
-              Next
-            </button>
-            <button type="button" onClick={handleComplete}>
-              Complete Step
-            </button>
-          </div>
-        </div>
+        <Flex gap={Gap.m}>
+          <Button
+            type="button"
+            onClick={() => setActiveStep((prev) => Math.max(prev - 1, 0))}
+          >
+            Back
+          </Button>
+          <Button
+            type="button"
+            onClick={() =>
+              setActiveStep((prev) => Math.min(prev + 1, steps.length - 1))
+            }
+          >
+            Next
+          </Button>
+          <Button type="button" onClick={handleComplete}>
+            Complete Step
+          </Button>
+        </Flex>
       </Container>
     );
   },

@@ -9,7 +9,7 @@ import { ROW_HEIGHT } from "./helper";
 import { OptionMultiLevelExpandedComponent } from "./option-multilevel-expanded";
 
 export const MenuListFrame = styled.div<{ height?: number }>`
-  border: 1px solid ${Borders.Default.Subdued};
+  border: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Default};
   height: ${({ height }) => height}px;
   max-height: ${({ height }) => height}px;

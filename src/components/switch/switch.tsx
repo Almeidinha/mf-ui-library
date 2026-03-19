@@ -1,5 +1,5 @@
 import { Body } from "components/typography";
-import { Surface } from "foundation/colors";
+import { Focus, Surface } from "foundation/colors";
 import { Margin } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
 import { If } from "helpers/nothing";
@@ -38,7 +38,7 @@ const HiddenInput = styled.input`
   pointer-events: none;
 
   &:checked + span {
-    background-color: ${Surface.Success.Depressed};
+    background-color: ${Surface.Success.Active};
   }
 
   &:checked + span::before {
@@ -51,7 +51,7 @@ const HiddenInput = styled.input`
   }
 
   &:focus-visible + span {
-    outline: 2px solid ${Surface.Success.Depressed};
+    outline: 2px solid ${Focus.Default};
     outline-offset: 2px;
   }
 `;
@@ -118,7 +118,7 @@ export const Switch: FC<SwitchProps> = ({
         <TextContainer>
           {isDefined(label) && <Body>{label}</Body>}
           {isDefined(helpText) && (
-            <HelpTextContainer subdued>{helpText}</HelpTextContainer>
+            <HelpTextContainer muted>{helpText}</HelpTextContainer>
           )}
         </TextContainer>
       </If>

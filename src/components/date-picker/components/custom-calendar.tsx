@@ -17,7 +17,7 @@ import styled from "styled-components";
 export const CustomCalendar = styled(Calendar)`
   .rmdp-week-day {
     ${Typography.Caption}
-    color: ${Text.Subdued};
+    color: ${Text.Muted};
   }
 
   .rmdp-header {
@@ -59,7 +59,7 @@ export const CustomCalendar = styled(Calendar)`
     border-radius: 6px;
     box-shadow: none;
     ${Typography.Body}
-    color: ${Text.Light};
+    color: ${Text.Disabled};
 
     &:active {
       background-color: transparent;
@@ -76,7 +76,7 @@ export const CustomCalendar = styled(Calendar)`
 
   .rmdp-day.rmdp-range {
     border-radius: 0px;
-    background-color: ${Surface.Neutral.Subdued};
+    background-color: ${Surface.Neutral.Muted};
     box-shadow: none;
     ${Typography.Body}
 

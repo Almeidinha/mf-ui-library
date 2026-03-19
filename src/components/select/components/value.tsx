@@ -3,7 +3,7 @@ import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { TransformIconWrapper } from "components/shared-styled-components";
 import { Body, Label } from "components/typography";
-import { Borders, Focused, Icons, Surface, Text } from "foundation/colors";
+import { Borders, Focus, Icons, Surface, Text } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { If, maybeRender, Nothing } from "helpers/nothing";
@@ -41,14 +41,16 @@ interface IValueContainerProps {
   $iconPosition?: "left" | "right";
 }
 
-const ValueContainer = styled(Flex).attrs({ justify: "space-between" })<IValueContainerProps>`
+const ValueContainer = styled(Flex).attrs({
+  justify: "space-between",
+})<IValueContainerProps>`
   pointer-events: ${({ disabled }) => (is(disabled) ? "none" : "auto")};
   padding: ${Padding.xs} ${Padding.none};
   background: ${({ $invalid, disabled }) =>
     is($invalid)
-      ? Surface.Critical.Subdued
+      ? Surface.Critical.Muted
       : is(disabled)
-        ? Surface.Default.Subdued
+        ? Surface.Default.Muted
         : Surface.Default.Default};
   cursor: default;
   border: 1px solid
@@ -63,7 +65,7 @@ const ValueContainer = styled(Flex).attrs({ justify: "space-between" })<IValueCo
   ${({ $menuIsOpen }) =>
     is($menuIsOpen) &&
     css`
-      outline: 2px solid ${Focused.Default};
+      outline: 2px solid ${Focus.Default};
     `}
 
   ${({ disabled }) =>
@@ -79,11 +81,11 @@ const ValueContainer = styled(Flex).attrs({ justify: "space-between" })<IValueCo
     !is($invalid) &&
     `
     &:focus  {
-      outline: 2px solid ${Focused.Default}
+      outline: 2px solid ${Focus.Default}
     }
 
     &:focus-within {
-      outline: 2px solid ${Focused.Default}
+      outline: 2px solid ${Focus.Default}
     }
   `}
 `;
@@ -149,7 +151,7 @@ const ValueRight = styled(Flex)<{ $iconPosition?: "left" | "right" }>`
 
 const Placeholder = styled(Label)`
   pointer-events: none;
-  color: ${Text.Light};
+  color: ${Text.Soft};
 `;
 
 const ClearButton = styled(Button).attrs<{ plain?: boolean; subtle?: boolean }>(
@@ -357,7 +359,7 @@ const ValueImpl = <T,>({
   const renderLabel = () => {
     return maybeRender(
       label,
-      <ValueLabel id={labelId} $labelPosition={labelPosition} subtle subdued>
+      <ValueLabel id={labelId} $labelPosition={labelPosition} subtle muted>
         {label}
       </ValueLabel>,
     );
@@ -441,7 +443,11 @@ const ValueImpl = <T,>({
             subtle
           />
         </If>
-        <ValueRight className="value-right" align="center" $iconPosition={iconPosition}>
+        <ValueRight
+          className="value-right"
+          align="center"
+          $iconPosition={iconPosition}
+        >
           {isDefined(customIcon) ? (
             customIcon
           ) : is(searchable) ? (

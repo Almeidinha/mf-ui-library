@@ -23,8 +23,8 @@ export type BodyProps = ITransientTextAspectProps & {
   strong?: boolean;
 };
 
-const LightText = css`
-  color: ${getTextAspect({ light: true })};
+const SoftText = css`
+  color: ${getTextAspect({ soft: true })};
 `;
 
 const Base = css<ITransientTextAspectProps>`
@@ -154,7 +154,7 @@ export const Typography = {
   Body,
   BodyLarge,
   Caption,
-  LightText,
+  SoftText,
   Label,
   Link,
 };

@@ -57,7 +57,7 @@ describe("TextArea Component", () => {
       normalizeColor(Borders.Critical.Default),
     );
     expect(styles.backgroundColor).toBe(
-      normalizeColor(Surface.Critical.Subdued),
+      normalizeColor(Surface.Critical.Muted),
     );
     expect(textArea).toHaveAttribute("aria-invalid", "true");
   });

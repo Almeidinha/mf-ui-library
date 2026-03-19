@@ -23,7 +23,7 @@ const Box = styled.div<{ $size: string }>`
   width: ${({ $size }) => $size};
   height: ${({ $size }) => $size};
   border-radius: 6px;
-  border: 1px solid ${Borders.Default.Subdued};
+  border: 1px solid ${Borders.Default.Muted};
   box-sizing: border-box;
   overflow: hidden;
   flex-shrink: 0;

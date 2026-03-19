@@ -13,7 +13,7 @@ const LabelFrame = styled(Flex)<{
   $closable: boolean;
 }>`
   background: ${(props) =>
-    props.$disabled ? Surface.Neutral.Subdued : Surface.Neutral.Default};
+    props.$disabled ? Surface.Neutral.Muted : Surface.Neutral.Default};
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -28,7 +28,7 @@ const LabelFrame = styled(Flex)<{
 const LabelText = styled(Label)<{
   $disabled: boolean;
 }>`
-  color: ${(props) => (props.$disabled ? Text.Light : Text.Default)};
+  color: ${(props) => (props.$disabled ? Text.Soft : Text.Default)};
 `;
 
 interface IProps extends HTMLAttributes<HTMLLabelElement>, PropsWithChildren {

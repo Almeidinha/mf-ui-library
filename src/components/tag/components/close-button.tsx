@@ -1,5 +1,5 @@
 import { IconMinor } from "components/icon";
-import { Focused, Icons, Surface } from "foundation/colors";
+import { Focus, Icons, Surface } from "foundation/colors";
 import { FC } from "helpers/generic-types";
 import { is } from "helpers/safe-navigation";
 import React, { ButtonHTMLAttributes } from "react";
@@ -20,7 +20,7 @@ const ClosableWrapper = styled.button<{ $disabled: boolean }>`
   justify-content: center;
 
   background: ${({ $disabled }) =>
-    $disabled ? Surface.Neutral.Subdued : Surface.Neutral.Default};
+    $disabled ? Surface.Neutral.Muted : Surface.Neutral.Default};
   border-radius: 0px 4px 4px 0px;
 
   ${({ $disabled }) =>
@@ -39,7 +39,7 @@ const ClosableWrapper = styled.button<{ $disabled: boolean }>`
         }
 
         &:focus {
-          outline: 2px solid ${Focused.Default};
+          outline: 2px solid ${Focus.Default};
           outline-offset: -2px;
         }
       `

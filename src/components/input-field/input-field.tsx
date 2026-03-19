@@ -1,6 +1,6 @@
 import { labelPositionType } from "components/select/types";
 import { Label } from "components/typography";
-import { Borders, Focused, Surface } from "foundation/colors";
+import { Borders, Focus, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { forwardRef } from "helpers/generic-types";
@@ -18,7 +18,7 @@ const InputBorder = styled(Flex).attrs({ justify: "space-between" })<{
   $disabled?: boolean;
 }>`
   background: ${({ $invalid }) =>
-    is($invalid) ? Surface.Critical.Subdued : Surface.Default.Default};
+    is($invalid) ? Surface.Critical.Muted : Surface.Default.Default};
   border: 1px solid
     ${({ $invalid }) =>
       is($invalid) ? Borders.Critical.Default : Borders.Default.Default};
@@ -31,12 +31,12 @@ const InputBorder = styled(Flex).attrs({ justify: "space-between" })<{
 
   &:focus-within {
     outline: 2px solid
-      ${({ $invalid }) => (is($invalid) ? Focused.Critical : Focused.Default)};
+      ${({ $invalid }) => (is($invalid) ? Focus.Critical : Focus.Default)};
   }
   ${({ $invalid, $disabled }) => {
     if (is($disabled)) {
       return `
-        background: ${is($invalid) ? Surface.Critical.Subdued : Surface.Neutral.Subdued};
+        background: ${is($invalid) ? Surface.Critical.Muted : Surface.Neutral.Muted};
         cursor: default;
         opacity: 0.75;
       `;
@@ -77,7 +77,7 @@ export const HTMLInput = styled.input.withConfig({
   ${Typography.Body}
 
   ::placeholder {
-    ${Typography.LightText}
+    ${Typography.SoftText}
   }
 `;
 
@@ -188,14 +188,14 @@ export const InputField = forwardRef<
         htmlFor={inputId}
       >
         <If is={label}>
-          <InputLabel $labelPosition={labelPosition} subtle subdued>
+          <InputLabel $labelPosition={labelPosition} subtle muted>
             {label}
             {required}
           </InputLabel>
         </If>
         <InputLayout>
           <If is={prefix}>
-            <PrefixFrame subtle subdued>
+            <PrefixFrame subtle muted>
               {prefix}
             </PrefixFrame>
           </If>
@@ -207,7 +207,7 @@ export const InputField = forwardRef<
             {...inputProps}
           />
           <If is={suffix}>
-            <SuffixFrame subtle subdued>
+            <SuffixFrame subtle muted>
               {suffix}
             </SuffixFrame>
           </If>

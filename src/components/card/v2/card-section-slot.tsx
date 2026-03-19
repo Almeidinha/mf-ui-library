@@ -32,7 +32,7 @@ const SectionFrame = styled.section`
   padding: ${Padding.l};
 
   & + & {
-    border-top: 1px solid ${Borders.Default.Subdued};
+    border-top: 1px solid ${Borders.Default.Muted};
   }
 `;
 

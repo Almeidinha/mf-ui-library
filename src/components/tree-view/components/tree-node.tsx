@@ -5,7 +5,7 @@ import { Button } from "components/molecules/button";
 import { Spinner } from "components/spinner";
 import { Collapse } from "components/transitions";
 import { Label } from "components/typography";
-import { Focused, Surface } from "foundation/colors";
+import { Focus, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import { is, isDefined } from "helpers/safe-navigation";
@@ -46,7 +46,7 @@ const ItemWrapper = styled(Flex)<{
       }
 
       &:focus-visible {
-        outline: 2px solid ${Focused.Default};
+        outline: 2px solid ${Focus.Default};
         outline-offset: -2px;
         border-radius: 4px;
       }
@@ -318,13 +318,13 @@ export const TreeNode = ({
       </ItemWrapper>
 
       <If is={isDefined(node.helpfulMessage)}>
-        <HelpfulMessage subdued id={messageId} $level={node.level}>
+        <HelpfulMessage muted id={messageId} $level={node.level}>
           {node.helpfulMessage}
         </HelpfulMessage>
       </If>
 
       <If is={hasLoadError}>
-        <HelpfulMessage subdued id={errorMessageId} $level={node.level}>
+        <HelpfulMessage muted id={errorMessageId} $level={node.level}>
           Failed to load. Try expanding again.
         </HelpfulMessage>
       </If>

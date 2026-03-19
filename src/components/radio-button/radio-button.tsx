@@ -1,4 +1,4 @@
-import { Borders, Focused, Icons, Surface } from "foundation/colors";
+import { Borders, Focus, Icons, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { FC } from "helpers/generic-types";
@@ -40,7 +40,7 @@ const Radio = styled.input`
 
   /* Hover (unchecked): subtle feedback, no dot fill */
   &:hover {
-    border-color: ${Focused.Default};
+    border-color: ${Focus.Default};
   }
 
   /* Checked */
@@ -64,7 +64,7 @@ const Radio = styled.input`
   }
 
   &:focus-visible {
-    outline: 2px auto ${Focused.Default};
+    outline: 2px auto ${Focus.Default};
     outline-offset: 4px;
   }
 

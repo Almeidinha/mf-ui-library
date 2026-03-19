@@ -24,7 +24,7 @@ import {
 import { CheckIcon, EmptyOptionItem, SelectLabel } from "./helpers";
 
 const MenuListFrame = styled.div<{ $height?: number }>`
-  border: 1px solid ${Borders.Default.Subdued};
+  border: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Default};
   position: absolute;
   height: ${(props) => props.$height}px;
@@ -98,7 +98,7 @@ const ValueWrapper = styled.div`
 const TitleRow = styled(Heading4)`
   height: 44px;
   margin: ${Margin.none} ${Margin.xxs};
-  border-bottom: 1px solid ${Borders.Default.Subdued};
+  border-bottom: 1px solid ${Borders.Default.Muted};
   display: flex;
   align-items: center;
   padding-left: ${Padding.s};
@@ -147,7 +147,7 @@ const Row = <T,>({
       <ValueWrapper>
         <OptionLabel>{option.label}</OptionLabel>
         <If is={option["helperText"]}>
-          <OptionLabel subdued>{option["helperText"]}</OptionLabel>
+          <OptionLabel muted>{option["helperText"]}</OptionLabel>
         </If>
       </ValueWrapper>
       {maybeRender(

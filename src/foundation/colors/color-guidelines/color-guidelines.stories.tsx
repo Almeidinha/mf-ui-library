@@ -24,7 +24,7 @@ import {
   Actions,
   Background,
   Borders,
-  Focused,
+  Focus,
   Icons,
   Interactive,
   Surface,
@@ -165,9 +165,12 @@ const SurfaceSection = () => (
     name="Surface"
     subCategories={[
       { name: "", palette: Surface.Default },
+      { name: "Selected", palette: Surface.Selected },
       { name: "Critical", palette: Surface.Critical },
       { name: "Warning", palette: Surface.Warning },
       { name: "Success", palette: Surface.Success },
+      { name: "Highlight", palette: Surface.Highlight },
+      { name: "Neutral", palette: Surface.Neutral },
     ]}
   />
 );
@@ -180,28 +183,39 @@ const BordersSection = () => (
       { name: "Critical", palette: Borders.Critical },
       { name: "Warning", palette: Borders.Warning },
       { name: "Success", palette: Borders.Success },
+      { name: "Highlight", palette: Borders.Highlight },
     ]}
   />
 );
 
-const FocusedSection = () => (
+const FocusSection = () => (
   <SemanticCategory
-    name="Focused"
-    subCategories={[{ name: "", palette: Focused, border: Background.Default }]}
+    name="Focus"
+    subCategories={[{ name: "", palette: Focus, border: Background.Default }]}
   />
 );
 
 const TextSection = () => {
-  const { Default, Subdued, Light, Critical, Success, OnPrimary, OnCritical } =
-    Text;
+  const {
+    Default,
+    Muted,
+    Soft,
+    Disabled,
+    Critical,
+    Warning,
+    Success,
+    OnPrimary,
+    OnCritical,
+    OnInverse,
+  } = Text;
 
   return (
     <SemanticCategory
       name="Text"
       subCategories={[
-        { name: "", palette: { Default, Subdued, Light } },
-        { name: "", palette: { Critical, Success } },
-        { name: "", palette: { OnPrimary, OnCritical } },
+        { name: "", palette: { Default, Muted, Soft, Disabled } },
+        { name: "", palette: { Critical, Warning, Success } },
+        { name: "", palette: { OnPrimary, OnCritical, OnInverse } },
       ]}
     />
   );
@@ -210,7 +224,7 @@ const TextSection = () => {
 const IconsSection = () => {
   const {
     Default,
-    Subdued,
+    Muted,
     Hover,
     Pressed,
     Disabled,
@@ -220,15 +234,16 @@ const IconsSection = () => {
     Highlight,
     OnPrimary,
     OnCritical,
+    OnInverse,
   } = Icons;
 
   return (
     <SemanticCategory
       name="Icons"
       subCategories={[
-        { name: "", palette: { Default, Subdued, Hover, Pressed, Disabled } },
+        { name: "", palette: { Default, Muted, Hover, Pressed, Disabled } },
         { name: "", palette: { Critical, Warning, Success, Highlight } },
-        { name: "", palette: { OnPrimary, OnCritical } },
+        { name: "", palette: { OnPrimary, OnCritical, OnInverse } },
       ]}
     />
   );
@@ -301,7 +316,7 @@ export const Docs: Story = {
       <BackgroundSection />
       <SurfaceSection />
       <BordersSection />
-      <FocusedSection />
+      <FocusSection />
       <TextSection />
       <IconsSection />
       <InteractionsSection />

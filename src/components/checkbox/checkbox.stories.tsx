@@ -224,7 +224,7 @@ export const IntegratedExample: Story = {
               <Label as="span">I accept these terms.</Label>
             </label>
             <If is={checked === true}>
-              <Caption subdued>You have accepted the terms.</Caption>
+              <Caption muted>You have accepted the terms.</Caption>
             </If>
           </div>
         </Card>

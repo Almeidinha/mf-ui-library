@@ -1,5 +1,5 @@
 import { Label } from "components/typography";
-import { Borders, Focused, Surface } from "foundation/colors";
+import { Borders, Focus, Surface } from "foundation/colors";
 import { Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { isDefined } from "helpers/safe-navigation";
@@ -35,7 +35,7 @@ const TextAreaFrame = styled.textarea<{
     ${({ $isInvalid }) =>
       $isInvalid ? Borders.Critical.Default : Borders.Default.Default};
   background: ${({ $isInvalid }) =>
-    $isInvalid ? Surface.Critical.Subdued : "transparent"};
+    $isInvalid ? Surface.Critical.Muted : "transparent"};
   padding: ${({ $hasLabel }) =>
     $hasLabel
       ? `${Padding.xl} ${Padding.m} ${Padding.s}`
@@ -43,7 +43,7 @@ const TextAreaFrame = styled.textarea<{
 
   &:focus {
     outline: 2px solid
-      ${({ $isInvalid }) => ($isInvalid ? Focused.Critical : Focused.Default)};
+      ${({ $isInvalid }) => ($isInvalid ? Focus.Critical : Focus.Default)};
     outline-offset: -2px;
   }
 
@@ -90,7 +90,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <TextAreaContainer>
         {isDefined(label) && (
-          <LabelFrame htmlFor={textAreaId} subdued>
+          <LabelFrame htmlFor={textAreaId} muted>
             {label}
           </LabelFrame>
         )}

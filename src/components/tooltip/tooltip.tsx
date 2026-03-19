@@ -1,5 +1,5 @@
 import { Caption } from "components/typography";
-import { Surface } from "foundation/colors";
+import { Surface, Text } from "foundation/colors";
 import { Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
 import { If } from "helpers/nothing";
@@ -161,7 +161,7 @@ export const TooltipBox = styled(Caption)<{ $position: Position }>`
   position: relative;
   display: block;
   background-color: ${Surface.Default.Inverse};
-  color: ${Surface.Default.Default};
+  color: ${Text.OnInverse};
   text-align: center;
   border-radius: 6px;
   padding: ${Padding.xxs} ${Padding.xs};

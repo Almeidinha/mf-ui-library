@@ -607,7 +607,7 @@ const UserCell: FC<{ name: string; email: string }> = function UserCell({
   return (
     <>
       <Body strong>{name}</Body>
-      <Body subdued>{email}</Body>
+      <Body muted>{email}</Body>
     </>
   );
 };
@@ -619,7 +619,7 @@ const SchoolCell: FC<{ name: string; country: string }> = function SchoolCell({
   return (
     <>
       <Body strong>{name}</Body>
-      <Body subdued>{country}</Body>
+      <Body muted>{country}</Body>
     </>
   );
 };

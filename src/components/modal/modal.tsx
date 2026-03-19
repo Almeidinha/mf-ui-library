@@ -1,7 +1,7 @@
 import { IconMinor } from "components/icon";
 import { Button } from "components/molecules/button";
 import { Heading2 } from "components/typography";
-import { Borders, Focused, Surface } from "foundation/colors";
+import { Borders, Focus, Surface } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
@@ -16,7 +16,7 @@ const ModalHeader = styled.header`
   justify-content: space-between;
   align-items: center;
   padding: ${Padding.m};
-  border-bottom: 1px solid ${Borders.Default.Subdued};
+  border-bottom: 1px solid ${Borders.Default.Muted};
   flex-shrink: 0;
 `;
 
@@ -40,7 +40,7 @@ const CloseButton = styled.button.attrs({ type: "button" })`
   }
 
   &:focus-visible {
-    outline: 2px solid ${Focused.Default};
+    outline: 2px solid ${Focus.Default};
   }
 `;
 
@@ -63,7 +63,7 @@ const ModalContent = styled.div`
 const ModalFooter = styled.footer`
   width: 100%;
   padding: ${Padding.m};
-  border-top: 1px solid ${Borders.Default.Subdued};
+  border-top: 1px solid ${Borders.Default.Muted};
   box-sizing: border-box;
   display: flex;
   gap: ${Gap.xs};

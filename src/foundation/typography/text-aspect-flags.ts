@@ -4,8 +4,8 @@ import { Text } from "../colors";
 
 export const enum TextAspects {
   Default = 1,
-  Subdued = 2,
-  Light = 4,
+  Muted = 2,
+  Soft = 4,
   Critical = 8,
   Success = 16,
   OnPrimary = 32,
@@ -14,8 +14,8 @@ export const enum TextAspects {
 
 type TextAspectsFlags<T> = {
   default?: T;
-  subdued?: T;
-  light?: T;
+  muted?: T;
+  soft?: T;
   critical?: T;
   success?: T;
   onPrimary?: T;
@@ -31,8 +31,8 @@ type TextOptions<T> = MappedEnum<typeof TextAspects, T>;
 
 const TextAspectColors = {
   [TextAspects.Default]: Text.Default,
-  [TextAspects.Subdued]: Text.Subdued,
-  [TextAspects.Light]: Text.Light,
+  [TextAspects.Muted]: Text.Muted,
+  [TextAspects.Soft]: Text.Soft,
   [TextAspects.OnPrimary]: Text.OnPrimary,
   [TextAspects.OnCritical]: Text.OnCritical,
   [TextAspects.Success]: Text.Success,
@@ -56,11 +56,11 @@ function getTextAspectFromProps(props: TextAspectProps): TextAspects {
   if (props.default) {
     return TextAspects.Default;
   }
-  if (props.subdued) {
-    return TextAspects.Subdued;
+  if (props.muted) {
+    return TextAspects.Muted;
   }
-  if (props.light) {
-    return TextAspects.Light;
+  if (props.soft) {
+    return TextAspects.Soft;
   }
   if (props.critical) {
     return TextAspects.Critical;
@@ -91,8 +91,8 @@ export const TYPOGRAPHY_BLOCKED_PROPS = new Set([
   "onWarning",
   "onDanger",
   "onInfo",
-  "subdued",
-  "light",
+  "muted",
+  "soft",
   "critical",
   "success",
   "onCritical",

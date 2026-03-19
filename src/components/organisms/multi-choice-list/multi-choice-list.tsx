@@ -108,7 +108,7 @@ export const MultiChoiceList: FC<MultiChoiceListProps> = ({
               onChange={() => toggleValue(opt.value)}
             />
             <If is={isDefined(opt.helpMessage)}>
-              <HelpMessage subdued id={helpId}>
+              <HelpMessage muted id={helpId}>
                 {opt.helpMessage}
               </HelpMessage>
             </If>

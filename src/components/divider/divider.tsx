@@ -11,18 +11,18 @@ const DividerLine = styled.hr<{ $color: string }>`
 
 export type DividerProps = {
   className?: string;
-  subdued?: boolean;
+  muted?: boolean;
 };
 
-function getColor(subdued?: boolean): string {
-  return subdued ? Borders.Default.Subdued : Borders.Default.Default;
+function getColor(muted?: boolean): string {
+  return muted ? Borders.Default.Muted : Borders.Default.Default;
 }
 
-export const Divider: FC<DividerProps> = ({ className, subdued }) => {
+export const Divider: FC<DividerProps> = ({ className, muted }) => {
   return (
     <DividerLine
       className={className}
-      $color={getColor(subdued)}
+      $color={getColor(muted)}
       data-testid="divider-test"
     />
   );

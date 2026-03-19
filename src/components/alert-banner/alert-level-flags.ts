@@ -27,19 +27,19 @@ export type AlertLevelProps = Partial<
   PropsWithChildren;
 
 const AlertLevelBackgroundColors = {
-  [AlertLevel.Neutral]: Surface.Neutral.Subdued,
-  [AlertLevel.Info]: Surface.Highlight.Subdued,
-  [AlertLevel.Success]: Surface.Success.Subdued,
-  [AlertLevel.Warning]: Surface.Warning.Subdued,
-  [AlertLevel.Critical]: Surface.Critical.Subdued,
+  [AlertLevel.Neutral]: Surface.Neutral.Muted,
+  [AlertLevel.Info]: Surface.Highlight.Muted,
+  [AlertLevel.Success]: Surface.Success.Muted,
+  [AlertLevel.Warning]: Surface.Warning.Muted,
+  [AlertLevel.Critical]: Surface.Critical.Muted,
 };
 
 const AlertLevelBorderColors = {
   [AlertLevel.Neutral]: Borders.Default.Default,
-  [AlertLevel.Info]: Borders.Highlight.Subdued,
-  [AlertLevel.Success]: Borders.Success.Subdued,
-  [AlertLevel.Warning]: Borders.Warning.Subdued,
-  [AlertLevel.Critical]: Borders.Critical.Subdued,
+  [AlertLevel.Info]: Borders.Highlight.Default,
+  [AlertLevel.Success]: Borders.Success.Default,
+  [AlertLevel.Warning]: Borders.Warning.Muted,
+  [AlertLevel.Critical]: Borders.Critical.Muted,
 };
 
 const AlertLevelIcons = {

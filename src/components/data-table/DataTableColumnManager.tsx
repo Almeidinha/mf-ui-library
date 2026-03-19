@@ -285,7 +285,7 @@ const ColumnManagerItem = memo(function ColumnManagerItem({
         </Flex>
         <Divider />
         <Flex justify="space-between" align="center" gap={Gap.s}>
-          <Label subdued>Pin</Label>
+          <Label muted>Pin</Label>
 
           <ButtonGroup size="small">
             <Button

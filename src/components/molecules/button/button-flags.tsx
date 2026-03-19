@@ -217,19 +217,19 @@ const ButtonBorderValues = {
 };
 
 const ButtonBorderDisabledValues = {
-  [ButtonType.Basic]: `1px solid ${Borders.Default.Subdued}`,
+  [ButtonType.Basic]: `1px solid ${Borders.Default.Muted}`,
   [ButtonType.Primary]: "none",
   [ButtonType.DestructivePrimary]: "none",
-  [ButtonType.Destructive]: `1px solid ${Borders.Default.Subdued}`,
+  [ButtonType.Destructive]: `1px solid ${Borders.Default.Muted}`,
   [ButtonType.Outline]: `1px solid ${Borders.Default.Default}`,
   [ButtonType.Plain]: "none",
-  [ButtonType.Subtle]: `1px solid ${Borders.Default.Subdued}`,
+  [ButtonType.Subtle]: `1px solid ${Borders.Default.Muted}`,
   [ButtonType.PlainSubtle]: "none",
 };
 
 const ButtonTextColorDisabled = {
   [ButtonDisabledType.Enabled]: "",
-  [ButtonDisabledType.Disabled]: Text.Light,
+  [ButtonDisabledType.Disabled]: Text.Disabled,
 };
 
 const ButtonCursor = {

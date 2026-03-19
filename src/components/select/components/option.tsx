@@ -1,7 +1,9 @@
-import { is } from "@helpers";
 import { Label } from "components/typography";
+import { Padding } from "foundation/spacing";
+import { is } from "helpers/safe-navigation";
 import { JSX, memo, useCallback } from "react";
 import { areEqual } from "react-window";
+import styled from "styled-components";
 
 import { IOption, SelectLabelComponent } from "../types";
 import { getOptionState } from "../utils";
@@ -19,11 +21,15 @@ export type OptionComponentProps<T> = {
   //multi?: boolean;
 };
 
+const ValueLabel = styled(Label)`
+  padding-left: ${Padding.xs};
+`;
+
 // eslint-disable-next-line comma-spacing
 const OptionComponentImpl = <T,>({
   active,
   selected,
-  labelComponent = Label,
+  labelComponent = ValueLabel,
   option,
   height,
   onSelect,

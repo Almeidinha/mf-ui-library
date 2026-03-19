@@ -164,7 +164,7 @@ const AlternativeConnector = styled.div<{
   height: 2px;
   visibility: ${({ $hidden }) => ($hidden ? "hidden" : "visible")};
   background: ${({ $completed }) =>
-    $completed ? Surface.Success.Default : Surface.Default.Depressed};
+    $completed ? Surface.Success.Default : Surface.Default.Active};
 `;
 
 const AlternativeIconWrap = styled(Flex)`
@@ -199,13 +199,13 @@ const IconCircle = styled.div<{
       case "completed":
         return css`
           background: ${Surface.Success.Default};
-          border-color: ${Borders.Success.Depressed};
+          border-color: ${Borders.Success.Active};
           color: ${Text.Default};
         `;
       case "active":
         return css`
           background: ${Surface.Selected.Default};
-          border-color: ${Borders.Highlight.Depressed};
+          border-color: ${Borders.Highlight.Active};
           color: ${Text.Default};
         `;
       case "error":
@@ -233,7 +233,7 @@ const HorizontalConnector = styled.div<{
   height: 2px;
   margin: 0 12px;
   background: ${({ $completed }) =>
-    $completed ? Surface.Success.Default : Surface.Default.Depressed};
+    $completed ? Surface.Success.Default : Surface.Default.Active};
 `;
 
 const VerticalConnector = styled.div<{
@@ -243,7 +243,7 @@ const VerticalConnector = styled.div<{
   min-height: 32px;
   margin-top: 8px;
   background: ${({ $completed }) =>
-    $completed ? Surface.Success.Default : Surface.Default.Depressed};
+    $completed ? Surface.Success.Default : Surface.Default.Active};
 `;
 
 const LabelBlock = styled(Flex)<{
@@ -280,12 +280,12 @@ const OptionalText = styled.span`
   margin-top: 2px;
   font-size: 12px;
   line-height: 1.4;
-  color: ${Text.Subdued};
+  color: ${Text.Muted};
 `;
 
 const Description = styled.span`
   ${Typography.Caption};
-  color: ${Text.Subdued};
+  color: ${Text.Muted};
 `;
 
 const VerticalContent = styled.div`

@@ -255,7 +255,7 @@ const countryList: IOption<ICountryValue>[] = (
 }));
 
 const CustomListFrame = styled.div`
-  border: 1px solid ${Borders.Default.Subdued};
+  border: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Default};
   position: absolute;
   width: 100%;
@@ -277,8 +277,9 @@ const CustomListFrame = styled.div`
 
 const CustomRow = styled.div<{ active?: boolean }>`
   border: none;
+  padding: ${Padding.xs};
   text-align: left;
-  border: 1px solid ${Borders.Default.Subdued};
+  border: 1px solid ${Borders.Default.Muted};
   margin: ${Margin.xxxs};
   border-radius: 6px;
   background-color: ${(props) =>
@@ -311,7 +312,6 @@ const SupportText = styled(LabelWrapper)`
 
 const IconWraper = styled.div`
   position: relative;
-  top: 4px;
   left: 6px;
   & i {
     position: absolute;
@@ -1151,7 +1151,7 @@ export const CustomMenu: Story = {
           >
             <IconWraper>{option["icon"]}</IconWraper>
             <LabelWrapper>{option.label}</LabelWrapper>
-            <SupportText subdued>{option["helperText"]}</SupportText>
+            <SupportText muted>{option["helperText"]}</SupportText>
           </CustomRow>
         ))}
       </CustomListFrame>
@@ -1241,9 +1241,29 @@ export const CustomMenuList: Story = {
 
 export const PortalSelct: Story = {
   render: function Render(args) {
+    const [, sbUpdateArgs] = useArgs();
+    const updateArgs = sbUpdateArgs as unknown as (next: {
+      value?: string;
+    }) => void;
+
+    const passthroughArgs = (() => {
+      const next = { ...(args as unknown as Record<string, unknown>) };
+      delete next.value;
+      delete next.onChange;
+      delete next.multi;
+      return next as Omit<ISelectProps<string>, "value" | "onChange" | "multi">;
+    })();
+
+    const value = typeof args.value === "string" ? args.value : undefined;
+
     return (
       <Flex style={{ minHeight: 250, width: 300, alignItems: "center" }}>
-        <Select {...args} />
+        <Select<string>
+          {...passthroughArgs}
+          multi={false}
+          value={value}
+          onChange={(nextValue) => updateArgs({ value: nextValue })}
+        />
       </Flex>
     );
   },
