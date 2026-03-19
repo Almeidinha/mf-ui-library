@@ -78,14 +78,13 @@ const ValueContainer = styled(Flex).attrs({
   
   ${({ disabled, $invalid }) =>
     !is(disabled) &&
-    !is($invalid) &&
     `
     &:focus  {
-      outline: 2px solid ${Focus.Default}
+      outline: 2px solid ${$invalid ? Focus.Critical : Focus.Default};
     }
 
     &:focus-within {
-      outline: 2px solid ${Focus.Default}
+      outline: 2px solid ${$invalid ? Focus.Critical : Focus.Default};
     }
   `}
 `;
