@@ -26,6 +26,7 @@ export const Surface = {
     Default: BLUE[50],
     Hover: BLUE[100],
     Pressed: BLUE[200],
+    Depressed: BLUE[500],
   },
 
   Critical: {

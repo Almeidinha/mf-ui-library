@@ -1,4 +1,6 @@
+import { ProgressBar } from "components/progress-bar";
 import { Borders, Surface, Text } from "foundation/colors";
+import { Typography } from "foundation/typography";
 import { clamp } from "helpers/numbers";
 import type { ReactNode } from "react";
 import styled, { css } from "styled-components";
@@ -59,9 +61,8 @@ const MobileCenter = styled.div`
 `;
 
 const TextIndicator = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
+  ${Typography.Label}
+  color: ${Text.Default};
 `;
 
 const Dots = styled.div`
@@ -77,28 +78,11 @@ const Dot = styled.span<{
   height: 8px;
   border-radius: 999px;
   background: ${({ $active }) =>
-    $active ? Surface.Selected.Default : Surface.Default.Default};
-`;
-
-const ProgressTrack = styled.div`
-  width: 100%;
-  max-width: 160px;
-  height: 6px;
-  border-radius: 999px;
-  background: ${Surface.Default.Default};
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div<{
-  $percent: number;
-}>`
-  height: 100%;
-  width: ${({ $percent }) => `${$percent}%`};
-  background: ${Surface.Selected.Default};
-  transition: width 0.2s ease;
+    $active ? Surface.Selected.Depressed : Surface.Default.Default};
 `;
 
 const NavButton = styled.button`
+  ${Typography.Label}
   appearance: none;
   border: 0;
   background: transparent;
@@ -172,9 +156,7 @@ export const MobileStepper = ({
         {variant === "dots" && <Dots aria-hidden="true">{dots}</Dots>}
 
         {variant === "progress" && (
-          <ProgressTrack aria-hidden="true">
-            <ProgressFill $percent={progressPercent} />
-          </ProgressTrack>
+          <ProgressBar size="small" pulse progress={progressPercent} />
         )}
       </MobileCenter>
 
