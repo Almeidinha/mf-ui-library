@@ -1,4 +1,7 @@
-export function toCssSize(value?: number | string, fallback?: string) {
+export function toCssSize(
+  value?: number | string,
+  fallback?: number | string,
+): string {
   if (typeof value === "number") {
     return `${value}px`;
   }
@@ -7,5 +10,9 @@ export function toCssSize(value?: number | string, fallback?: string) {
     return value;
   }
 
-  return fallback;
+  if (typeof fallback === "number") {
+    return `${fallback}px`;
+  }
+
+  return typeof fallback === "string" ? fallback : "auto";
 }
