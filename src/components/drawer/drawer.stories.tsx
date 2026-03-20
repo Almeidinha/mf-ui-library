@@ -1,31 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { IconMinor } from "components/icon";
-import { Container, Flex } from "components/layout";
+import { Box, Container, Flex } from "components/layout";
 import { Button, SimpleMenu, SimpleMenuItem } from "components/molecules";
-import { Body } from "components/typography";
+import { Body, Heading3 } from "components/typography";
 import { Gap, Padding } from "foundation/spacing";
 import { useArgs } from "storybook/internal/preview-api";
 import styled from "styled-components";
 
 import { Drawer, DrawerProps } from ".";
+import { DrawerAnchor } from "./types";
 
-const getFlexDirection = (anchor: DrawerProps["anchor"]) => {
-  switch (anchor) {
-    case "left":
-      return "row";
-    case "right":
-      return "row-reverse";
-    case "top":
-      return "column";
-    case "bottom":
-      return "column-reverse";
-    default:
-      return "row";
-  }
+const FLEX_DIRECTION_MAP: Record<DrawerAnchor, string> = {
+  left: "row",
+  right: "row-reverse",
+  top: "column",
+  bottom: "column-reverse",
 };
 
 const StoryFrame = styled(Flex)<{ $anchor: DrawerProps["anchor"] }>`
-  flex-direction: ${({ $anchor }) => getFlexDirection($anchor)};
+  flex-direction: ${({ $anchor }) =>
+    $anchor ? FLEX_DIRECTION_MAP[$anchor] : "row"};
   height: 100%;
   position: relative;
   border: 1px dashed rgba(15, 23, 42, 0.2);
@@ -90,9 +84,9 @@ function DefaultDrawerContent({
 }) {
   return (
     <DrawerContent>
-      <div>
-        <strong>{title}</strong>
-      </div>
+      <Box>
+        <Heading3>{title}</Heading3>
+      </Box>
       <Body>
         Use this drawer for navigation, filters, or secondary workflows that
         should stay adjacent to the current page context.

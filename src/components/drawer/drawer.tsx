@@ -1,21 +1,23 @@
-import { Slide } from "components/transitions";
+import { Slide, SlideDirection } from "components/transitions";
 import { Borders } from "foundation/colors";
 import { toCssSize } from "helpers/css-helpers";
 import { If } from "helpers/nothing";
-import { clamp } from "helpers/numbers";
-import {
-  CSSProperties,
-  PointerEvent as ReactPointerEvent,
-  ReactNode,
-  RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useControllableState } from "hooks/useControllableState";
+import { useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import styled, { css } from "styled-components";
+import styled, { css, RuleSet } from "styled-components";
 
+import {
+  DEFAULT_MINI_SIZE,
+  DEFAULT_SIZE,
+  DEFAULT_SWIPE_EDGE,
+  DEFAULT_TRANSITION_DURATION,
+  DEFAULT_TRANSITION_OFFSET,
+  DEFAULT_Z_INDEX,
+} from "./constants";
+import { usePresence } from "./hooks/usePresence";
+import { isHorizontal, useSwipeableDrawer } from "./hooks/useSwipeableDrawer";
+import { useTemporaryDrawerFocus } from "./hooks/useTemporaryDrawerFocus";
 import {
   DrawerAnchor,
   DrawerProps,
@@ -26,29 +28,9 @@ import {
   TemporaryDrawerProps,
 } from "./types";
 
-const DEFAULT_SIZE = 280;
-const DEFAULT_MINI_SIZE = 64;
-const DEFAULT_SWIPE_EDGE = 20;
-const DEFAULT_Z_INDEX = 1300;
-const DEFAULT_TRANSITION_DURATION = 220;
-const DEFAULT_TRANSITION_OFFSET = 8;
-
-const SWIPE_CLOSE_THRESHOLD = 0.35;
-const SWIPE_OPEN_THRESHOLD = 24;
-
-const FOCUSABLE_SELECTOR = [
-  "a[href]",
-  "button:not([disabled])",
-  "textarea:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-  '[contenteditable="true"]',
-].join(",");
-
-function resolveContainer(
+const resolveContainer = (
   container?: DrawerProps["container"],
-): HTMLElement | null {
+): HTMLElement | null => {
   if (typeof window === "undefined") {
     return null;
   }
@@ -58,21 +40,17 @@ function resolveContainer(
   }
 
   return container ?? document.body;
-}
+};
 
-function isHorizontal(anchor: DrawerAnchor) {
-  return anchor === "left" || anchor === "right";
-}
-
-function shouldUseMini(
+const shouldUseMini = (
   anchor: DrawerAnchor,
   variant: DrawerVariant,
   mini: boolean,
-) {
+) => {
   return variant === "persistent" && mini && isHorizontal(anchor);
-}
+};
 
-function getClosedTransform(anchor: DrawerAnchor, miniOffset = "0px") {
+const getClosedTransform = (anchor: DrawerAnchor, miniOffset = "0px") => {
   switch (anchor) {
     case "left":
       return `translate3d(calc(-100% + ${miniOffset}), 0, 0)`;
@@ -83,126 +61,43 @@ function getClosedTransform(anchor: DrawerAnchor, miniOffset = "0px") {
     case "bottom":
       return "translate3d(0, 100%, 0)";
   }
-}
+};
 
-function getEdgePosition(anchor: DrawerAnchor) {
-  switch (anchor) {
-    case "left":
-      return css`
-        left: 0;
-        top: 0;
-        bottom: 0;
-      `;
-    case "right":
-      return css`
-        right: 0;
-        top: 0;
-        bottom: 0;
-      `;
-    case "top":
-      return css`
-        top: 0;
-        left: 0;
-        right: 0;
-      `;
-    case "bottom":
-      return css`
-        bottom: 0;
-        left: 0;
-        right: 0;
-      `;
-  }
-}
+const EDGE_POSITION_MAP: Record<DrawerAnchor, RuleSet<object>> = {
+  left: css`
+    left: 0;
+    top: 0;
+    bottom: 0;
+  `,
+  right: css`
+    right: 0;
+    top: 0;
+    bottom: 0;
+  `,
+  top: css`
+    top: 0;
+    left: 0;
+    right: 0;
+  `,
+  bottom: css`
+    bottom: 0;
+    left: 0;
+    right: 0;
+  `,
+};
 
-function getSlideDirection(anchor: DrawerAnchor) {
-  switch (anchor) {
-    case "left":
-      return "right";
-    case "right":
-      return "left";
-    case "top":
-      return "down";
-    case "bottom":
-      return "up";
-  }
-}
+const SLIDE_DIRECTION_MAP: Record<DrawerAnchor, SlideDirection> = {
+  left: "right",
+  right: "left",
+  top: "down",
+  bottom: "up",
+};
 
-function getPoint(
-  event: PointerEvent | ReactPointerEvent<HTMLDivElement>,
-  axis: "x" | "y",
-) {
-  return axis === "x" ? event.clientX : event.clientY;
-}
-
-function getSignedDelta(anchor: DrawerAnchor, raw: number) {
-  switch (anchor) {
-    case "left":
-      return raw;
-    case "right":
-      return -raw;
-    case "top":
-      return raw;
-    case "bottom":
-      return -raw;
-  }
-}
-
-function getFocusableElements(container: HTMLElement | null) {
-  if (!container) {
-    return [];
-  }
-
-  return Array.from(
-    container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-  ).filter(
-    (element) =>
-      !element.hasAttribute("disabled") &&
-      element.getAttribute("aria-hidden") !== "true",
-  );
-}
-
-function useControlledOpen({
-  open,
-  defaultOpen = false,
-  onOpen,
-  onClose,
-  onOpenChange,
-}: {
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpen?: () => void;
-  onClose?: () => void;
-  onOpenChange?: (open: boolean) => void;
-}) {
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isControlled = open !== undefined;
-  const resolvedOpen = isControlled ? open : internalOpen;
-
-  const setOpen = useCallback(
-    (nextOpen: boolean) => {
-      if (!isControlled) {
-        setInternalOpen(nextOpen);
-      }
-
-      onOpenChange?.(nextOpen);
-
-      if (nextOpen) {
-        onOpen?.();
-      } else {
-        onClose?.();
-      }
-    },
-    [isControlled, onClose, onOpen, onOpenChange],
-  );
-
-  return [resolvedOpen, setOpen] as const;
-}
-
-function getPersistentClosedTransform(
+const getPersistentClosedTransform = (
   anchor: DrawerAnchor,
   size: string,
   miniOffset = "0px",
-) {
+) => {
   switch (anchor) {
     case "left":
       return `translate3d(calc(-1 * (${size} - ${miniOffset})), 0, 0)`;
@@ -213,217 +108,7 @@ function getPersistentClosedTransform(
     case "bottom":
       return `translate3d(0, calc(${size} - ${miniOffset}), 0)`;
   }
-}
-
-type GestureState = {
-  dragging: boolean;
-  start: number;
-  pointerId: number | null;
-  mode: "open" | "close" | null;
 };
-
-function useSwipeableDrawer({
-  anchor,
-  //open,
-  swipeable,
-  size,
-  miniActive,
-  miniSize,
-  onRequestOpen,
-  onRequestClose,
-}: {
-  anchor: DrawerAnchor;
-  open: boolean;
-  swipeable: boolean;
-  size: number | string;
-  miniActive: boolean;
-  miniSize: number | string;
-  onRequestOpen: () => void;
-  onRequestClose: () => void;
-}) {
-  const [dragOffset, setDragOffset] = useState(0);
-
-  const gestureRef = useRef<GestureState>({
-    dragging: false,
-    start: 0,
-    pointerId: null,
-    mode: null,
-  });
-
-  const axis = isHorizontal(anchor) ? "x" : "y";
-  const sizeNumber = typeof size === "number" ? size : DEFAULT_SIZE;
-  const effectiveMini = miniActive
-    ? typeof miniSize === "number"
-      ? miniSize
-      : DEFAULT_MINI_SIZE
-    : 0;
-  const maxDragDistance = Math.max(sizeNumber - effectiveMini, 1);
-
-  const endGesture = useCallback(() => {
-    gestureRef.current.dragging = false;
-    gestureRef.current.pointerId = null;
-    gestureRef.current.mode = null;
-    setDragOffset(0);
-  }, []);
-
-  const handlePointerDown = useCallback(
-    (mode: "open" | "close") => (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (!swipeable) {
-        return;
-      }
-
-      gestureRef.current.dragging = true;
-      gestureRef.current.start = getPoint(event, axis);
-      gestureRef.current.pointerId = event.pointerId;
-      gestureRef.current.mode = mode;
-
-      (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-    },
-    [axis, swipeable],
-  );
-
-  const handlePointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      const gesture = gestureRef.current;
-
-      if (!gesture.dragging || gesture.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const current = getPoint(event, axis);
-      const signedDelta = getSignedDelta(anchor, current - gesture.start);
-
-      if (gesture.mode === "close") {
-        setDragOffset(clamp(signedDelta, -maxDragDistance, 0));
-        return;
-      }
-
-      setDragOffset(clamp(signedDelta - maxDragDistance, -maxDragDistance, 0));
-    },
-    [anchor, axis, maxDragDistance],
-  );
-
-  const handlePointerUp = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      const gesture = gestureRef.current;
-
-      if (!gesture.dragging || gesture.pointerId !== event.pointerId) {
-        return;
-      }
-
-      const current = getPoint(event, axis);
-      const signedDelta = getSignedDelta(anchor, current - gesture.start);
-
-      if (gesture.mode === "close") {
-        const ratio = Math.abs(signedDelta) / maxDragDistance;
-        endGesture();
-
-        if (ratio >= SWIPE_CLOSE_THRESHOLD) {
-          onRequestClose();
-        }
-
-        return;
-      }
-
-      endGesture();
-
-      if (signedDelta >= SWIPE_OPEN_THRESHOLD) {
-        onRequestOpen();
-      }
-    },
-    [anchor, axis, endGesture, maxDragDistance, onRequestClose, onRequestOpen],
-  );
-
-  return {
-    dragOffset,
-    endGesture,
-    handlePointerDown,
-    handlePointerMove,
-    handlePointerUp,
-  };
-}
-
-function useTemporaryDrawerFocus({
-  enabled,
-  open,
-  surfaceRef,
-  onRequestClose,
-}: {
-  enabled: boolean;
-  open: boolean;
-  surfaceRef: RefObject<HTMLElement | null>;
-  onRequestClose: () => void;
-}) {
-  const previousFocusedRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!enabled || !open) {
-      return;
-    }
-
-    previousFocusedRef.current = document.activeElement as HTMLElement | null;
-
-    const surface = surfaceRef.current;
-    if (!surface) {
-      return;
-    }
-
-    const focusable = getFocusableElements(surface);
-    const firstFocusable = focusable[0];
-
-    if (firstFocusable) {
-      firstFocusable.focus();
-    } else {
-      surface.focus();
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onRequestClose();
-        return;
-      }
-
-      if (event.key !== "Tab") {
-        return;
-      }
-
-      const elements = getFocusableElements(surface);
-      if (elements.length === 0) {
-        event.preventDefault();
-        surface.focus();
-        return;
-      }
-
-      const first = elements[0];
-      const last = elements[elements.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-
-      if (event.shiftKey) {
-        if (active === first || active === surface) {
-          event.preventDefault();
-          last.focus();
-        }
-        return;
-      }
-
-      if (active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    surface.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      surface.removeEventListener("keydown", handleKeyDown);
-
-      const previous = previousFocusedRef.current;
-      if (previous && document.contains(previous)) {
-        previous.focus();
-      }
-    };
-  }, [enabled, onRequestClose, open, surfaceRef]);
-}
 
 const Root = styled.div<{ $zIndex: number }>`
   position: fixed;
@@ -627,13 +312,13 @@ const SwipeEdge = styled.div<{
       case "left":
       case "right":
         return css`
-          ${getEdgePosition($anchor)}
+          ${EDGE_POSITION_MAP[$anchor]}
           width: ${$size}px;
         `;
       case "top":
       case "bottom":
         return css`
-          ${getEdgePosition($anchor)}
+          ${EDGE_POSITION_MAP[$anchor]}
           height: ${$size}px;
         `;
     }
@@ -738,7 +423,7 @@ function TemporaryDrawerContent({
 
       <Slide
         in={open}
-        direction={getSlideDirection(anchor)}
+        direction={SLIDE_DIRECTION_MAP[anchor]}
         offset={transitionOffset}
         timeout={duration}
         mountOnEnter={false}
@@ -944,7 +629,15 @@ function PersistentDrawer({
   onRequestClose,
   children,
 }: PersistentDrawerProps) {
-  const shouldRender = keepMounted || open || miniActive;
+  const inlineRootRef = useRef<HTMLDivElement | null>(null);
+
+  const { present, renderedOpen } = usePresence({
+    open,
+    keepMounted,
+    miniActive,
+    anchor,
+    ref: inlineRootRef,
+  });
 
   const {
     dragOffset,
@@ -963,15 +656,16 @@ function PersistentDrawer({
     onRequestClose,
   });
 
-  if (!shouldRender) {
+  if (!present) {
     return null;
   }
 
   return (
     <InlineRoot
+      ref={inlineRootRef}
       $zIndex={zIndex}
       $anchor={anchor}
-      $open={open}
+      $open={renderedOpen}
       $size={sizeCss}
       $miniSize={miniSizeCss}
       $miniActive={miniActive}
@@ -980,12 +674,12 @@ function PersistentDrawer({
       style={style}
     >
       <DrawerSurface
-        open={open}
+        open={renderedOpen}
         anchor={anchor}
         temporary={false}
         sizeCss={sizeCss}
         miniSizeCss={miniSizeCss}
-        miniCollapsed={Boolean(miniActive && !open)}
+        miniCollapsed={Boolean(miniActive && !renderedOpen)}
         dragOffset={dragOffset}
         duration={duration}
         swipeable={swipeable}
@@ -993,7 +687,7 @@ function PersistentDrawer({
         ariaLabelledBy={ariaLabelledBy}
         className={contentClassName}
         style={contentStyle}
-        onPointerDown={open ? handlePointerDown("close") : undefined}
+        onPointerDown={renderedOpen ? handlePointerDown("close") : undefined}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={endGesture}
@@ -1034,12 +728,10 @@ export function Drawer({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
 }: DrawerProps) {
-  const [open, setOpen] = useControlledOpen({
-    open: openProp,
-    defaultOpen,
-    onOpen,
-    onClose,
-    onOpenChange,
+  const [open, setOpen] = useControllableState<boolean, false>({
+    value: openProp,
+    defaultValue: defaultOpen,
+    onChange: onOpenChange,
   });
 
   const temporary = variant === "temporary";
@@ -1048,12 +740,22 @@ export function Drawer({
   const miniSizeCss = toCssSize(miniSize, DEFAULT_MINI_SIZE);
 
   const handleRequestOpen = useCallback(() => {
+    if (open) {
+      return;
+    }
+
     setOpen(true);
-  }, [setOpen]);
+    onOpen?.();
+  }, [onOpen, open, setOpen]);
 
   const handleRequestClose = useCallback(() => {
+    if (!open) {
+      return;
+    }
+
     setOpen(false);
-  }, [setOpen]);
+    onClose?.();
+  }, [onClose, open, setOpen]);
 
   if (temporary) {
     return (

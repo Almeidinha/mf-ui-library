@@ -364,8 +364,8 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
 
   const isPortalMode = mode === "portal";
   const resolvedShowBackdrop = showBackdrop ?? isPortalMode;
-  const drawerWidth = toCssSize(width, "420px")!;
-  const inlineDrawerMaxHeight = toCssSize(inlineMaxHeight, "70vh")!;
+  const drawerWidth = toCssSize(width, "420px");
+  const inlineDrawerMaxHeight = toCssSize(inlineMaxHeight, "70vh");
   const triggerRef = React.useRef<HTMLButtonElement | null>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement | null>(null);
   const contentId = React.useId();
