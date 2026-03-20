@@ -99,7 +99,6 @@ export type TemporaryDrawerProps = {
 };
 
 export type TemporaryDrawerContentProps = {
-  id: string;
   open: boolean;
   onRequestClose: () => void;
   onRequestOpen: () => void;

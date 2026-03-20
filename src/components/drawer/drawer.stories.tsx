@@ -9,7 +9,23 @@ import styled from "styled-components";
 
 import { Drawer, DrawerProps } from ".";
 
-const StoryFrame = styled(Flex)`
+const getFlexDirection = (anchor: DrawerProps["anchor"]) => {
+  switch (anchor) {
+    case "left":
+      return "row";
+    case "right":
+      return "row-reverse";
+    case "top":
+      return "column";
+    case "bottom":
+      return "column-reverse";
+    default:
+      return "row";
+  }
+};
+
+const StoryFrame = styled(Flex)<{ $anchor: DrawerProps["anchor"] }>`
+  flex-direction: ${({ $anchor }) => getFlexDirection($anchor)};
   height: 100%;
   position: relative;
   border: 1px dashed rgba(15, 23, 42, 0.2);
@@ -39,15 +55,6 @@ const DrawerContent = styled.div`
 const ActionRow = styled(Flex)`
   gap: 12px;
   flex-wrap: wrap;
-`;
-
-const PersistentLayout = styled.div`
-  display: grid;
-  grid-template-columns: auto 1fr;
-  min-height: 320px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  overflow: hidden;
-  background: #f8fafc;
 `;
 
 const MainPanel = styled.div`
@@ -352,7 +359,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
   render: function Render(args) {
-    const [{ open }, updateArgs] = useArgs<DrawerProps>();
+    const [{ open, anchor }, updateArgs] = useArgs<DrawerProps>();
 
     const handleOpen = () => {
       updateArgs({ open: true });
@@ -365,8 +372,14 @@ export const Primary: Story = {
     };
 
     return (
-      <StoryFrame>
-        <Drawer {...args} open={open} onClose={handleClose} onOpen={handleOpen}>
+      <StoryFrame $anchor={anchor}>
+        <Drawer
+          {...args}
+          open={open}
+          onClose={handleClose}
+          onOpen={handleOpen}
+          anchor={anchor}
+        >
           <DefaultDrawerContent
             title="Temporary drawer"
             onClose={handleClose}
@@ -408,7 +421,7 @@ export const PersistentMini: Story = {
     overlay: false,
   },
   render: function Render(args) {
-    const [{ open }, updateArgs] = useArgs<DrawerProps>();
+    const [{ open, anchor }, updateArgs] = useArgs<DrawerProps>();
 
     const handleOpen = () => {
       updateArgs({ open: true });
@@ -421,69 +434,68 @@ export const PersistentMini: Story = {
     };
 
     return (
-      <StoryFrame>
-        <PersistentLayout>
-          <Drawer
-            {...args}
-            size={150}
-            miniSize={48}
-            open={open}
-            onClose={handleClose}
-            onOpen={handleOpen}
-          >
-            <Menu>
-              <SimpleMenuItem>
-                <Flex gap={Gap.xs}>
-                  <IconMinor.Bars />
-                  {open ? "Navigation" : null}
-                </Flex>
-              </SimpleMenuItem>
-              <SimpleMenuItem>
-                <Flex gap={Gap.xs}>
-                  <IconMinor.User />
-                  {open ? "Profile" : null}
-                </Flex>
-              </SimpleMenuItem>
-              <SimpleMenuItem>
-                <Flex gap={Gap.xs}>
-                  <IconMinor.Utensils />
-                  {open ? "Settings" : null}
-                </Flex>
-              </SimpleMenuItem>
-              <SimpleMenuItem>
-                <Flex gap={Gap.xs}>
-                  <IconMinor.BarsFilter />
-                  {open ? "Notifications" : null}
-                </Flex>
-              </SimpleMenuItem>
-              <SimpleMenuItem>
-                <Flex gap={Gap.xs}>
-                  <IconMinor.MugTea />
-                  {open ? "Messages" : null}
-                </Flex>
-              </SimpleMenuItem>
-              <SimpleMenuItem>
-                <Flex gap={Gap.xs}>
-                  <IconMinor.ShareNodes />
-                  {open ? "Help" : null}
-                </Flex>
-              </SimpleMenuItem>
-            </Menu>
-          </Drawer>
+      <StoryFrame $anchor={anchor}>
+        <Drawer
+          {...args}
+          size={150}
+          miniSize={48}
+          open={open}
+          onClose={handleClose}
+          onOpen={handleOpen}
+          anchor={anchor}
+        >
+          <Menu>
+            <SimpleMenuItem>
+              <Flex gap={Gap.xs}>
+                <IconMinor.Bars />
+                {open ? "Navigation" : null}
+              </Flex>
+            </SimpleMenuItem>
+            <SimpleMenuItem>
+              <Flex gap={Gap.xs}>
+                <IconMinor.User />
+                {open ? "Profile" : null}
+              </Flex>
+            </SimpleMenuItem>
+            <SimpleMenuItem>
+              <Flex gap={Gap.xs}>
+                <IconMinor.Utensils />
+                {open ? "Settings" : null}
+              </Flex>
+            </SimpleMenuItem>
+            <SimpleMenuItem>
+              <Flex gap={Gap.xs}>
+                <IconMinor.BarsFilter />
+                {open ? "Notifications" : null}
+              </Flex>
+            </SimpleMenuItem>
+            <SimpleMenuItem>
+              <Flex gap={Gap.xs}>
+                <IconMinor.MugTea />
+                {open ? "Messages" : null}
+              </Flex>
+            </SimpleMenuItem>
+            <SimpleMenuItem>
+              <Flex gap={Gap.xs}>
+                <IconMinor.ShareNodes />
+                {open ? "Help" : null}
+              </Flex>
+            </SimpleMenuItem>
+          </Menu>
+        </Drawer>
 
-          <MainPanel>
-            <Body>
-              Persistent drawers stay in the layout instead of overlaying the
-              page. When mini mode is enabled, the closed state leaves a small
-              rail visible for compact navigation patterns.
-            </Body>
-            <ActionRow>
-              <Button primary onClick={open ? handleClose : handleOpen}>
-                {open ? "Collapse rail" : "Expand rail"}
-              </Button>
-            </ActionRow>
-          </MainPanel>
-        </PersistentLayout>
+        <MainPanel>
+          <Body>
+            Persistent drawers stay in the layout instead of overlaying the
+            page. When mini mode is enabled, the closed state leaves a small
+            rail visible for compact navigation patterns.
+          </Body>
+          <ActionRow>
+            <Button primary onClick={open ? handleClose : handleOpen}>
+              {open ? "Collapse rail" : "Expand rail"}
+            </Button>
+          </ActionRow>
+        </MainPanel>
       </StoryFrame>
     );
   },

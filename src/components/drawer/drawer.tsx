@@ -2,6 +2,7 @@ import { Slide } from "components/transitions";
 import { Borders } from "foundation/colors";
 import { toCssSize } from "helpers/css-helpers";
 import { If } from "helpers/nothing";
+import { clamp } from "helpers/numbers";
 import {
   CSSProperties,
   PointerEvent as ReactPointerEvent,
@@ -15,7 +16,15 @@ import {
 import { createPortal } from "react-dom";
 import styled, { css } from "styled-components";
 
-import { DrawerAnchor, DrawerProps, DrawerVariant } from "./types";
+import {
+  DrawerAnchor,
+  DrawerProps,
+  DrawerSurfaceProps,
+  DrawerVariant,
+  PersistentDrawerProps,
+  TemporaryDrawerContentProps,
+  TemporaryDrawerProps,
+} from "./types";
 
 const DEFAULT_SIZE = 280;
 const DEFAULT_MINI_SIZE = 64;
@@ -138,10 +147,6 @@ function getSignedDelta(anchor: DrawerAnchor, raw: number) {
   }
 }
 
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
 function getFocusableElements(container: HTMLElement | null) {
   if (!container) {
     return [];
@@ -219,7 +224,7 @@ type GestureState = {
 
 function useSwipeableDrawer({
   anchor,
-  open,
+  //open,
   swipeable,
   size,
   miniActive,
@@ -635,28 +640,6 @@ const SwipeEdge = styled.div<{
   }}
 `;
 
-type DrawerSurfaceProps = {
-  open: boolean;
-  anchor: DrawerAnchor;
-  temporary: boolean;
-  sizeCss: string;
-  miniSizeCss: string;
-  miniCollapsed: boolean;
-  dragOffset: number;
-  duration: number;
-  swipeable: boolean;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  className?: string;
-  style?: CSSProperties;
-  contentRef?: RefObject<HTMLDivElement | null>;
-  onPointerDown?: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerMove?: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerUp?: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  onPointerCancel?: () => void;
-  children: ReactNode;
-};
-
 function DrawerSurface({
   open,
   anchor,
@@ -706,38 +689,10 @@ function DrawerSurface({
   );
 }
 
-type TemporaryDrawerContentProps = {
-  open: boolean;
-  onRequestClose: () => void;
-  onRequestOpen: () => void;
-  anchor: DrawerAnchor;
-  swipeable: boolean;
-  swipeEdgeSize: number;
-  overlay: boolean;
-  closeOnOverlayClick: boolean;
-  sizeCss: string;
-  miniSizeCss: string;
-  dragOffset: number;
-  duration: number;
-  transitionOffset: number;
-  contentClassName?: string;
-  contentStyle?: CSSProperties;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  contentRef: RefObject<HTMLDivElement | null>;
-  handlePointerDown: (
-    mode: "open" | "close",
-  ) => (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handlePointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handlePointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  endGesture: () => void;
-  children: ReactNode;
-};
-
 function TemporaryDrawerContent({
   open,
   onRequestClose,
-  onRequestOpen,
+  //onRequestOpen,
   anchor,
   swipeable,
   swipeEdgeSize,
@@ -815,36 +770,6 @@ function TemporaryDrawerContent({
     </>
   );
 }
-
-type TemporaryDrawerProps = {
-  open: boolean;
-  onRequestClose: () => void;
-  onRequestOpen: () => void;
-  anchor: DrawerAnchor;
-  container?: DrawerProps["container"];
-  swipeable: boolean;
-  swipeEdgeSize: number;
-  keepMounted: boolean;
-  overlay: boolean;
-  closeOnOverlayClick: boolean;
-  lockScroll: boolean;
-  closeOnEsc: boolean;
-  zIndex: number;
-  duration: number;
-  transitionOffset: number;
-  size: number | string;
-  miniActive: boolean;
-  miniSize: number | string;
-  sizeCss: string;
-  miniSizeCss: string;
-  className?: string;
-  contentClassName?: string;
-  style?: CSSProperties;
-  contentStyle?: CSSProperties;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  children: ReactNode;
-};
 
 function TemporaryDrawer({
   open,
@@ -996,29 +921,6 @@ function TemporaryDrawer({
 
   return mountNode ? createPortal(content, mountNode) : content;
 }
-
-type PersistentDrawerProps = {
-  open: boolean;
-  anchor: DrawerAnchor;
-  swipeable: boolean;
-  keepMounted: boolean;
-  miniActive: boolean;
-  size: number | string;
-  miniSize: number | string;
-  sizeCss: string;
-  miniSizeCss: string;
-  zIndex: number;
-  duration: number;
-  className?: string;
-  contentClassName?: string;
-  style?: CSSProperties;
-  contentStyle?: CSSProperties;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  onRequestOpen: () => void;
-  onRequestClose: () => void;
-  children: ReactNode;
-};
 
 function PersistentDrawer({
   open,
