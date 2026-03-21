@@ -11,124 +11,37 @@ export type DrawerVariant = "temporary" | "persistent";
 export type DrawerProps = {
   open?: boolean;
   defaultOpen?: boolean;
-
-  onOpen?: () => void;
   onClose?: () => void;
   onOpenChange?: (open: boolean) => void;
-
   children: ReactNode;
-
   anchor?: DrawerAnchor;
   variant?: DrawerVariant;
-
   container?: HTMLElement | null | (() => HTMLElement | null);
-
-  swipeable?: boolean;
-  swipeEdgeSize?: number;
-
   keepMounted?: boolean;
-
   mini?: boolean;
-  miniSize?: number | string;
+  miniSize?: number;
   size?: number | string;
-
   overlay?: boolean;
   closeOnOverlayClick?: boolean;
   closeOnEsc?: boolean;
   lockScroll?: boolean;
-
   transitionDuration?: number;
   transitionOffset?: number;
-
   zIndex?: number;
   className?: string;
   contentClassName?: string;
   style?: CSSProperties;
   contentStyle?: CSSProperties;
-
   "aria-label"?: string;
   "aria-labelledby"?: string;
 };
 
-export type PersistentDrawerProps = {
-  open: boolean;
-  anchor: DrawerAnchor;
-  swipeable: boolean;
-  swipeEdgeSize: number;
-  keepMounted: boolean;
-  miniActive: boolean;
-  size: number | string;
-  miniSize: number | string;
-  sizeCss: string;
-  miniSizeCss: string;
-  zIndex: number;
-  duration: number;
-  className?: string;
-  contentClassName?: string;
-  style?: CSSProperties;
-  contentStyle?: CSSProperties;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  onRequestOpen: () => void;
-  onRequestClose: () => void;
-  children: ReactNode;
-};
-
-export type TemporaryDrawerProps = {
-  open: boolean;
-  onRequestClose: () => void;
-  onRequestOpen: () => void;
-  anchor: DrawerAnchor;
-  container?: DrawerProps["container"];
-  swipeable: boolean;
-  swipeEdgeSize: number;
-  keepMounted: boolean;
-  overlay: boolean;
-  closeOnOverlayClick: boolean;
-  lockScroll: boolean;
-  closeOnEsc: boolean;
-  zIndex: number;
-  duration: number;
-  transitionOffset: number;
-  size: number | string;
-  miniActive: boolean;
-  miniSize: number | string;
-  sizeCss: string;
-  miniSizeCss: string;
-  className?: string;
-  contentClassName?: string;
-  style?: CSSProperties;
-  contentStyle?: CSSProperties;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  children: ReactNode;
-};
-
-export type TemporaryDrawerContentProps = {
-  open: boolean;
-  onRequestClose: () => void;
-  onRequestOpen: () => void;
-  anchor: DrawerAnchor;
-  swipeable: boolean;
-  overlay: boolean;
-  closeOnOverlayClick: boolean;
-  sizeCss: string;
-  miniSizeCss: string;
-  dragOffset: number;
-  duration: number;
-  transitionOffset: number;
-  contentClassName?: string;
-  contentStyle?: CSSProperties;
-  ariaLabel?: string;
-  ariaLabelledBy?: string;
-  contentRef: RefObject<HTMLDivElement | null>;
-  handlePointerDown: (
-    mode: "open" | "close",
-  ) => (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handlePointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handlePointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  endGesture: () => void;
-  children: ReactNode;
+export type SwipeableDrawerProps = DrawerProps & {
+  onOpen?: () => void;
+  swipeAreaWidth?: number;
+  disableSwipeToOpen?: boolean;
+  disableDiscovery?: boolean;
+  allowSwipeInChildren?: boolean | ((target: HTMLElement) => boolean);
 };
 
 export type DrawerSurfaceProps = {
@@ -138,9 +51,8 @@ export type DrawerSurfaceProps = {
   sizeCss: string;
   miniSizeCss: string;
   miniCollapsed: boolean;
-  dragOffset: number;
+  dragOffset?: number;
   duration: number;
-  swipeable: boolean;
   ariaLabel?: string;
   ariaLabelledBy?: string;
   className?: string;
@@ -153,13 +65,47 @@ export type DrawerSurfaceProps = {
   children: ReactNode;
 };
 
-export type DrawerEdgeProps = {
+export type SharedDrawerRenderProps = {
+  open: boolean;
   anchor: DrawerAnchor;
-  swipeEdgeSize: number;
-  handlePointerDown: (
-    mode: "open" | "close",
-  ) => (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handlePointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  handlePointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
-  endGesture: () => void;
+  variant: DrawerVariant;
+  container?: HTMLElement | null | (() => HTMLElement | null);
+  keepMounted: boolean;
+  miniActive: boolean;
+  overlay: boolean;
+  closeOnOverlayClick: boolean;
+  lockScroll: boolean;
+  closeOnEsc: boolean;
+  zIndex: number;
+  duration: number;
+  transitionOffset: number;
+  sizeCss: string;
+  miniSizeCss: string;
+  className?: string;
+  contentClassName?: string;
+  style?: CSSProperties;
+  contentStyle?: CSSProperties;
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
+  children: ReactNode;
+  dragOffset?: number;
+  onRequestClose: () => void;
+  surfacePointerHandlers?: {
+    onPointerDown?: (event: ReactPointerEvent<HTMLDivElement>) => void;
+    onPointerMove?: (event: ReactPointerEvent<HTMLDivElement>) => void;
+    onPointerUp?: (event: ReactPointerEvent<HTMLDivElement>) => void;
+    onPointerCancel?: () => void;
+  };
+};
+
+export type SwipeAreaProps = {
+  anchor: DrawerAnchor;
+  swipeAreaWidth: number;
+  discoverySize: number;
+  visible: boolean;
+  disableDiscovery: boolean;
+  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerCancel: () => void;
 };

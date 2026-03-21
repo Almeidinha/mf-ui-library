@@ -65,7 +65,6 @@ const shouldIgnoreCloseSwipeStart = (
 
 export const useSwipeableDrawer = ({
   anchor,
-  //open,
   swipeable,
   size,
   miniActive,
@@ -91,6 +90,7 @@ export const useSwipeableDrawer = ({
     mode: null,
   });
 
+  const swipeEnabled = swipeable;
   const axis = isHorizontal(anchor) ? "x" : "y";
   const sizeNumber = typeof size === "number" ? size : DEFAULT_SIZE;
   const effectiveMini = miniActive
@@ -109,7 +109,7 @@ export const useSwipeableDrawer = ({
 
   const handlePointerDown = useCallback(
     (mode: "open" | "close") => (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (!swipeable) {
+      if (!swipeEnabled) {
         return;
       }
 
@@ -122,9 +122,9 @@ export const useSwipeableDrawer = ({
       gestureRef.current.pointerId = event.pointerId;
       gestureRef.current.mode = mode;
 
-      (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+      event.currentTarget.setPointerCapture?.(event.pointerId);
     },
-    [axis, swipeable],
+    [axis, swipeEnabled],
   );
 
   const handlePointerMove = useCallback(

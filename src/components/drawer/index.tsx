@@ -1,2 +1,3 @@
 export * from "./drawer";
-export { type DrawerProps } from "./types";
+export * from "./swipeable-drawer";
+export { type DrawerProps, type SwipeableDrawerProps } from "./types";

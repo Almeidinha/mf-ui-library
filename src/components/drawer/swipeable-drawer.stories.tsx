@@ -1,13 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { IconMinor } from "components/icon";
 import { Box, Container, Flex } from "components/layout";
-import { Button, SimpleMenu, SimpleMenuItem } from "components/molecules";
-import { Body, Heading3 } from "components/typography";
+import { Button } from "components/molecules";
+import { Body, BodyLarge, Heading3 } from "components/typography";
 import { Gap, Padding } from "foundation/spacing";
 import { useArgs } from "storybook/internal/preview-api";
 import styled from "styled-components";
 
-import { Drawer, DrawerProps } from ".";
+import { SwipeableDrawer, SwipeableDrawerProps } from ".";
 import { DrawerAnchor } from "./types";
 
 const FLEX_DIRECTION_MAP: Record<DrawerAnchor, string> = {
@@ -17,14 +16,7 @@ const FLEX_DIRECTION_MAP: Record<DrawerAnchor, string> = {
   bottom: "column-reverse",
 };
 
-const MENU_DIRECTION_MAP: Record<DrawerAnchor, string> = {
-  left: "column",
-  right: "column",
-  top: "row",
-  bottom: "row",
-};
-
-const StoryFrame = styled(Flex)<{ $anchor: DrawerProps["anchor"] }>`
+const StoryFrame = styled(Flex)<{ $anchor: SwipeableDrawerProps["anchor"] }>`
   flex-direction: ${({ $anchor }) =>
     $anchor ? FLEX_DIRECTION_MAP[$anchor] : "row"};
   height: 100%;
@@ -44,7 +36,7 @@ const StoryHeader = styled(Flex)`
 const DemoContent = styled.div`
   display: grid;
   gap: 12px;
-  max-width: 520px;
+  max-width: 560px;
 `;
 
 const DrawerContent = styled.div`
@@ -53,36 +45,7 @@ const DrawerContent = styled.div`
   padding: 20px;
 `;
 
-const MainPanel = styled.div`
-  display: grid;
-  align-content: start;
-  gap: 12px;
-  padding: 24px;
-  background: #f8fafc;
-`;
-
-const Menu = styled(SimpleMenu)<{
-  $anchor: DrawerProps["anchor"];
-  $open?: boolean;
-}>`
-  flex-direction: ${({ $anchor, $open }) =>
-    $open ? "column" : $anchor ? MENU_DIRECTION_MAP[$anchor] : "row"};
-  position: relative;
-  width: 100%;
-  border-radius: 0;
-  height: 100%;
-  margin: auto;
-  padding: 0;
-  top: 0;
-  background: transparent;
-  border: none;
-  & button {
-    width: unset;
-    margin: 4px;
-  }
-`;
-
-function DefaultDrawerContent({
+function SwipeableDrawerContent({
   title,
   onClose,
 }: {
@@ -95,13 +58,12 @@ function DefaultDrawerContent({
         <Heading3>{title}</Heading3>
       </Box>
       <Body>
-        Use this drawer for navigation, filters, or secondary workflows that
-        should stay adjacent to the current page context.
+        Swipe from the configured edge to open this drawer, then swipe back or
+        use the buttons below to close it.
       </Body>
       <Body>
-        This story keeps the drawer state controlled through Storybook args so
-        you can toggle anchors, variants, overlay behavior, swipe support, and
-        mini mode from the controls panel.
+        Interactive children stay clickable by default, so buttons and form
+        controls do not accidentally begin a close gesture.
       </Body>
       <Flex gap={Gap.m}>
         <Button primary onClick={onClose}>
@@ -116,41 +78,35 @@ function DefaultDrawerContent({
 }
 
 const meta = {
-  title: "Components/Drawer",
-  component: Drawer,
+  title: "Components/SwipeableDrawer",
+  component: SwipeableDrawer,
   parameters: {
     layout: "padded",
     docs: {
       description: {
         component: `
-The Drawer component provides temporary and persistent side panels with support for
-anchor positioning, overlays, mini mode, and configurable entry transitions.
+The SwipeableDrawer component adds gesture-driven edge discovery and drag-to-open/close
+behavior on top of the shared drawer renderer.
 
 ---
 
 ## How to use
 
 \`\`\`tsx
-import { Drawer } from "./index";
+import { SwipeableDrawer } from "./index";
 
-<Drawer open={open} onClose={() => setOpen(false)}>
+<SwipeableDrawer open={open} onOpen={() => setOpen(true)} onClose={() => setOpen(false)}>
   Drawer content
-</Drawer>
+</SwipeableDrawer>
 \`\`\`
 
 ---
 
-## Variants
+## Swipe behavior
 
-- \`temporary\` renders as an overlay panel.
-- \`persistent\` stays in the layout and can optionally use mini mode.
-
-For gesture support, use the separate \`SwipeableDrawer\` component.
-
-## State modes
-
-- Controlled: provide \`open\` and react to \`onOpenChange\`.
-- Uncontrolled: provide \`defaultOpen\` and let the component manage its own state.
+- \`swipeAreaWidth\` controls how much edge area can start an open gesture.
+- \`disableSwipeToOpen\` removes edge-open gestures while keeping close swipes.
+- \`allowSwipeInChildren\` allows gestures to begin from interactive children when needed.
         `,
       },
     },
@@ -171,13 +127,18 @@ For gesture support, use the separate \`SwipeableDrawer\` component.
     transitionDuration: 220,
     transitionOffset: 8,
     zIndex: 1300,
+    swipeAreaWidth: 24,
+    disableSwipeToOpen: false,
+    disableDiscovery: false,
+    allowSwipeInChildren: false,
     className: undefined,
     contentClassName: undefined,
     style: undefined,
     contentStyle: undefined,
-    "aria-label": "Demo drawer",
+    "aria-label": "Demo swipeable drawer",
     "aria-labelledby": undefined,
     children: undefined,
+    onOpen: undefined,
     onClose: undefined,
     onOpenChange: undefined,
     container: undefined,
@@ -242,6 +203,36 @@ For gesture support, use the separate \`SwipeableDrawer\` component.
         defaultValue: { summary: "64" },
       },
     },
+    swipeAreaWidth: {
+      description: "Width of the edge area that can start an open gesture.",
+      table: {
+        category: "Gesture",
+        defaultValue: { summary: "24" },
+      },
+    },
+    disableSwipeToOpen: {
+      description: "Disables edge-open gestures while preserving close swipes.",
+      table: {
+        category: "Gesture",
+        defaultValue: { summary: "false" },
+      },
+    },
+    disableDiscovery: {
+      description: "Hides the discovery peek from the swipe area.",
+      table: {
+        category: "Gesture",
+        defaultValue: { summary: "false" },
+      },
+    },
+    allowSwipeInChildren: {
+      description:
+        "Allows swipe-close gestures to start from interactive children when set to true.",
+      control: { type: "boolean" },
+      table: {
+        category: "Gesture",
+        defaultValue: { summary: "false" },
+      },
+    },
     overlay: {
       description: "Shows a backdrop when the temporary drawer is open.",
       table: {
@@ -293,6 +284,15 @@ For gesture support, use the separate \`SwipeableDrawer\` component.
         defaultValue: { summary: "true" },
       },
     },
+    onOpen: {
+      description:
+        "Called when the component requests opening via a swipe gesture.",
+      control: false,
+      table: {
+        category: "Events",
+        defaultValue: { summary: "undefined" },
+      },
+    },
     onClose: {
       description: "Called when the drawer requests to close.",
       control: false,
@@ -328,14 +328,18 @@ For gesture support, use the separate \`SwipeableDrawer\` component.
       },
     },
   },
-} satisfies Meta<typeof Drawer>;
+} satisfies Meta<typeof SwipeableDrawer>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
   render: function Render(args) {
-    const [{ open, anchor }, updateArgs] = useArgs<DrawerProps>();
+    const [{ open, anchor }, updateArgs] = useArgs<SwipeableDrawerProps>();
+
+    const handleOpen = () => {
+      updateArgs({ open: true });
+    };
 
     const handleClose = () => {
       updateArgs({ open: false });
@@ -347,17 +351,23 @@ export const Primary: Story = {
 
     return (
       <StoryFrame $anchor={anchor}>
-        <Drawer {...args} open={open} onClose={handleClose} anchor={anchor}>
-          <DefaultDrawerContent
-            title="Temporary drawer"
+        <SwipeableDrawer
+          {...args}
+          open={open}
+          onOpen={handleOpen}
+          onClose={handleClose}
+          anchor={anchor}
+        >
+          <SwipeableDrawerContent
+            title="Swipeable temporary drawer"
             onClose={handleClose}
           />
-        </Drawer>
+        </SwipeableDrawer>
         <Container disableGutters style={{ padding: Padding.m }}>
           <StoryHeader>
             <Body>
-              Temporary drawers overlay the current page and are a good fit for
-              short-lived tasks, navigation, and mobile interactions.
+              Swipe from the selected edge to open this drawer, or use the
+              button to force the controlled state from Storybook.
             </Body>
             <Button primary onClick={handleToggle}>
               {open ? "Drawer open" : "Open drawer"}
@@ -366,12 +376,12 @@ export const Primary: Story = {
 
           <DemoContent>
             <Body>
-              Change the anchor, overlay behavior, or transition settings from
-              the controls panel and reopen the drawer to inspect the behavior.
+              Use the controls panel to adjust gesture settings like swipe area
+              width, discovery peek, and child swipe behavior.
             </Body>
             <Body>
-              The story controls the \`open\` arg so the component remains fully
-              interactive inside Storybook.
+              The content buttons remain clickable by default even while close
+              swipe gestures are enabled.
             </Body>
           </DemoContent>
         </Container>
@@ -380,16 +390,12 @@ export const Primary: Story = {
   },
 };
 
-export const PersistentMini: Story = {
+export const AllowSwipeInChildren: Story = {
   args: {
-    variant: "persistent",
-    mini: true,
-    open: false,
-    anchor: "left",
-    overlay: false,
+    allowSwipeInChildren: true,
   },
   render: function Render(args) {
-    const [{ open, anchor }, updateArgs] = useArgs<DrawerProps>();
+    const [{ open, anchor }, updateArgs] = useArgs<SwipeableDrawerProps>();
 
     const handleOpen = () => {
       updateArgs({ open: true });
@@ -401,66 +407,36 @@ export const PersistentMini: Story = {
 
     return (
       <StoryFrame $anchor={anchor}>
-        <Drawer
+        <SwipeableDrawer
           {...args}
-          size={150}
-          miniSize={48}
           open={open}
+          onOpen={handleOpen}
           onClose={handleClose}
           anchor={anchor}
         >
-          <Menu $anchor={anchor} $open={open}>
-            <SimpleMenuItem>
-              <Flex gap={Gap.xs}>
-                <IconMinor.Bars />
-                {open ? "Navigation" : null}
-              </Flex>
-            </SimpleMenuItem>
-            <SimpleMenuItem>
-              <Flex gap={Gap.xs}>
-                <IconMinor.User />
-                {open ? "Profile" : null}
-              </Flex>
-            </SimpleMenuItem>
-            <SimpleMenuItem>
-              <Flex gap={Gap.xs}>
-                <IconMinor.Utensils />
-                {open ? "Settings" : null}
-              </Flex>
-            </SimpleMenuItem>
-            <SimpleMenuItem>
-              <Flex gap={Gap.xs}>
-                <IconMinor.BarsFilter />
-                {open ? "Notifications" : null}
-              </Flex>
-            </SimpleMenuItem>
-            <SimpleMenuItem>
-              <Flex gap={Gap.xs}>
-                <IconMinor.MugTea />
-                {open ? "Messages" : null}
-              </Flex>
-            </SimpleMenuItem>
-            <SimpleMenuItem>
-              <Flex gap={Gap.xs}>
-                <IconMinor.ShareNodes />
-                {open ? "Help" : null}
-              </Flex>
-            </SimpleMenuItem>
-          </Menu>
-        </Drawer>
-
-        <MainPanel>
-          <Body>
-            Persistent drawers stay in the layout instead of overlaying the
-            page. When mini mode is enabled, the closed state leaves a small
-            rail visible for compact navigation patterns.
-          </Body>
-          <Flex gap={Gap.m}>
+          <SwipeableDrawerContent
+            title="Swipe enabled from children"
+            onClose={handleClose}
+          />
+        </SwipeableDrawer>
+        <Container disableGutters style={{ padding: Padding.m }}>
+          <StoryHeader column>
+            <BodyLarge>
+              When allowSwipeInChildren is enabled (true) element interactions
+              will not work, for them to work, you need to specify the elements
+              in an array instead of passing true
+            </BodyLarge>
+            <Body>
+              This variant allows swipe-close gestures to begin from interactive
+              content blocks while preserving buttons and other controls. It is
+              useful when the drawer body should feel draggable without making
+              actions inside it unclickable.
+            </Body>
             <Button primary onClick={open ? handleClose : handleOpen}>
-              {open ? "Collapse rail" : "Expand rail"}
+              {open ? "Close drawer" : "Open drawer"}
             </Button>
-          </Flex>
-        </MainPanel>
+          </StoryHeader>
+        </Container>
       </StoryFrame>
     );
   },
