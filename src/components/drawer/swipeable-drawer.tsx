@@ -20,6 +20,7 @@ import {
   SWIPE_CLOSE_THRESHOLD,
   SWIPE_OPEN_THRESHOLD,
 } from "./constants";
+import { SIGNED_DELTA } from "./helpers";
 import {
   DrawerSwipeArea,
   resolveContainer,
@@ -45,19 +46,6 @@ const getPoint = (
   axis: "x" | "y",
 ) => {
   return axis === "x" ? event.clientX : event.clientY;
-};
-
-const getSignedDelta = (anchor: DrawerAnchor, raw: number) => {
-  switch (anchor) {
-    case "left":
-      return raw;
-    case "right":
-      return -raw;
-    case "top":
-      return raw;
-    case "bottom":
-      return -raw;
-  }
 };
 
 const shouldIgnoreSwipeStart = (
@@ -162,7 +150,7 @@ function useSwipeableDrawer({
       }
 
       const current = getPoint(event, axis);
-      const signedDelta = getSignedDelta(anchor, current - gesture.start);
+      const signedDelta = SIGNED_DELTA[anchor](current - gesture.start);
 
       if (gesture.mode === "close") {
         setDragOffset(clamp(signedDelta, -maxDragDistance, 0));
@@ -183,7 +171,7 @@ function useSwipeableDrawer({
       }
 
       const current = getPoint(event, axis);
-      const signedDelta = getSignedDelta(anchor, current - gesture.start);
+      const signedDelta = SIGNED_DELTA[anchor](current - gesture.start);
 
       if (gesture.mode === "close") {
         const ratio = Math.abs(signedDelta) / maxDragDistance;

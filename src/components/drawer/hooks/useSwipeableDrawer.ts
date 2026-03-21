@@ -13,6 +13,7 @@ import {
   SWIPE_CLOSE_THRESHOLD,
   SWIPE_OPEN_THRESHOLD,
 } from "../constants";
+import { SIGNED_DELTA } from "../helpers";
 import { DrawerAnchor } from "../types";
 
 type GestureState = {
@@ -31,19 +32,6 @@ const getPoint = (
   axis: "x" | "y",
 ) => {
   return axis === "x" ? event.clientX : event.clientY;
-};
-
-const getSignedDelta = (anchor: DrawerAnchor, raw: number) => {
-  switch (anchor) {
-    case "left":
-      return raw;
-    case "right":
-      return -raw;
-    case "top":
-      return raw;
-    case "bottom":
-      return -raw;
-  }
 };
 
 const shouldIgnoreCloseSwipeStart = (
@@ -90,7 +78,6 @@ export const useSwipeableDrawer = ({
     mode: null,
   });
 
-  const swipeEnabled = swipeable;
   const axis = isHorizontal(anchor) ? "x" : "y";
   const sizeNumber = typeof size === "number" ? size : DEFAULT_SIZE;
   const effectiveMini = miniActive
@@ -109,7 +96,7 @@ export const useSwipeableDrawer = ({
 
   const handlePointerDown = useCallback(
     (mode: "open" | "close") => (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (!swipeEnabled) {
+      if (!swipeable) {
         return;
       }
 
@@ -124,7 +111,7 @@ export const useSwipeableDrawer = ({
 
       event.currentTarget.setPointerCapture?.(event.pointerId);
     },
-    [axis, swipeEnabled],
+    [axis, swipeable],
   );
 
   const handlePointerMove = useCallback(
@@ -136,7 +123,7 @@ export const useSwipeableDrawer = ({
       }
 
       const current = getPoint(event, axis);
-      const signedDelta = getSignedDelta(anchor, current - gesture.start);
+      const signedDelta = SIGNED_DELTA[anchor](current - gesture.start);
 
       if (gesture.mode === "close") {
         setDragOffset(clamp(signedDelta, -maxDragDistance, 0));
@@ -157,7 +144,7 @@ export const useSwipeableDrawer = ({
       }
 
       const current = getPoint(event, axis);
-      const signedDelta = getSignedDelta(anchor, current - gesture.start);
+      const signedDelta = SIGNED_DELTA[anchor](current - gesture.start);
 
       if (gesture.mode === "close") {
         const ratio = Math.abs(signedDelta) / maxDragDistance;

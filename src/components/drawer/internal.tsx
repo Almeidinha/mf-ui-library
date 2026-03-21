@@ -33,34 +33,25 @@ export function shouldUseMini(variant: DrawerVariant, mini: boolean) {
   return variant === "persistent" && mini;
 }
 
-const getClosedTransform = (anchor: DrawerAnchor, miniOffset = "0px") => {
-  switch (anchor) {
-    case "left":
-      return `translate3d(calc(-100% + ${miniOffset}), 0, 0)`;
-    case "right":
-      return `translate3d(calc(100% - ${miniOffset}), 0, 0)`;
-    case "top":
-      return "translate3d(0, -100%, 0)";
-    case "bottom":
-      return "translate3d(0, 100%, 0)";
-  }
+const CLOSED_TRANSFORM: Record<DrawerAnchor, (minOffset?: string) => string> = {
+  left: (minOffset) => `translate3d(calc(-100% + ${minOffset}), 0, 0)`,
+  right: (minOffset) => `translate3d(calc(100% - ${minOffset}), 0, 0)`,
+  top: () => "translate3d(0, -100%, 0)",
+  bottom: () => "translate3d(0, 100%, 0)",
 };
 
-const getPersistentClosedTransform = (
-  anchor: DrawerAnchor,
-  size: string,
-  miniOffset = "0px",
-) => {
-  switch (anchor) {
-    case "left":
-      return `translate3d(calc(-1 * (${size} - ${miniOffset})), 0, 0)`;
-    case "right":
-      return `translate3d(calc(${size} - ${miniOffset}), 0, 0)`;
-    case "top":
-      return `translate3d(0, calc(-1 * (${size} - ${miniOffset})), 0)`;
-    case "bottom":
-      return `translate3d(0, calc(${size} - ${miniOffset}), 0)`;
-  }
+const PERSISTENT_CLOSED_TRANSFORM: Record<
+  DrawerAnchor,
+  (size: string, miniOffset?: string) => string
+> = {
+  left: (size, miniOffset) =>
+    `translate3d(calc(-1 * (${size} - ${miniOffset})), 0, 0)`,
+  right: (size, miniOffset) =>
+    `translate3d(calc(${size} - ${miniOffset}), 0, 0)`,
+  top: (size, miniOffset) =>
+    `translate3d(0, calc(-1 * (${size} - ${miniOffset})), 0)`,
+  bottom: (size, miniOffset) =>
+    `translate3d(0, calc(${size} - ${miniOffset}), 0)`,
 };
 
 const EDGE_POSITION_MAP: Record<DrawerAnchor, RuleSet<object>> = {
@@ -268,10 +259,10 @@ const Surface = styled.div<{
     const baseTransform = $open
       ? "translate3d(0, 0, 0)"
       : $temporary
-        ? getClosedTransform($anchor, miniOffset)
+        ? CLOSED_TRANSFORM[$anchor](miniOffset)
         : isPersistentMiniClosed
           ? "translate3d(0, 0, 0)"
-          : getPersistentClosedTransform($anchor, $size ?? "0px", "0px");
+          : PERSISTENT_CLOSED_TRANSFORM[$anchor]($size ?? "0px", miniOffset);
 
     const dragTransform =
       $dragOffset === 0
