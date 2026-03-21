@@ -17,6 +17,13 @@ const FLEX_DIRECTION_MAP: Record<DrawerAnchor, string> = {
   bottom: "column-reverse",
 };
 
+const MENU_DIRECTION_MAP: Record<DrawerAnchor, string> = {
+  left: "column",
+  right: "column",
+  top: "row",
+  bottom: "row",
+};
+
 const StoryFrame = styled(Flex)<{ $anchor: DrawerProps["anchor"] }>`
   flex-direction: ${({ $anchor }) =>
     $anchor ? FLEX_DIRECTION_MAP[$anchor] : "row"};
@@ -59,7 +66,12 @@ const MainPanel = styled.div`
   background: #f8fafc;
 `;
 
-const Menu = styled(SimpleMenu)`
+const Menu = styled(SimpleMenu)<{
+  $anchor: DrawerProps["anchor"];
+  $open?: boolean;
+}>`
+  flex-direction: ${({ $anchor, $open }) =>
+    $open ? "column" : $anchor ? MENU_DIRECTION_MAP[$anchor] : "row"};
   position: relative;
   width: 100%;
   border-radius: 0;
@@ -356,7 +368,7 @@ export const Primary: Story = {
     const [{ open, anchor }, updateArgs] = useArgs<DrawerProps>();
 
     const handleOpen = () => {
-      updateArgs({ open: true });
+      updateArgs({ open: !open });
       args.onOpen?.();
     };
 
@@ -438,7 +450,7 @@ export const PersistentMini: Story = {
           onOpen={handleOpen}
           anchor={anchor}
         >
-          <Menu>
+          <Menu $anchor={anchor} $open={open}>
             <SimpleMenuItem>
               <Flex gap={Gap.xs}>
                 <IconMinor.Bars />

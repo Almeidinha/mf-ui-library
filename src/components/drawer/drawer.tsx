@@ -16,7 +16,7 @@ import {
   DEFAULT_Z_INDEX,
 } from "./constants";
 import { usePresence } from "./hooks/usePresence";
-import { isHorizontal, useSwipeableDrawer } from "./hooks/useSwipeableDrawer";
+import { useSwipeableDrawer } from "./hooks/useSwipeableDrawer";
 import { useTemporaryDrawerFocus } from "./hooks/useTemporaryDrawerFocus";
 import {
   DrawerAnchor,
@@ -42,13 +42,9 @@ const resolveContainer = (
   return container ?? document.body;
 };
 
-const shouldUseMini = (
-  anchor: DrawerAnchor,
-  variant: DrawerVariant,
-  mini: boolean,
-) => {
-  return variant === "persistent" && mini && isHorizontal(anchor);
-};
+function shouldUseMini(variant: DrawerVariant, mini: boolean) {
+  return variant === "persistent" && mini;
+}
 
 const getClosedTransform = (anchor: DrawerAnchor, miniOffset = "0px") => {
   switch (anchor) {
@@ -200,7 +196,9 @@ const Surface = styled.div<{
   ${({ $anchor, $size, $temporary, $miniActive, $miniSize, $open }) => {
     const closedSize = $miniActive ? $miniSize : "0px";
     const currentSize = $open ? $size : closedSize;
+    const currentHeight = $open ? $size : $miniSize;
     const persistentInlineSize = $miniActive ? currentSize : $size;
+    const persistentInlineHeight = $miniActive ? currentHeight : $size;
 
     switch ($anchor) {
       case "left":
@@ -239,7 +237,7 @@ const Surface = styled.div<{
             `
           : css`
               width: 100%;
-              height: ${$size};
+              height: ${persistentInlineHeight};
             `;
 
       case "bottom":
@@ -252,7 +250,7 @@ const Surface = styled.div<{
             `
           : css`
               width: 100%;
-              height: ${$size};
+              height: ${persistentInlineHeight};
             `;
     }
   }}
@@ -735,7 +733,7 @@ export function Drawer({
   });
 
   const temporary = variant === "temporary";
-  const miniActive = shouldUseMini(anchor, variant, mini);
+  const miniActive = shouldUseMini(variant, mini);
   const sizeCss = toCssSize(size, DEFAULT_SIZE);
   const miniSizeCss = toCssSize(miniSize, DEFAULT_MINI_SIZE);
 
