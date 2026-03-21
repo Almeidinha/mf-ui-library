@@ -16,3 +16,11 @@ export const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
   '[contenteditable="true"]',
 ].join(",");
+
+export const INTERACTIVE_SELECTOR = [
+  FOCUSABLE_SELECTOR,
+  '[role="button"]',
+  '[role="link"]',
+  '[role="menuitem"]',
+  '[role="option"]',
+].join(",");

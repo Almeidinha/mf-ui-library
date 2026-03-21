@@ -20,6 +20,7 @@ import { useSwipeableDrawer } from "./hooks/useSwipeableDrawer";
 import { useTemporaryDrawerFocus } from "./hooks/useTemporaryDrawerFocus";
 import {
   DrawerAnchor,
+  DrawerEdgeProps,
   DrawerProps,
   DrawerSurfaceProps,
   DrawerVariant,
@@ -301,6 +302,7 @@ const SwipeEdge = styled.div<{
   $visible: boolean;
 }>`
   position: absolute;
+  background: gray; // TODO donnt forget to remove this
   pointer-events: ${({ $visible }) => ($visible ? "auto" : "none")};
   opacity: ${({ $visible }) => ($visible ? 1 : 0)};
   z-index: 1;
@@ -322,6 +324,27 @@ const SwipeEdge = styled.div<{
     }
   }}
 `;
+
+function DrawerEdge({
+  anchor,
+  swipeEdgeSize,
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerUp,
+  endGesture,
+}: DrawerEdgeProps) {
+  return (
+    <SwipeEdge
+      $anchor={anchor}
+      $size={swipeEdgeSize}
+      $visible
+      onPointerDown={handlePointerDown("open")}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={endGesture}
+    />
+  );
+}
 
 function DrawerSurface({
   open,
@@ -378,7 +401,6 @@ function TemporaryDrawerContent({
   //onRequestOpen,
   anchor,
   swipeable,
-  swipeEdgeSize,
   overlay,
   closeOnOverlayClick,
   sizeCss,
@@ -404,18 +426,6 @@ function TemporaryDrawerContent({
           $open={open}
           $duration={duration}
           onClick={closeOnOverlayClick ? onRequestClose : undefined}
-        />
-      </If>
-
-      <If is={swipeable}>
-        <SwipeEdge
-          $anchor={anchor}
-          $size={swipeEdgeSize}
-          $visible={!open}
-          onPointerDown={handlePointerDown("open")}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={endGesture}
         />
       </If>
 
@@ -538,17 +548,31 @@ function TemporaryDrawer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closeOnEsc, onRequestClose, open]);
 
-  if (!keepMounted && !open) {
-    return swipeable ? (
-      <Root $zIndex={zIndex} className={className} style={style}>
+  if (!keepMounted && !open && !swipeable) {
+    return null;
+  }
+
+  const content = (
+    <Root $zIndex={zIndex} className={className} style={style}>
+      <If is={swipeable ? !open : null}>
+        <DrawerEdge
+          anchor={anchor}
+          swipeEdgeSize={swipeEdgeSize}
+          handlePointerDown={handlePointerDown}
+          handlePointerMove={handlePointerMove}
+          handlePointerUp={handlePointerUp}
+          endGesture={endGesture}
+        />
+      </If>
+
+      <If is={keepMounted || open}>
         <TemporaryDrawerContent
           open={open}
           onRequestClose={onRequestClose}
           onRequestOpen={onRequestOpen}
           anchor={anchor}
           swipeable={swipeable}
-          swipeEdgeSize={swipeEdgeSize}
-          overlay={false}
+          overlay={overlay}
           closeOnOverlayClick={closeOnOverlayClick}
           sizeCss={sizeCss}
           miniSizeCss={miniSizeCss}
@@ -567,38 +591,7 @@ function TemporaryDrawer({
         >
           {children}
         </TemporaryDrawerContent>
-      </Root>
-    ) : null;
-  }
-
-  const content = (
-    <Root $zIndex={zIndex} className={className} style={style}>
-      <TemporaryDrawerContent
-        open={open}
-        onRequestClose={onRequestClose}
-        onRequestOpen={onRequestOpen}
-        anchor={anchor}
-        swipeable={swipeable}
-        swipeEdgeSize={swipeEdgeSize}
-        overlay={overlay}
-        closeOnOverlayClick={closeOnOverlayClick}
-        sizeCss={sizeCss}
-        miniSizeCss={miniSizeCss}
-        dragOffset={dragOffset}
-        duration={duration}
-        transitionOffset={transitionOffset}
-        contentClassName={contentClassName}
-        contentStyle={contentStyle}
-        ariaLabel={ariaLabel}
-        ariaLabelledBy={ariaLabelledBy}
-        contentRef={contentRef}
-        handlePointerDown={handlePointerDown}
-        handlePointerMove={handlePointerMove}
-        handlePointerUp={handlePointerUp}
-        endGesture={endGesture}
-      >
-        {children}
-      </TemporaryDrawerContent>
+      </If>
     </Root>
   );
 
@@ -609,6 +602,7 @@ function PersistentDrawer({
   open,
   anchor,
   swipeable,
+  swipeEdgeSize,
   keepMounted,
   miniActive,
   size,
@@ -654,45 +648,64 @@ function PersistentDrawer({
     onRequestClose,
   });
 
-  if (!present) {
+  const showSwipeEdge = swipeable && !renderedOpen && !miniActive;
+
+  if (!present && !showSwipeEdge) {
     return null;
   }
 
   return (
-    <InlineRoot
-      ref={inlineRootRef}
-      $zIndex={zIndex}
-      $anchor={anchor}
-      $open={renderedOpen}
-      $size={sizeCss}
-      $miniSize={miniSizeCss}
-      $miniActive={miniActive}
-      $duration={duration}
-      className={className}
-      style={style}
-    >
-      <DrawerSurface
-        open={renderedOpen}
-        anchor={anchor}
-        temporary={false}
-        sizeCss={sizeCss}
-        miniSizeCss={miniSizeCss}
-        miniCollapsed={Boolean(miniActive && !renderedOpen)}
-        dragOffset={dragOffset}
-        duration={duration}
-        swipeable={swipeable}
-        ariaLabel={ariaLabel}
-        ariaLabelledBy={ariaLabelledBy}
-        className={contentClassName}
-        style={contentStyle}
-        onPointerDown={renderedOpen ? handlePointerDown("close") : undefined}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={endGesture}
-      >
-        {children}
-      </DrawerSurface>
-    </InlineRoot>
+    <>
+      <If is={showSwipeEdge}>
+        <DrawerEdge
+          anchor={anchor}
+          swipeEdgeSize={swipeEdgeSize}
+          handlePointerDown={handlePointerDown}
+          handlePointerMove={handlePointerMove}
+          handlePointerUp={handlePointerUp}
+          endGesture={endGesture}
+        />
+      </If>
+
+      <If is={present}>
+        <InlineRoot
+          ref={inlineRootRef}
+          $zIndex={zIndex}
+          $anchor={anchor}
+          $open={renderedOpen}
+          $size={sizeCss}
+          $miniSize={miniSizeCss}
+          $miniActive={miniActive}
+          $duration={duration}
+          className={className}
+          style={style}
+        >
+          <DrawerSurface
+            open={renderedOpen}
+            anchor={anchor}
+            temporary={false}
+            sizeCss={sizeCss}
+            miniSizeCss={miniSizeCss}
+            miniCollapsed={Boolean(miniActive && !renderedOpen)}
+            dragOffset={dragOffset}
+            duration={duration}
+            swipeable={swipeable}
+            ariaLabel={ariaLabel}
+            ariaLabelledBy={ariaLabelledBy}
+            className={contentClassName}
+            style={contentStyle}
+            onPointerDown={
+              renderedOpen ? handlePointerDown("close") : undefined
+            }
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={endGesture}
+          >
+            {children}
+          </DrawerSurface>
+        </InlineRoot>
+      </If>
+    </>
   );
 }
 
@@ -795,6 +808,7 @@ export function Drawer({
       open={open}
       anchor={anchor}
       swipeable={swipeable}
+      swipeEdgeSize={swipeEdgeSize}
       keepMounted={keepMounted}
       miniActive={miniActive}
       size={size}

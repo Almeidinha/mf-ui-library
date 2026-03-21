@@ -9,6 +9,7 @@ import {
 import {
   DEFAULT_MINI_SIZE,
   DEFAULT_SIZE,
+  INTERACTIVE_SELECTOR,
   SWIPE_CLOSE_THRESHOLD,
   SWIPE_OPEN_THRESHOLD,
 } from "../constants";
@@ -43,6 +44,23 @@ const getSignedDelta = (anchor: DrawerAnchor, raw: number) => {
     case "bottom":
       return -raw;
   }
+};
+
+const shouldIgnoreCloseSwipeStart = (
+  event: ReactPointerEvent<HTMLDivElement>,
+  mode: "open" | "close",
+) => {
+  if (mode !== "close") {
+    return false;
+  }
+
+  const target = event.target;
+
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return target.closest(INTERACTIVE_SELECTOR) !== null;
 };
 
 export const useSwipeableDrawer = ({
@@ -92,6 +110,10 @@ export const useSwipeableDrawer = ({
   const handlePointerDown = useCallback(
     (mode: "open" | "close") => (event: ReactPointerEvent<HTMLDivElement>) => {
       if (!swipeable) {
+        return;
+      }
+
+      if (shouldIgnoreCloseSwipeStart(event, mode)) {
         return;
       }
 

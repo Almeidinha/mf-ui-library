@@ -1,4 +1,9 @@
-import { CSSProperties, PointerEvent, ReactNode, RefObject } from "react";
+import {
+  CSSProperties,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+  RefObject,
+} from "react";
 
 export type DrawerAnchor = "left" | "right" | "top" | "bottom";
 export type DrawerVariant = "temporary" | "persistent";
@@ -49,6 +54,7 @@ export type PersistentDrawerProps = {
   open: boolean;
   anchor: DrawerAnchor;
   swipeable: boolean;
+  swipeEdgeSize: number;
   keepMounted: boolean;
   miniActive: boolean;
   size: number | string;
@@ -104,7 +110,6 @@ export type TemporaryDrawerContentProps = {
   onRequestOpen: () => void;
   anchor: DrawerAnchor;
   swipeable: boolean;
-  swipeEdgeSize: number;
   overlay: boolean;
   closeOnOverlayClick: boolean;
   sizeCss: string;
@@ -119,9 +124,9 @@ export type TemporaryDrawerContentProps = {
   contentRef: RefObject<HTMLDivElement | null>;
   handlePointerDown: (
     mode: "open" | "close",
-  ) => (event: PointerEvent<HTMLDivElement>) => void;
-  handlePointerMove: (event: PointerEvent<HTMLDivElement>) => void;
-  handlePointerUp: (event: PointerEvent<HTMLDivElement>) => void;
+  ) => (event: ReactPointerEvent<HTMLDivElement>) => void;
+  handlePointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  handlePointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
   endGesture: () => void;
   children: ReactNode;
 };
@@ -141,9 +146,20 @@ export type DrawerSurfaceProps = {
   className?: string;
   style?: CSSProperties;
   contentRef?: RefObject<HTMLDivElement | null>;
-  onPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
-  onPointerMove?: (event: PointerEvent<HTMLDivElement>) => void;
-  onPointerUp?: (event: PointerEvent<HTMLDivElement>) => void;
+  onPointerDown?: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerMove?: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  onPointerUp?: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onPointerCancel?: () => void;
   children: ReactNode;
+};
+
+export type DrawerEdgeProps = {
+  anchor: DrawerAnchor;
+  swipeEdgeSize: number;
+  handlePointerDown: (
+    mode: "open" | "close",
+  ) => (event: ReactPointerEvent<HTMLDivElement>) => void;
+  handlePointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  handlePointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
+  endGesture: () => void;
 };

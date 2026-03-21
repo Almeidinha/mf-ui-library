@@ -53,11 +53,6 @@ const DrawerContent = styled.div`
   padding: 20px;
 `;
 
-const ActionRow = styled(Flex)`
-  gap: 12px;
-  flex-wrap: wrap;
-`;
-
 const MainPanel = styled.div`
   display: grid;
   align-content: start;
@@ -108,14 +103,14 @@ function DefaultDrawerContent({
         you can toggle anchors, variants, overlay behavior, swipe support, and
         mini mode from the controls panel.
       </Body>
-      <ActionRow>
+      <Flex gap={Gap.m}>
         <Button primary onClick={onClose}>
           Close drawer
         </Button>
         <Button subtle onClick={onClose}>
           Dismiss
         </Button>
-      </ActionRow>
+      </Flex>
     </DrawerContent>
   );
 }
@@ -368,13 +363,15 @@ export const Primary: Story = {
     const [{ open, anchor }, updateArgs] = useArgs<DrawerProps>();
 
     const handleOpen = () => {
-      updateArgs({ open: !open });
-      args.onOpen?.();
+      updateArgs({ open: true });
     };
 
     const handleClose = () => {
       updateArgs({ open: false });
-      args.onClose?.();
+    };
+
+    const handleToggle = () => {
+      updateArgs({ open: !open });
     };
 
     return (
@@ -397,7 +394,7 @@ export const Primary: Story = {
               Temporary drawers overlay the current page and are a good fit for
               short-lived tasks, navigation, and mobile interactions.
             </Body>
-            <Button primary onClick={handleOpen}>
+            <Button primary onClick={handleToggle}>
               {open ? "Drawer open" : "Open drawer"}
             </Button>
           </StoryHeader>
@@ -431,12 +428,10 @@ export const PersistentMini: Story = {
 
     const handleOpen = () => {
       updateArgs({ open: true });
-      args.onOpen?.();
     };
 
     const handleClose = () => {
       updateArgs({ open: false });
-      args.onClose?.();
     };
 
     return (
@@ -496,11 +491,11 @@ export const PersistentMini: Story = {
             page. When mini mode is enabled, the closed state leaves a small
             rail visible for compact navigation patterns.
           </Body>
-          <ActionRow>
+          <Flex gap={Gap.m}>
             <Button primary onClick={open ? handleClose : handleOpen}>
               {open ? "Collapse rail" : "Expand rail"}
             </Button>
-          </ActionRow>
+          </Flex>
         </MainPanel>
       </StoryFrame>
     );
