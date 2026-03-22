@@ -56,6 +56,66 @@ const columns: DataTableColumn<TestRow>[] = [
   },
 ];
 
+type SpanRow = {
+  id: number;
+  region: string;
+  team: string;
+  metric: string;
+  note: string;
+};
+
+const spanColumns: DataTableColumn<SpanRow>[] = [
+  {
+    field: "team",
+    headerName: "Team",
+    rowSpan: ({ row, rowIndex, rows }) => {
+      const nextRow = rows[rowIndex + 1];
+
+      return nextRow && nextRow.team === row.team ? 2 : undefined;
+    },
+  },
+  {
+    field: "metric",
+    headerName: "Metric",
+    colSpan: ({ row }) => (row.metric.startsWith("Summary") ? 2 : undefined),
+  },
+  {
+    field: "note",
+    headerName: "Note",
+  },
+];
+
+const spanRows: SpanRow[] = [
+  {
+    id: 1,
+    region: "North",
+    team: "Core",
+    metric: "Revenue",
+    note: "$120k",
+  },
+  {
+    id: 2,
+    region: "North",
+    team: "Core",
+    metric: "Summary: Core",
+    note: "2 active deals",
+  },
+  {
+    id: 3,
+    region: "South",
+    team: "Core",
+    metric: "Revenue",
+    note: "$90k",
+  },
+  {
+    id: 4,
+    region: "South",
+    team: "Core",
+    metric: "Summary: Core",
+    note: "1 renewal",
+  },
+];
+
 describe("DataTable grouping", () => {
   it("renders nested column group headers", () => {
     render(
@@ -179,5 +239,68 @@ describe("DataTable grouping", () => {
     expect(
       within(brunoRow as HTMLTableRowElement).getByRole("checkbox"),
     ).not.toBeChecked();
+  });
+});
+
+describe("DataTable cell spans", () => {
+  it("renders column spans without affecting the default row path", () => {
+    render(
+      <DataTable
+        rows={spanRows}
+        columns={spanColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const summaryCell = screen.getAllByText("Summary: Core")[0]?.closest("td");
+
+    expect(summaryCell).not.toBeNull();
+    expect(summaryCell).toHaveAttribute("colspan", "2");
+    expect(screen.queryByText("2 active deals")).not.toBeInTheDocument();
+  });
+
+  it("renders row spans for consecutive rows inside the same section", () => {
+    render(
+      <DataTable
+        rows={spanRows}
+        columns={spanColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const teamCells = screen
+      .getAllByText("Core")
+      .map((element) => element.closest("td"));
+
+    expect(teamCells).toHaveLength(2);
+    expect(teamCells[0]).toHaveAttribute("rowspan", "2");
+    expect(teamCells[1]).toHaveAttribute("rowspan", "2");
+  });
+
+  it("stops row spans at row-group boundaries", () => {
+    render(
+      <DataTable
+        rows={spanRows}
+        columns={spanColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        rowGrouping={{
+          field: "region",
+        }}
+      />,
+    );
+
+    const teamCells = screen
+      .getAllByText("Core")
+      .map((element) => element.closest("td"));
+
+    expect(teamCells).toHaveLength(2);
+    expect(teamCells[0]).toHaveAttribute("rowspan", "2");
+    expect(teamCells[1]).toHaveAttribute("rowspan", "2");
   });
 });

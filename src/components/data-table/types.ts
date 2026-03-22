@@ -5,6 +5,16 @@ export type SortDirection = "ASC" | "DESC" | "NONE";
 export type DataTableAlign = "left" | "center" | "right";
 export type DataTablePin = "left" | "right";
 export type DataTableGroupValue = string | number | boolean | null | undefined;
+export type DataTableSpanArgs<T extends Record<string, unknown>> = {
+  row: T;
+  rowIndex: number;
+  rows: T[];
+  value: ReactNode;
+};
+
+export type DataTableSpanValue<T extends Record<string, unknown>> =
+  | number
+  | ((args: DataTableSpanArgs<T>) => number | null | undefined);
 
 export type DataTableRowKey<T> = keyof T | ((row: T) => React.Key);
 
@@ -41,6 +51,8 @@ type DataTableBaseColumn<T extends Record<string, unknown>> = {
 
   valueGetter?: (value: unknown, row: T) => ReactNode;
   renderCell?: (row: T, value: ReactNode) => ReactNode;
+  colSpan?: DataTableSpanValue<T>;
+  rowSpan?: DataTableSpanValue<T>;
   sortValueGetter?: (row: T) => string | number | null | undefined;
 };
 

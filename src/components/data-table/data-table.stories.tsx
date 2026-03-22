@@ -21,6 +21,52 @@ type PersonRow = {
   birth?: string;
 };
 
+type SpanStoryRow = {
+  id: number;
+  region: string;
+  team: string;
+  metric: string;
+  note: string;
+};
+
+type RowSpanStoryRow = {
+  id: number;
+  portfolio: string;
+  squad: string;
+  owner: string;
+  stage: string;
+  revenue: string;
+};
+
+type ColumnSpanStoryRow = {
+  id: number;
+  quarter: string;
+  lineItem: string;
+  value: string;
+  change: string;
+  note: string;
+};
+
+function getForwardRunLength<T>(
+  rows: T[],
+  rowIndex: number,
+  matches: (currentRow: T, nextRow: T) => boolean,
+) {
+  const currentRow = rows[rowIndex];
+
+  if (!currentRow) {
+    return 1;
+  }
+
+  return rows.slice(rowIndex + 1).reduce((span, nextRow) => {
+    if (!matches(currentRow, nextRow)) {
+      return span;
+    }
+
+    return span + 1;
+  }, 1);
+}
+
 const getPersonRows = (): PersonRow[] => {
   return Array.from({ length: 500 }, (_, i) => ({
     id: i + 1,
@@ -137,6 +183,235 @@ const columns: DataTableColumn<PersonRow>[] = [
   },
 ];
 
+const spanStoryRows: SpanStoryRow[] = [
+  {
+    id: 1,
+    region: "North America",
+    team: "Core",
+    metric: "Revenue",
+    note: "$120k",
+  },
+  {
+    id: 2,
+    region: "North America",
+    team: "Core",
+    metric: "Summary: Core",
+    note: "2 active deals",
+  },
+  {
+    id: 3,
+    region: "Europe",
+    team: "Platform",
+    metric: "Revenue",
+    note: "$95k",
+  },
+  {
+    id: 4,
+    region: "Europe",
+    team: "Platform",
+    metric: "Summary: Platform",
+    note: "1 expansion in review",
+  },
+];
+
+const spanColumns: DataTableColumn<SpanStoryRow>[] = [
+  {
+    field: "team",
+    headerName: "Team",
+    fitContent: true,
+    rowSpan: ({ row, rowIndex, rows }) => {
+      const nextRow = rows[rowIndex + 1];
+
+      return nextRow && nextRow.team === row.team ? 2 : undefined;
+    },
+  },
+  {
+    field: "metric",
+    headerName: "Metric",
+    colSpan: ({ row }) => (row.metric.startsWith("Summary") ? 2 : undefined),
+    renderCell: (row, value) =>
+      row.metric.startsWith("Summary") ? <Label strong>{value}</Label> : value,
+  },
+  {
+    field: "note",
+    headerName: "Note",
+  },
+];
+
+const rowSpanStoryRows: RowSpanStoryRow[] = [
+  {
+    id: 1,
+    portfolio: "Platform",
+    squad: "Identity",
+    owner: "Marina",
+    stage: "Discovery",
+    revenue: "$140k",
+  },
+  {
+    id: 2,
+    portfolio: "Platform",
+    squad: "Identity",
+    owner: "Marina",
+    stage: "Implementation",
+    revenue: "$190k",
+  },
+  {
+    id: 3,
+    portfolio: "Platform",
+    squad: "Billing",
+    owner: "Joao",
+    stage: "Rollout",
+    revenue: "$95k",
+  },
+  {
+    id: 4,
+    portfolio: "Growth",
+    squad: "Checkout",
+    owner: "Nina",
+    stage: "Discovery",
+    revenue: "$220k",
+  },
+  {
+    id: 5,
+    portfolio: "Growth",
+    squad: "Checkout",
+    owner: "Nina",
+    stage: "Experiment",
+    revenue: "$245k",
+  },
+  {
+    id: 6,
+    portfolio: "Growth",
+    squad: "Activation",
+    owner: "Leo",
+    stage: "Rollout",
+    revenue: "$130k",
+  },
+];
+
+const rowSpanColumns: DataTableColumn<RowSpanStoryRow>[] = [
+  {
+    field: "portfolio",
+    headerName: "Portfolio",
+    fitContent: true,
+    rowSpan: ({ row, rowIndex, rows }) => {
+      const previousRow = rows[rowIndex - 1];
+
+      if (previousRow?.portfolio === row.portfolio) {
+        return 1;
+      }
+
+      return getForwardRunLength(
+        rows,
+        rowIndex,
+        (currentRow, nextRow) => currentRow.portfolio === nextRow.portfolio,
+      );
+    },
+  },
+  {
+    field: "squad",
+    headerName: "Squad",
+    fitContent: true,
+    rowSpan: ({ row, rowIndex, rows }) => {
+      const previousRow = rows[rowIndex - 1];
+
+      if (previousRow?.squad === row.squad) {
+        return 1;
+      }
+
+      return getForwardRunLength(
+        rows,
+        rowIndex,
+        (currentRow, nextRow) => currentRow.squad === nextRow.squad,
+      );
+    },
+  },
+  {
+    field: "owner",
+    headerName: "Owner",
+    fitContent: true,
+  },
+  {
+    field: "stage",
+    headerName: "Stage",
+  },
+  {
+    field: "revenue",
+    headerName: "Revenue",
+    align: "right",
+    fitContent: true,
+  },
+];
+
+const columnSpanStoryRows: ColumnSpanStoryRow[] = [
+  {
+    id: 1,
+    quarter: "Q1",
+    lineItem: "New revenue",
+    value: "$340k",
+    change: "+12%",
+    note: "Strong enterprise close rate",
+  },
+  {
+    id: 2,
+    quarter: "Q1",
+    lineItem: "Summary: Q1 momentum",
+    value: "Focused expansion in core accounts",
+    change: "",
+    note: "",
+  },
+  {
+    id: 3,
+    quarter: "Q2",
+    lineItem: "New revenue",
+    value: "$410k",
+    change: "+18%",
+    note: "Mid-market pipeline expanded",
+  },
+  {
+    id: 4,
+    quarter: "Q2",
+    lineItem: "Summary: Q2 momentum",
+    value: "Upsell motion stabilized after launch",
+    change: "",
+    note: "",
+  },
+];
+
+const columnSpanColumns: DataTableColumn<ColumnSpanStoryRow>[] = [
+  {
+    field: "quarter",
+    headerName: "Quarter",
+    fitContent: true,
+  },
+  {
+    field: "lineItem",
+    headerName: "Line item",
+    fitContent: true,
+    colSpan: ({ row }) => (row.lineItem.startsWith("Summary:") ? 4 : 1),
+    renderCell: (row, value) =>
+      row.lineItem.startsWith("Summary:") ? (
+        <Label strong>{value}</Label>
+      ) : (
+        value
+      ),
+  },
+  {
+    field: "value",
+    headerName: "Value",
+  },
+  {
+    field: "change",
+    headerName: "Change",
+    fitContent: true,
+    align: "right",
+  },
+  {
+    field: "note",
+    headerName: "Note",
+  },
+];
+
 const meta = {
   title: "Components/DataTable",
   component: DataTable,
@@ -198,7 +473,7 @@ const meta = {
     },
     columns: {
       description:
-        "Column definitions describing headers, sizing, sorting, and custom cell rendering.",
+        "Column definitions describing headers, sizing, sorting, custom cell rendering, and optional body-cell merging via `rowSpan` and `colSpan`. Spans are computed only when a visible regular column defines one of those props, and they stop at row-group boundaries.",
       control: false,
       table: {
         category: "Data",
@@ -524,6 +799,99 @@ export const FixedWidth: Story = {
           {...args}
           rows={rows as PersonRow[]}
           columns={columns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const RowSpanComplex: Story = {
+  args: {
+    manageColumns: false,
+    checkboxSelection: false,
+    searchable: false,
+    paginated: false,
+    rowGrouping: {
+      field: "portfolio",
+    },
+  },
+
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Shows stacked body-cell merging with multiple row-span columns. The portfolio and squad cells merge downward, while the row grouping boundary prevents spans from crossing into the next portfolio section.",
+      },
+    },
+  },
+
+  render: (args) => {
+    return (
+      <Flex>
+        <DataTable
+          {...args}
+          rows={rowSpanStoryRows}
+          columns={rowSpanColumns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const ColumnSpanComplex: Story = {
+  args: {
+    manageColumns: false,
+    checkboxSelection: false,
+    searchable: false,
+    paginated: false,
+    rowGrouping: {
+      field: "quarter",
+    },
+  },
+
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Shows summary rows that merge horizontally across adjacent body cells. The line-item column expands across the remaining detail columns inside each quarter section.",
+      },
+    },
+  },
+
+  render: (args) => {
+    return (
+      <Flex>
+        <DataTable
+          {...args}
+          rows={columnSpanStoryRows}
+          columns={columnSpanColumns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const CellSpans: Story = {
+  args: {
+    manageColumns: false,
+    checkboxSelection: false,
+    searchable: false,
+    paginated: false,
+    rowGrouping: {
+      field: "region",
+    },
+  },
+
+  render: (args) => {
+    return (
+      <Flex>
+        <DataTable
+          {...args}
+          rows={spanStoryRows}
+          columns={spanColumns}
           rowKey="id"
         />
       </Flex>

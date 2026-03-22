@@ -35,12 +35,13 @@ import {
 import { DataTableColumnManager } from "./DataTableColumnManager";
 import type { DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";
+import {
+  type ResolvedBodyCell,
+  useDataTableBodySpans,
+} from "./useDataTableBodySpans";
 import { useDataTableColumnGrouping } from "./useDataTableColumnGrouping";
 import { useDataTablePinnedStyles } from "./useDataTablePinnedStyles";
-import {
-  //GroupedBodyEntry,
-  useDataTableRowGrouping,
-} from "./useDataTableRowGrouping";
+import { useDataTableRowGrouping } from "./useDataTableRowGrouping";
 
 const TableFrame = styled.div<{
   $responsive: boolean;
@@ -236,6 +237,24 @@ export function DataTable<T extends Record<string, unknown>>(
     selectedKeySet,
     setSelectedKeys,
   });
+
+  const bodySpanState = useDataTableBodySpans<T>({
+    groupedBodyEntries,
+    renderedColumns,
+    getColumnRawValue,
+  });
+  const { hasBodySpans, bodyCellsByKey } = bodySpanState;
+
+  const defaultBodyCells = React.useMemo<ResolvedBodyCell<T>[]>(
+    () =>
+      renderedColumns.map((renderedColumn) => ({
+        renderedColumn,
+        colSpan: 1,
+        rowSpan: 1,
+        rawValue: undefined,
+      })),
+    [renderedColumns],
+  );
 
   const renderSelectAllHeader = React.useCallback(
     (rowSpan?: number) => {
@@ -533,6 +552,10 @@ export function DataTable<T extends Record<string, unknown>>(
 
                   const { row, key } = entry;
                   const isSelected = selectedKeySet.has(key);
+                  const bodyCells =
+                    hasBodySpans && bodyCellsByKey.has(key)
+                      ? (bodyCellsByKey.get(key) ?? defaultBodyCells)
+                      : defaultBodyCells;
 
                   return (
                     <TableRow key={key} selected={isSelected}>
@@ -553,8 +576,11 @@ export function DataTable<T extends Record<string, unknown>>(
                         />
                       </If>
 
-                      {renderedColumns.map(
-                        ({ field, textAlign, stickyStyle, column }) => {
+                      {bodyCells.map(
+                        ({ renderedColumn, colSpan, rowSpan, rawValue }) => {
+                          const { field, textAlign, stickyStyle, column } =
+                            renderedColumn;
+
                           if (isActionsColumn(column)) {
                             const actions = column
                               .getActions(row)
@@ -567,6 +593,8 @@ export function DataTable<T extends Record<string, unknown>>(
                               <TableBodyCell.Actions
                                 key={field}
                                 fitContent={column.fitContent ?? true}
+                                colSpan={colSpan > 1 ? colSpan : undefined}
+                                rowSpan={rowSpan > 1 ? rowSpan : undefined}
                                 style={{
                                   textAlign,
                                   ...stickyStyle,
@@ -594,15 +622,18 @@ export function DataTable<T extends Record<string, unknown>>(
                             );
                           }
 
-                          const rawValue = getColumnRawValue(row, column);
+                          const resolvedValue =
+                            rawValue ?? getColumnRawValue(row, column);
                           const content = column.renderCell
-                            ? column.renderCell(row, rawValue)
-                            : rawValue;
+                            ? column.renderCell(row, resolvedValue)
+                            : resolvedValue;
 
                           return (
                             <TableBodyCell
                               key={field}
                               fitContent={column.fitContent}
+                              colSpan={colSpan > 1 ? colSpan : undefined}
+                              rowSpan={rowSpan > 1 ? rowSpan : undefined}
                               style={{
                                 textAlign,
                                 ...stickyStyle,
