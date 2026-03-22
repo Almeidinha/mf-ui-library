@@ -16,7 +16,7 @@ export type DrawerProps = {
   children: ReactNode;
   anchor?: DrawerAnchor;
   variant?: DrawerVariant;
-  container?: HTMLElement | null | (() => HTMLElement | null);
+  containerRef?: RefObject<HTMLElement | null>;
   keepMounted?: boolean;
   mini?: boolean;
   miniSize?: number;
@@ -26,7 +26,6 @@ export type DrawerProps = {
   closeOnEsc?: boolean;
   lockScroll?: boolean;
   transitionDuration?: number;
-  transitionOffset?: number;
   zIndex?: number;
   className?: string;
   contentClassName?: string;
@@ -69,7 +68,7 @@ export type SharedDrawerRenderProps = {
   open: boolean;
   anchor: DrawerAnchor;
   variant: DrawerVariant;
-  container?: HTMLElement | null | (() => HTMLElement | null);
+  containerRef?: RefObject<HTMLElement | null>;
   keepMounted: boolean;
   miniActive: boolean;
   overlay: boolean;
@@ -78,7 +77,6 @@ export type SharedDrawerRenderProps = {
   closeOnEsc: boolean;
   zIndex: number;
   duration: number;
-  transitionOffset: number;
   sizeCss: string;
   miniSizeCss: string;
   className?: string;

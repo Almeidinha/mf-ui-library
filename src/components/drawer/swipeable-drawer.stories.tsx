@@ -125,7 +125,6 @@ import { SwipeableDrawer } from "./index";
     closeOnEsc: true,
     lockScroll: true,
     transitionDuration: 220,
-    transitionOffset: 8,
     zIndex: 1300,
     swipeAreaWidth: 24,
     disableSwipeToOpen: false,
@@ -141,7 +140,7 @@ import { SwipeableDrawer } from "./index";
     onOpen: undefined,
     onClose: undefined,
     onOpenChange: undefined,
-    container: undefined,
+    containerRef: undefined,
   },
   argTypes: {
     open: {
@@ -269,14 +268,6 @@ import { SwipeableDrawer } from "./index";
         defaultValue: { summary: "220" },
       },
     },
-    transitionOffset: {
-      description:
-        "Initial offset used by the temporary drawer slide transition.",
-      table: {
-        category: "Motion",
-        defaultValue: { summary: "8" },
-      },
-    },
     keepMounted: {
       description: "Keeps the drawer mounted even while it is closed.",
       table: {
@@ -318,7 +309,7 @@ import { SwipeableDrawer } from "./index";
         defaultValue: { summary: "undefined" },
       },
     },
-    container: {
+    containerRef: {
       description:
         "Optional portal container element or getter used by temporary drawers.",
       control: false,

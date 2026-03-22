@@ -104,6 +104,8 @@ const drawerBaseStyles = css<{ $width: string }>`
   background: ${Surface.Default.Default};
   display: flex;
   flex-direction: column;
+  border: none;
+  border-left: 1px solid ${Borders.Default.Default};
   width: ${({ $width }) => $width};
 `;
 
@@ -113,7 +115,6 @@ const PortalDrawer = styled.aside<{ $width: string }>`
   top: 0;
   right: 0;
   height: 100vh;
-  border-left: 1px solid ${Borders.Default.Default};
   z-index: 1000;
   transform: translateX(0);
   animation: slideInPortal 0.22s ease;
@@ -139,10 +140,8 @@ const InlineDrawer = styled.aside<{
   height: stretch;
   width: ${({ $width }) => $width};
   max-width: min(100%, ${({ $width }) => $width});
-  border: 1px solid ${Borders.Default.Default};
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   z-index: 10;
   transform: translateY(0);

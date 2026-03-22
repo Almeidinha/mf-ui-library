@@ -14,7 +14,6 @@ import {
   DEFAULT_SIZE,
   DEFAULT_SWIPE_AREA_WIDTH,
   DEFAULT_TRANSITION_DURATION,
-  DEFAULT_TRANSITION_OFFSET,
   DEFAULT_Z_INDEX,
   FOCUSABLE_SELECTOR,
   SWIPE_CLOSE_THRESHOLD,
@@ -46,6 +45,10 @@ const getPoint = (
   axis: "x" | "y",
 ) => {
   return axis === "x" ? event.clientX : event.clientY;
+};
+
+const isTouchPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+  return event.pointerType === "touch";
 };
 
 const shouldIgnoreSwipeStart = (
@@ -124,6 +127,10 @@ function useSwipeableDrawer({
   const handlePointerDown = useCallback(
     (mode: "open" | "close") => (event: ReactPointerEvent<HTMLDivElement>) => {
       if (!swipeable) {
+        return;
+      }
+
+      if (!isTouchPointer(event)) {
         return;
       }
 
@@ -211,7 +218,7 @@ export function SwipeableDrawer({
   children,
   anchor = "left",
   variant = "temporary",
-  container,
+  containerRef,
   keepMounted = true,
   mini = false,
   miniSize = DEFAULT_MINI_SIZE,
@@ -222,7 +229,6 @@ export function SwipeableDrawer({
   lockScroll = true,
   zIndex = DEFAULT_Z_INDEX,
   transitionDuration = DEFAULT_TRANSITION_DURATION,
-  transitionOffset = DEFAULT_TRANSITION_OFFSET,
   className,
   contentClassName,
   style,
@@ -243,7 +249,7 @@ export function SwipeableDrawer({
   const miniActive = shouldUseMini(variant, mini);
   const sizeCss = toCssSize(size, DEFAULT_SIZE);
   const miniSizeCss = toCssSize(miniSize, DEFAULT_MINI_SIZE);
-  const mountNode = resolveContainer(container);
+  const mountNode = resolveContainer(containerRef);
   const discoverySize = disableDiscovery ? 0 : Math.min(20, swipeAreaWidth);
 
   const handleRequestOpen = useCallback(() => {
@@ -284,7 +290,12 @@ export function SwipeableDrawer({
   const showSwipeArea = !open && !miniActive && !disableSwipeToOpen;
 
   const swipeArea = (
-    <Root $zIndex={zIndex} className={className} style={style}>
+    <Root
+      $zIndex={zIndex}
+      $variant="temporary"
+      className={className}
+      style={style}
+    >
       <DrawerSwipeArea
         anchor={anchor}
         swipeAreaWidth={swipeAreaWidth}
@@ -321,7 +332,7 @@ export function SwipeableDrawer({
         open={open}
         anchor={anchor}
         variant={variant}
-        container={container}
+        containerRef={containerRef}
         keepMounted={keepMounted}
         miniActive={miniActive}
         overlay={overlay}
@@ -330,7 +341,6 @@ export function SwipeableDrawer({
         closeOnEsc={closeOnEsc}
         zIndex={zIndex}
         duration={transitionDuration}
-        transitionOffset={transitionOffset}
         sizeCss={sizeCss}
         miniSizeCss={miniSizeCss}
         className={className}

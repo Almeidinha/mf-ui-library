@@ -6,7 +6,6 @@ import {
   DEFAULT_MINI_SIZE,
   DEFAULT_SIZE,
   DEFAULT_TRANSITION_DURATION,
-  DEFAULT_TRANSITION_OFFSET,
   DEFAULT_Z_INDEX,
 } from "./constants";
 import { SharedDrawerRenderer, shouldUseMini } from "./internal";
@@ -20,7 +19,7 @@ export function Drawer({
   children,
   anchor = "left",
   variant = "temporary",
-  container,
+  containerRef,
   keepMounted = true,
   mini = false,
   miniSize = DEFAULT_MINI_SIZE,
@@ -31,7 +30,6 @@ export function Drawer({
   lockScroll = true,
   zIndex = DEFAULT_Z_INDEX,
   transitionDuration = DEFAULT_TRANSITION_DURATION,
-  transitionOffset = DEFAULT_TRANSITION_OFFSET,
   className,
   contentClassName,
   style,
@@ -63,7 +61,7 @@ export function Drawer({
       open={open}
       anchor={anchor}
       variant={variant}
-      container={container}
+      containerRef={containerRef}
       keepMounted={keepMounted}
       miniActive={miniActive}
       overlay={overlay}
@@ -72,7 +70,6 @@ export function Drawer({
       closeOnEsc={closeOnEsc}
       zIndex={zIndex}
       duration={transitionDuration}
-      transitionOffset={transitionOffset}
       sizeCss={sizeCss}
       miniSizeCss={miniSizeCss}
       className={className}

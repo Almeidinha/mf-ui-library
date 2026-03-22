@@ -1,7 +1,6 @@
-import { Slide, SlideDirection } from "components/transitions";
 import { Borders } from "foundation/colors";
 import { If } from "helpers/nothing";
-import { useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import styled, { css, RuleSet } from "styled-components";
 
@@ -16,41 +15,40 @@ import {
 } from "./types";
 
 export const resolveContainer = (
-  container?: HTMLElement | null | (() => HTMLElement | null),
+  containerRef?: RefObject<HTMLElement | null>,
 ): HTMLElement | null => {
   if (typeof window === "undefined") {
     return null;
   }
 
-  if (typeof container === "function") {
-    return container();
-  }
-
-  return container ?? document.body;
+  return containerRef?.current ?? document.body;
 };
 
 export function shouldUseMini(variant: DrawerVariant, mini: boolean) {
   return variant === "persistent" && mini;
 }
 
-const CLOSED_TRANSFORM: Record<DrawerAnchor, (minOffset?: string) => string> = {
-  left: (minOffset) => `translate3d(calc(-100% + ${minOffset}), 0, 0)`,
-  right: (minOffset) => `translate3d(calc(100% - ${minOffset}), 0, 0)`,
-  top: () => "translate3d(0, -100%, 0)",
-  bottom: () => "translate3d(0, 100%, 0)",
-};
+const CLOSED_TRANSFORM: Record<DrawerAnchor, (miniOffset?: string) => string> =
+  {
+    left: (miniOffset = "0px") =>
+      `translate3d(calc(-100% + ${miniOffset}), 0, 0)`,
+    right: (miniOffset = "0px") =>
+      `translate3d(calc(100% - ${miniOffset}), 0, 0)`,
+    top: () => "translate3d(0, -100%, 0)",
+    bottom: () => "translate3d(0, 100%, 0)",
+  };
 
 const PERSISTENT_CLOSED_TRANSFORM: Record<
   DrawerAnchor,
   (size: string, miniOffset?: string) => string
 > = {
-  left: (size, miniOffset) =>
+  left: (size, miniOffset = "0px") =>
     `translate3d(calc(-1 * (${size} - ${miniOffset})), 0, 0)`,
-  right: (size, miniOffset) =>
+  right: (size, miniOffset = "0px") =>
     `translate3d(calc(${size} - ${miniOffset}), 0, 0)`,
-  top: (size, miniOffset) =>
+  top: (size, miniOffset = "0px") =>
     `translate3d(0, calc(-1 * (${size} - ${miniOffset})), 0)`,
-  bottom: (size, miniOffset) =>
+  bottom: (size, miniOffset = "0px") =>
     `translate3d(0, calc(${size} - ${miniOffset}), 0)`,
 };
 
@@ -77,58 +75,58 @@ const EDGE_POSITION_MAP: Record<DrawerAnchor, RuleSet<object>> = {
   `,
 };
 
-const SLIDE_DIRECTION_MAP: Record<DrawerAnchor, SlideDirection> = {
-  left: "right",
-  right: "left",
-  top: "down",
-  bottom: "up",
-};
-
-export const Root = styled.div<{ $zIndex: number }>`
-  position: fixed;
-  inset: 0;
+export const Root = styled.div<{
+  $zIndex: number;
+  $variant?: DrawerVariant;
+  $open?: boolean;
+  $size?: string;
+  $miniSize?: string;
+  $miniActive?: boolean;
+  $anchor?: DrawerAnchor;
+  $duration?: number;
+}>`
+  position: ${({ $variant }) =>
+    $variant === "temporary" ? "fixed" : "relative"};
+  ${({ $variant }) => $variant === "temporary" && "inset: 0;"}
   z-index: ${({ $zIndex }) => $zIndex};
   pointer-events: none;
-`;
 
-const InlineRoot = styled.div<{
-  $zIndex: number;
-  $anchor: DrawerAnchor;
-  $open: boolean;
-  $size: string;
-  $miniSize: string;
-  $miniActive: boolean;
-  $duration: number;
-}>`
-  position: relative;
-  z-index: ${({ $zIndex }) => $zIndex};
-  overflow: hidden;
-  flex-shrink: 0;
-  min-width: 0;
-  min-height: 0;
-  box-sizing: border-box;
-  transition:
-    width ${({ $duration }) => $duration}ms ease,
-    height ${({ $duration }) => $duration}ms ease;
+  ${({ $variant, $duration = 0 }) =>
+    $variant === "persistent" &&
+    css`
+      overflow: hidden;
+      flex-shrink: 0;
+      min-width: 0;
+      min-height: 0;
+      box-sizing: border-box;
+      transition:
+        width ${$duration}ms ease,
+        height ${$duration}ms ease;
+    `}
 
-  ${({ $anchor, $open, $size, $miniSize, $miniActive }) => {
-    const closedSize = $miniActive ? $miniSize : "0px";
-    const currentSize = $open ? $size : closedSize;
-
-    switch ($anchor) {
-      case "left":
-      case "right":
-        return css`
-          width: ${currentSize};
-          height: 100%;
-        `;
-      case "top":
-      case "bottom":
-        return css`
-          width: 100%;
-          height: ${currentSize};
-        `;
+  ${({ $variant, $anchor, $open, $size, $miniSize, $miniActive }) => {
+    if ($variant !== "persistent") {
+      return "";
     }
+
+    const closedSize = $miniActive ? ($miniSize ?? "0px") : "0px";
+    const currentSize = $open ? ($size ?? "0px") : closedSize;
+
+    if ($anchor === "left" || $anchor === "right") {
+      return css`
+        width: ${currentSize};
+        height: 100%;
+      `;
+    }
+
+    if ($anchor === "top" || $anchor === "bottom") {
+      return css`
+        width: 100%;
+        height: ${currentSize};
+      `;
+    }
+
+    return "";
   }}
 `;
 
@@ -453,7 +451,7 @@ export function SharedDrawerRenderer({
   open,
   anchor,
   variant,
-  container,
+  containerRef,
   keepMounted,
   miniActive,
   overlay,
@@ -462,7 +460,6 @@ export function SharedDrawerRenderer({
   closeOnEsc,
   zIndex,
   duration,
-  transitionOffset,
   sizeCss,
   miniSizeCss,
   className,
@@ -477,17 +474,17 @@ export function SharedDrawerRenderer({
   surfacePointerHandlers,
 }: SharedDrawerRenderProps) {
   const temporary = variant === "temporary";
-  const mountNode = resolveContainer(container);
+  const mountNode = resolveContainer(containerRef);
   const contentRef = useRef<HTMLDivElement | null>(null);
-
-  const inlineRootRef = useRef<HTMLDivElement | null>(null);
+  const persistentRootRef = useRef<HTMLDivElement | null>(null);
+  const persistentSurfaceRef = useRef<HTMLDivElement | null>(null);
 
   const { present, renderedOpen } = usePresence({
     open,
     keepMounted,
     miniActive,
     anchor,
-    ref: inlineRootRef,
+    ref: persistentRootRef,
   });
 
   useTemporaryDrawerFocus({
@@ -526,12 +523,13 @@ export function SharedDrawerRenderer({
   }, [closeOnEsc, onRequestClose, open, temporary]);
 
   if (temporary) {
-    if (!keepMounted && !open) {
-      return null;
-    }
-
     const content = (
-      <Root $zIndex={zIndex} className={className} style={style}>
+      <Root
+        $zIndex={zIndex}
+        $variant="temporary"
+        className={className}
+        style={style}
+      >
         <If is={overlay}>
           <Backdrop
             $open={open}
@@ -540,36 +538,27 @@ export function SharedDrawerRenderer({
           />
         </If>
 
-        <Slide
-          in={open}
-          direction={SLIDE_DIRECTION_MAP[anchor]}
-          offset={transitionOffset}
-          timeout={duration}
-          mountOnEnter={false}
-          unmountOnExit={false}
+        <DrawerSurfaceComponent
+          open={open}
+          anchor={anchor}
+          temporary
+          sizeCss={sizeCss}
+          miniSizeCss={miniSizeCss}
+          miniCollapsed={false}
+          dragOffset={dragOffset}
+          duration={duration}
+          ariaLabel={ariaLabel}
+          ariaLabelledBy={ariaLabelledBy}
+          className={contentClassName}
+          style={contentStyle}
+          contentRef={contentRef}
+          onPointerDown={surfacePointerHandlers?.onPointerDown}
+          onPointerMove={surfacePointerHandlers?.onPointerMove}
+          onPointerUp={surfacePointerHandlers?.onPointerUp}
+          onPointerCancel={surfacePointerHandlers?.onPointerCancel}
         >
-          <DrawerSurfaceComponent
-            open={open}
-            anchor={anchor}
-            temporary
-            sizeCss={sizeCss}
-            miniSizeCss={miniSizeCss}
-            miniCollapsed={false}
-            dragOffset={dragOffset}
-            duration={duration}
-            ariaLabel={ariaLabel}
-            ariaLabelledBy={ariaLabelledBy}
-            className={contentClassName}
-            style={contentStyle}
-            contentRef={contentRef}
-            onPointerDown={surfacePointerHandlers?.onPointerDown}
-            onPointerMove={surfacePointerHandlers?.onPointerMove}
-            onPointerUp={surfacePointerHandlers?.onPointerUp}
-            onPointerCancel={surfacePointerHandlers?.onPointerCancel}
-          >
-            {children}
-          </DrawerSurfaceComponent>
-        </Slide>
+          {children}
+        </DrawerSurfaceComponent>
       </Root>
     );
 
@@ -581,9 +570,10 @@ export function SharedDrawerRenderer({
   }
 
   return (
-    <InlineRoot
-      ref={inlineRootRef}
+    <Root
+      ref={persistentRootRef}
       $zIndex={zIndex}
+      $variant="persistent"
       $anchor={anchor}
       $open={renderedOpen}
       $size={sizeCss}
@@ -594,6 +584,7 @@ export function SharedDrawerRenderer({
       style={style}
     >
       <DrawerSurfaceComponent
+        contentRef={persistentSurfaceRef}
         open={renderedOpen}
         anchor={anchor}
         temporary={false}
@@ -613,6 +604,6 @@ export function SharedDrawerRenderer({
       >
         {children}
       </DrawerSurfaceComponent>
-    </InlineRoot>
+    </Root>
   );
 }
