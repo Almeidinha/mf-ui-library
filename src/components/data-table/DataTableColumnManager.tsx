@@ -342,8 +342,6 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     null,
   );
 
-  const drawerRef = useOnClickOutside(() => setOpen(false));
-
   const contentRef = useRef<HTMLDivElement | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const previousPositionsRef = useRef<Record<string, number>>({});
@@ -412,6 +410,23 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     setDragOverField(null);
     setPreviewOrder(null);
   }, [clearAutoScroll, clearPendingDragFrame, setPreviewOrder]);
+
+  const openManager = React.useCallback(() => {
+    if (!isPortalMode) {
+      setInlineMountNode(inlineContainerRef?.current ?? null);
+    }
+
+    setOpen(true);
+  }, [inlineContainerRef, isPortalMode]);
+
+  const closeManager = React.useCallback(() => {
+    clearDragState();
+    setOpen(false);
+    setInlineMountNode(null);
+    triggerRef.current?.focus();
+  }, [clearDragState]);
+
+  const drawerRef = useOnClickOutside(closeManager);
 
   const renderOrder = previewOrder ?? columnOrder;
 
@@ -618,21 +633,6 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
     },
     [flushDragOver],
   );
-
-  const openManager = React.useCallback(() => {
-    if (!isPortalMode) {
-      setInlineMountNode(inlineContainerRef?.current ?? null);
-    }
-
-    setOpen(true);
-  }, [inlineContainerRef, isPortalMode]);
-
-  const closeManager = React.useCallback(() => {
-    clearDragState();
-    setOpen(false);
-    setInlineMountNode(null);
-    triggerRef.current?.focus();
-  }, [clearDragState]);
 
   useLayoutEffect(() => {
     if (!shouldAnimateRef.current) {

@@ -4,6 +4,7 @@ export type SortDirection = "ASC" | "DESC" | "NONE";
 
 export type DataTableAlign = "left" | "center" | "right";
 export type DataTablePin = "left" | "right";
+export type DataTableGroupValue = string | number | boolean | null | undefined;
 
 export type DataTableRowKey<T> = keyof T | ((row: T) => React.Key);
 
@@ -72,6 +73,29 @@ export type DataTableColumn<T extends Record<string, unknown>> =
   | DataTableRegularColumn<T>
   | DataTableActionsColumn<T>;
 
+export type DataTableColumnGroup<T extends Record<string, unknown>> = {
+  key: string;
+  headerName: ReactNode;
+  description?: string;
+  align?: DataTableAlign;
+  fields?: Array<keyof T | string>;
+  children?: DataTableColumnGroup<T>[];
+};
+
+export type DataTableRowGrouping<T extends Record<string, unknown>> = {
+  field?: keyof T | string;
+  fields?: Array<keyof T | string>;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+  renderGroupHeader?: (
+    value: DataTableGroupValue,
+    rows: T[],
+    collapsed: boolean,
+    depth: number,
+    path: DataTableGroupValue[],
+  ) => ReactNode;
+};
+
 export type DataTableColumnVisibility = Record<string, boolean>;
 
 export type DataTablePinnedColumns = {
@@ -82,6 +106,8 @@ export type DataTablePinnedColumns = {
 export type DataTableProps<T extends Record<string, unknown>> = {
   rows: T[];
   columns: DataTableColumn<T>[];
+  columnGroups?: DataTableColumnGroup<T>[];
+  rowGrouping?: DataTableRowGrouping<T>;
 
   rowKey: DataTableRowKey<T>;
 
@@ -151,6 +177,7 @@ export type UseDataTableResult<T extends Record<string, unknown>> = {
 
   selectedKeys: React.Key[];
   selectedKeySet: Set<React.Key>;
+  setSelectedKeys: (keys: React.Key[]) => void;
   allVisibleSelected: boolean;
   someVisibleSelected: boolean;
   toggleRow: (row: T) => void;

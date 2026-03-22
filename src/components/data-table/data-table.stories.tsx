@@ -2,9 +2,10 @@ import { faker } from "@faker-js/faker/locale/pt_BR";
 import type { Meta, StoryObj } from "@storybook/react";
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
+import { Label } from "components/typography";
 
 import { DataTable } from "./data-table";
-import { DataTableColumn } from "./types";
+import type { DataTableColumn, DataTableGroupValue } from "./types";
 
 type PersonRow = {
   id: number;
@@ -143,6 +144,8 @@ const meta = {
   args: {
     rows: [],
     columns: [],
+    columnGroups: undefined,
+    rowGrouping: undefined,
     rowKey: "id",
     layoutMode: "responsive",
     tableWidth: undefined,
@@ -200,6 +203,24 @@ const meta = {
       table: {
         category: "Data",
         defaultValue: { summary: "[]" },
+      },
+    },
+    columnGroups: {
+      description:
+        "Optional nested header groups. Groups are matched by field and rendered across one or more extra header rows.",
+      control: false,
+      table: {
+        category: "Grouping",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    rowGrouping: {
+      description:
+        "Optional row grouping configuration. Groups visible rows by one or more fields, can render custom section headers, and can collapse sections.",
+      control: false,
+      table: {
+        category: "Grouping",
+        defaultValue: { summary: "undefined" },
       },
     },
     rowKey: {
@@ -500,6 +521,166 @@ export const FixedWidth: Story = {
       <Flex>
         <DataTable
           key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
+          {...args}
+          rows={rows as PersonRow[]}
+          columns={columns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const ColumnGrouping: Story = {
+  args: {
+    manageColumns: false,
+    checkboxSelection: true,
+    columnGroups: [
+      {
+        key: "identity",
+        headerName: "Identity",
+        children: [
+          {
+            key: "person",
+            headerName: "Person",
+            fields: ["firstName", "lastName", "fullName"],
+          },
+          {
+            key: "account",
+            headerName: "Account",
+            fields: ["id", "role"],
+          },
+        ],
+      },
+      {
+        key: "details",
+        headerName: "Details",
+        children: [
+          {
+            key: "location",
+            headerName: "Location",
+            fields: ["city", "state", "country"],
+          },
+          {
+            key: "work",
+            headerName: "Work",
+            fields: ["company", "birth"],
+          },
+        ],
+      },
+    ],
+  },
+
+  loaders: [() => ({ rows: getPersonRows() })],
+
+  render: (args, { loaded: { rows } }) => {
+    return (
+      <Flex>
+        <DataTable
+          {...args}
+          rows={rows as PersonRow[]}
+          columns={columns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const RowGrouping: Story = {
+  args: {
+    manageColumns: false,
+    rowGrouping: {
+      fields: ["country", "state"],
+      collapsible: true,
+      renderGroupHeader: (
+        value: DataTableGroupValue,
+        rows: Record<string, unknown>[],
+        collapsed: boolean,
+        depth: number,
+        path: DataTableGroupValue[],
+      ) => (
+        <Flex justify="space-between" align="center">
+          <Label strong>{`${"  ".repeat(depth)}${value ?? "Ungrouped"}`}</Label>
+          <Label muted>
+            {collapsed
+              ? "Collapsed"
+              : `${rows.length} rows in ${path.join(" / ")}`}
+          </Label>
+        </Flex>
+      ),
+    },
+  },
+
+  loaders: [() => ({ rows: getPersonRows() })],
+
+  render: (args, { loaded: { rows } }) => {
+    return (
+      <Flex>
+        <DataTable
+          {...args}
+          rows={rows as PersonRow[]}
+          columns={columns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const ColumnAndRowGrouping: Story = {
+  args: {
+    manageColumns: false,
+    checkboxSelection: true,
+    columnGroups: [
+      {
+        key: "identity",
+        headerName: "Identity",
+        children: [
+          {
+            key: "person",
+            headerName: "Person",
+            fields: ["firstName", "lastName", "fullName"],
+          },
+          {
+            key: "account",
+            headerName: "Account",
+            fields: ["id", "role"],
+          },
+        ],
+      },
+      {
+        key: "location",
+        headerName: "Location",
+        fields: ["city", "state", "country"],
+      },
+    ],
+    rowGrouping: {
+      fields: ["country", "state", "city"],
+      collapsible: true,
+      defaultCollapsed: true,
+      renderGroupHeader: (
+        value: DataTableGroupValue,
+        rows: Record<string, unknown>[],
+        collapsed: boolean,
+        depth: number,
+      ) => (
+        <Flex justify="space-between" align="center">
+          <Label strong>{`${"  ".repeat(depth)}${value ?? "Ungrouped"}`}</Label>
+          <Label muted>
+            {collapsed ? "Click to expand" : `${rows.length} people`}
+          </Label>
+        </Flex>
+      ),
+    },
+  },
+
+  loaders: [() => ({ rows: getPersonRows() })],
+
+  render: (args, { loaded: { rows } }) => {
+    return (
+      <Flex>
+        <DataTable
           {...args}
           rows={rows as PersonRow[]}
           columns={columns}

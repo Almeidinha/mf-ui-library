@@ -1,3 +1,5 @@
+import { Checkbox } from "components/checkbox";
+import { IconMinor } from "components/icon";
 import { InputText } from "components/input-field";
 import { Flex } from "components/layout";
 import { Pagination } from "components/pagination";
@@ -18,9 +20,27 @@ import { If } from "helpers/nothing";
 import React from "react";
 import styled from "styled-components";
 
+import type {
+  GroupedBodyEntry,
+  HeaderCellDescriptor,
+  RenderedColumn,
+} from "./dataTable.shared";
+import {
+  getColumnId,
+  getDefaultGroupLabel,
+  getResolvedColumnWidth,
+  getTextAlign,
+  isActionsColumn,
+} from "./dataTable.shared";
 import { DataTableColumnManager } from "./DataTableColumnManager";
-import { DataTableColumn, DataTableProps } from "./types";
+import type { DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";
+import { useDataTableColumnGrouping } from "./useDataTableColumnGrouping";
+import { useDataTablePinnedStyles } from "./useDataTablePinnedStyles";
+import {
+  //GroupedBodyEntry,
+  useDataTableRowGrouping,
+} from "./useDataTableRowGrouping";
 
 const TableFrame = styled.div<{
   $responsive: boolean;
@@ -67,31 +87,23 @@ export const TableSibling = styled(Flex)`
   padding: ${Padding.m};
 `;
 
-const CHECKBOX_COLUMN_WIDTH = 55;
-
 const checkboxStickyStyle: React.CSSProperties = {
   position: "sticky",
   left: 0,
   background: "inherit",
 };
 
-function getTextAlign(
-  align?: DataTableColumn<Record<string, unknown>>["align"],
-) {
-  return align ?? "left";
-}
-
-function getColumnId<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>,
-) {
-  return String(column.field);
-}
-
-function isActionsColumn<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>,
-): column is Extract<DataTableColumn<T>, { type: "actions" }> {
-  return column.type === "actions";
-}
+const GroupToggleButton = styled.button`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: ${Gap.s};
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+`;
 
 function resolveActionFlag<T extends Record<string, unknown>>(
   value: boolean | ((row: T) => boolean) | undefined,
@@ -104,68 +116,13 @@ function resolveActionFlag<T extends Record<string, unknown>>(
   return Boolean(value);
 }
 
-function getColumnEstimatedWidth(width?: number | string) {
-  if (typeof width === "number") {
-    return width;
-  }
-
-  if (typeof width === "string") {
-    const parsed = Number.parseFloat(width);
-    return Number.isNaN(parsed) ? 160 : parsed;
-  }
-
-  return 160;
-}
-
-function getResolvedColumnWidth<T extends Record<string, unknown>>(
-  column: DataTableColumn<T>,
-) {
-  return column.width ?? (column.fitContent ? 120 : 160);
-}
-
-function buildPinnedOffsets<T extends Record<string, unknown>>(
-  columns: DataTableColumn<T>[],
-  pinnedSet: Set<string>,
-  columnWidthMap: Record<string, number>,
-  initialOffset = 0,
-) {
-  const { entries } = columns.reduce<{
-    offset: number;
-    entries: Array<[string, number]>;
-  }>(
-    (acc, column) => {
-      const field = getColumnId(column);
-
-      if (!pinnedSet.has(field)) {
-        return acc;
-      }
-
-      return {
-        offset: acc.offset + columnWidthMap[field],
-        entries: [...acc.entries, [field, acc.offset]],
-      };
-    },
-    { offset: initialOffset, entries: [] },
-  );
-
-  return Object.fromEntries(entries);
-}
-
-type RenderedColumn<T extends Record<string, unknown>> = {
-  column: DataTableColumn<T>;
-  field: string;
-  sortable: boolean | undefined;
-  currentSort: DataTableProps<T>["sortDirection"];
-  textAlign: ReturnType<typeof getTextAlign>;
-  stickyStyle?: React.CSSProperties;
-};
-
 export function DataTable<T extends Record<string, unknown>>(
   props: DataTableProps<T>,
 ) {
   const {
     searchable = false,
     columns,
+    columnGroups: rawColumnGroups,
     searchPlaceholder = "Search...",
     checkboxSelection = false,
     emptyMessage = "No rows found.",
@@ -176,6 +133,7 @@ export function DataTable<T extends Record<string, unknown>>(
     minTableWidth,
     maxTableHeight = "max-content",
     manageColumns = false,
+    rowGrouping: rawRowGrouping,
   } = props;
 
   const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
@@ -201,11 +159,10 @@ export function DataTable<T extends Record<string, unknown>>(
     visibleRows,
     visibleColumns,
 
+    selectedKeys,
     selectedKeySet,
-    allVisibleSelected,
-    someVisibleSelected,
+    setSelectedKeys,
     toggleRow,
-    toggleAllVisible,
 
     columnVisibility,
     toggleColumnVisibility,
@@ -225,125 +182,22 @@ export function DataTable<T extends Record<string, unknown>>(
 
   const colSpan = visibleColumns.length + (checkboxSelection ? 1 : 0);
 
-  const leftPinnedSet = React.useMemo(
-    () => new Set(pinnedColumns.left),
-    [pinnedColumns.left],
-  );
-
-  const rightPinnedSet = React.useMemo(
-    () => new Set(pinnedColumns.right),
-    [pinnedColumns.right],
-  );
-
-  const lastLeftPinnedField = React.useMemo(() => {
-    const leftPinnedVisible = visibleColumns.filter((column) =>
-      leftPinnedSet.has(getColumnId(column)),
-    );
-
-    if (leftPinnedVisible.length === 0) {
-      return null;
-    }
-
-    return getColumnId(leftPinnedVisible[leftPinnedVisible.length - 1]);
-  }, [visibleColumns, leftPinnedSet]);
-
-  const firstRightPinnedField = React.useMemo(() => {
-    const rightPinnedVisible = visibleColumns.filter((column) =>
-      rightPinnedSet.has(getColumnId(column)),
-    );
-
-    if (rightPinnedVisible.length === 0) {
-      return null;
-    }
-
-    return getColumnId(rightPinnedVisible[0]);
-  }, [visibleColumns, rightPinnedSet]);
-
-  const columnWidthMap = React.useMemo(() => {
-    const map: Record<string, number> = {};
-
-    visibleColumns.forEach((column) => {
-      map[getColumnId(column)] = getColumnEstimatedWidth(
-        getResolvedColumnWidth(column),
-      );
-    });
-
-    return map;
-  }, [visibleColumns]);
-
-  const leftOffsets = React.useMemo(() => {
-    return buildPinnedOffsets(
-      visibleColumns,
-      leftPinnedSet,
-      columnWidthMap,
-      checkboxSelection ? CHECKBOX_COLUMN_WIDTH : 0,
-    );
-  }, [visibleColumns, leftPinnedSet, columnWidthMap, checkboxSelection]);
-
-  const rightOffsets = React.useMemo(() => {
-    return buildPinnedOffsets(
-      [...visibleColumns].reverse(),
-      rightPinnedSet,
-      columnWidthMap,
-    );
-  }, [visibleColumns, rightPinnedSet, columnWidthMap]);
-
-  const computedColumnWidth = React.useMemo(() => {
-    return visibleColumns.reduce(
-      (total, column) => {
-        return total + columnWidthMap[getColumnId(column)];
-      },
-      checkboxSelection ? CHECKBOX_COLUMN_WIDTH : 0,
-    );
-  }, [visibleColumns, columnWidthMap, checkboxSelection]);
-
-  const stickyStyles = React.useMemo(() => {
-    const map: Record<string, React.CSSProperties | undefined> = {};
-
-    visibleColumns.forEach((column) => {
-      const field = getColumnId(column);
-
-      if (leftPinnedSet.has(field)) {
-        map[field] = {
-          position: "sticky",
-          left: leftOffsets[field],
-          zIndex: 2,
-          background: "inherit",
-          borderRight:
-            field === lastLeftPinnedField
-              ? `1px solid ${Borders.Default.Default}`
-              : undefined,
-        };
-        return;
-      }
-
-      if (rightPinnedSet.has(field)) {
-        map[field] = {
-          position: "sticky",
-          right: rightOffsets[field],
-          zIndex: 2,
-          background: "inherit",
-          borderLeft:
-            field === firstRightPinnedField
-              ? `1px solid ${Borders.Default.Default}`
-              : undefined,
-        };
-        return;
-      }
-
-      map[field] = undefined;
-    });
-
-    return map;
-  }, [
-    visibleColumns,
+  const {
+    checkboxColumnWidth,
     leftPinnedSet,
     rightPinnedSet,
-    leftOffsets,
-    rightOffsets,
     lastLeftPinnedField,
     firstRightPinnedField,
-  ]);
+    leftOffsets,
+    rightOffsets,
+    computedColumnWidth,
+    stickyStyles,
+  } = useDataTablePinnedStyles({
+    visibleColumns,
+    pinnedColumns,
+    checkboxSelection,
+    borderColor: Borders.Default.Default,
+  });
 
   const renderedColumns = React.useMemo<RenderedColumn<T>[]>(() => {
     return visibleColumns.map((column) => {
@@ -360,6 +214,173 @@ export function DataTable<T extends Record<string, unknown>>(
       };
     });
   }, [visibleColumns, sortField, sortDirection, stickyStyles]);
+
+  const { hasGroupedHeaders, headerRowCount, headerRows } =
+    useDataTableColumnGrouping({
+      columnGroups: rawColumnGroups,
+      renderedColumns,
+    });
+
+  const {
+    groupedBodyEntries,
+    toggleAllExpanded,
+    selectAllState,
+    toggleGroup,
+    renderGroupHeader,
+  } = useDataTableRowGrouping({
+    rowGrouping: rawRowGrouping,
+    visibleRows,
+    getRowKey,
+    checkboxSelection,
+    selectedKeys,
+    selectedKeySet,
+    setSelectedKeys,
+  });
+
+  const renderSelectAllHeader = React.useCallback(
+    (rowSpan?: number) => {
+      const sharedStyle = {
+        ...checkboxStickyStyle,
+        background: Surface.Default.Muted,
+        borderRight: !lastLeftPinnedField
+          ? `1px solid ${Borders.Default.Default}`
+          : undefined,
+      };
+
+      if (rowSpan) {
+        return (
+          <TableHeaderCell rowSpan={rowSpan} style={sharedStyle}>
+            <Checkbox
+              checked={selectAllState}
+              onChange={toggleAllExpanded}
+              indeterminate
+            />
+          </TableHeaderCell>
+        );
+      }
+
+      return (
+        <TableHeaderCell.Select
+          checked={selectAllState}
+          onChange={toggleAllExpanded}
+          style={sharedStyle}
+        />
+      );
+    },
+    [lastLeftPinnedField, selectAllState, toggleAllExpanded],
+  );
+
+  const renderColumnHeaderCell = React.useCallback(
+    (renderedColumn: RenderedColumn<T>, rowSpan?: number) => {
+      const { field, sortable, currentSort, textAlign, stickyStyle, column } =
+        renderedColumn;
+
+      return (
+        <TableHeaderCell
+          key={field}
+          rowSpan={rowSpan}
+          sort={sortable ? currentSort : undefined}
+          onSortClick={() => toggleSort(field, sortable)}
+          style={{
+            textAlign,
+            ...stickyStyle,
+            background: Surface.Default.Muted,
+          }}
+          title={column.description}
+        >
+          {column.headerName ?? ""}
+        </TableHeaderCell>
+      );
+    },
+    [toggleSort],
+  );
+
+  const getGroupHeaderStickyStyle = React.useCallback(
+    (leafColumns: RenderedColumn<T>[]) => {
+      const leafFields = leafColumns.map(({ field }) => field);
+      const allPinnedLeft = leafFields.every((field) =>
+        leftPinnedSet.has(field),
+      );
+      const allPinnedRight = leafFields.every((field) =>
+        rightPinnedSet.has(field),
+      );
+      const firstField = leafFields[0];
+      const lastField = leafFields[leafFields.length - 1];
+
+      if (allPinnedLeft) {
+        return {
+          position: "sticky" as const,
+          left: leftOffsets[firstField],
+          zIndex: 3,
+          background: Surface.Default.Muted,
+          borderRight:
+            lastField === lastLeftPinnedField
+              ? `1px solid ${Borders.Default.Default}`
+              : undefined,
+        };
+      }
+
+      if (allPinnedRight) {
+        return {
+          position: "sticky" as const,
+          right: rightOffsets[firstField],
+          zIndex: 3,
+          background: Surface.Default.Muted,
+          borderLeft:
+            firstField === firstRightPinnedField
+              ? `1px solid ${Borders.Default.Default}`
+              : undefined,
+        };
+      }
+
+      return undefined;
+    },
+    [
+      leftPinnedSet,
+      rightPinnedSet,
+      leftOffsets,
+      rightOffsets,
+      lastLeftPinnedField,
+      firstRightPinnedField,
+    ],
+  );
+
+  const renderGroupHeaderContent = React.useCallback(
+    (entry: Extract<GroupedBodyEntry<T>, { type: "group" }>) => {
+      const content = renderGroupHeader ? (
+        renderGroupHeader(
+          entry.value,
+          entry.rows,
+          entry.collapsed,
+          entry.depth,
+          entry.path,
+        )
+      ) : (
+        <Label strong>{getDefaultGroupLabel(entry.value)}</Label>
+      );
+
+      if (!entry.collapsible) {
+        return content;
+      }
+
+      return (
+        <GroupToggleButton
+          type="button"
+          aria-label={getDefaultGroupLabel(entry.value)}
+          onClick={() => toggleGroup(entry.key)}
+          style={{ paddingLeft: entry.depth * 16 }}
+        >
+          {entry.collapsed ? (
+            <IconMinor.ChevronRightSolid />
+          ) : (
+            <IconMinor.ChevronDownSolid />
+          )}
+          {content}
+        </GroupToggleButton>
+      );
+    },
+    [renderGroupHeader, toggleGroup],
+  );
 
   return (
     <TableContainer ref={tableAreaRef}>
@@ -390,6 +411,7 @@ export function DataTable<T extends Record<string, unknown>>(
           />
         </If>
       </TableSibling>
+
       <TableFrame
         $responsive={isResponsive}
         $borderTop={searchable || manageColumns}
@@ -406,8 +428,8 @@ export function DataTable<T extends Record<string, unknown>>(
               <If is={checkboxSelection}>
                 <col
                   style={{
-                    width: CHECKBOX_COLUMN_WIDTH,
-                    minWidth: CHECKBOX_COLUMN_WIDTH,
+                    width: checkboxColumnWidth,
+                    minWidth: checkboxColumnWidth,
                   }}
                 />
               </If>
@@ -428,52 +450,63 @@ export function DataTable<T extends Record<string, unknown>>(
             </colgroup>
 
             <TableHead>
-              <TableRow>
-                <If is={checkboxSelection}>
-                  <TableHeaderCell.Select
-                    checked={
-                      allVisibleSelected
-                        ? true
-                        : someVisibleSelected
-                          ? undefined
-                          : false
-                    }
-                    onChange={toggleAllVisible}
-                    style={{
-                      ...checkboxStickyStyle,
-                      background: Surface.Default.Muted,
-                      borderRight: !lastLeftPinnedField
-                        ? `1px solid ${Borders.Default.Default}`
-                        : undefined,
-                    }}
-                  />
-                </If>
-
-                {renderedColumns.map(
-                  ({
-                    field,
-                    sortable,
-                    currentSort,
-                    textAlign,
-                    stickyStyle,
-                    column,
-                  }) => (
-                    <TableHeaderCell
-                      key={field}
-                      sort={sortable ? currentSort : undefined}
-                      onSortClick={() => toggleSort(field, sortable)}
-                      style={{
-                        textAlign,
-                        ...stickyStyle,
-                        background: Surface.Default.Muted,
-                      }}
-                      title={column.description}
+              <If is={hasGroupedHeaders}>
+                {headerRows.map((headerRow: HeaderCellDescriptor<T>[]) => (
+                  <TableRow
+                    key={headerRow
+                      .map((cell) =>
+                        cell.type === "group"
+                          ? `group-${cell.group.key}`
+                          : `column-${cell.column.field}`,
+                      )
+                      .join("|")}
+                  >
+                    <If
+                      is={Boolean(
+                        checkboxSelection &&
+                        headerRows[0] &&
+                        headerRow === headerRows[0],
+                      )}
                     >
-                      {column.headerName ?? ""}
-                    </TableHeaderCell>
-                  ),
-                )}
-              </TableRow>
+                      {renderSelectAllHeader(headerRowCount)}
+                    </If>
+
+                    {headerRow.map((cell) => {
+                      if (cell.type === "column") {
+                        return renderColumnHeaderCell(
+                          cell.column,
+                          cell.rowSpan,
+                        );
+                      }
+
+                      return (
+                        <TableHeaderCell
+                          key={`${cell.group.key}-${cell.leafColumns[0].field}`}
+                          colSpan={cell.colSpan}
+                          style={{
+                            textAlign: cell.group.align ?? "left",
+                            ...getGroupHeaderStickyStyle(cell.leafColumns),
+                            background: Surface.Default.Muted,
+                          }}
+                          title={cell.group.description}
+                        >
+                          {cell.group.headerName}
+                        </TableHeaderCell>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </If>
+
+              <If is={!hasGroupedHeaders}>
+                <TableRow>
+                  <If is={checkboxSelection}>{renderSelectAllHeader()}</If>
+
+                  {renderedColumns.map((column) =>
+                    renderColumnHeaderCell(column),
+                  )}
+                </TableRow>
+              </If>
             </TableHead>
 
             <TableBody>
@@ -484,8 +517,21 @@ export function DataTable<T extends Record<string, unknown>>(
                   </TableBodyCell>
                 </TableRow>
               ) : (
-                visibleRows.map((row) => {
-                  const key = getRowKey(row);
+                groupedBodyEntries.map((entry) => {
+                  if (entry.type === "group") {
+                    return (
+                      <TableRow key={entry.key}>
+                        <TableBodyCell
+                          colSpan={colSpan}
+                          style={{ background: Surface.Default.Muted }}
+                        >
+                          {renderGroupHeaderContent(entry)}
+                        </TableBodyCell>
+                      </TableRow>
+                    );
+                  }
+
+                  const { row, key } = entry;
                   const isSelected = selectedKeySet.has(key);
 
                   return (
