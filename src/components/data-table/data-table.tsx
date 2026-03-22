@@ -12,7 +12,8 @@ import {
 import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
-import { Gap } from "foundation/spacing";
+import { Gap, Padding } from "foundation/spacing";
+import { toCssSize } from "helpers/css-helpers";
 import { If } from "helpers/nothing";
 import React from "react";
 import styled from "styled-components";
@@ -21,11 +22,22 @@ import { DataTableColumnManager } from "./DataTableColumnManager";
 import { DataTableColumn, DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";
 
-const TableFrame = styled.div<{ $responsive: boolean }>`
-  border: 1px solid ${Borders.Default.Default};
-  ${shadowMd};
-  background: ${Surface.Default.Default};
+const TableFrame = styled.div<{
+  $responsive: boolean;
+  $borderTop?: boolean;
+  $borderBottom?: boolean;
+}>`
+  border-top: ${({ $borderTop }) =>
+    $borderTop ? `1px solid ${Borders.Default.Default}` : "none"};
+  border-bottom: ${({ $borderBottom }) =>
+    $borderBottom ? `1px solid ${Borders.Default.Default}` : "none"};
   overflow: hidden;
+  border-top-left-radius: ${({ $borderTop }) => ($borderTop ? 0 : "6px")};
+  border-top-right-radius: ${({ $borderTop }) => ($borderTop ? 0 : "6px")};
+  border-bottom-left-radius: ${({ $borderBottom }) =>
+    $borderBottom ? 0 : "6px"};
+  border-bottom-right-radius: ${({ $borderBottom }) =>
+    $borderBottom ? 0 : "6px"};
 
   & table {
     display: ${(props) => (props.$responsive ? "table" : "block")};
@@ -34,12 +46,25 @@ const TableFrame = styled.div<{ $responsive: boolean }>`
   }
 `;
 
-const TableScroll = styled.div`
-  position: relative;
+const TableScroll = styled.div<{ $maxTableHeight?: string }>`
   width: 100%;
   min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
+  max-height: ${({ $maxTableHeight }) => $maxTableHeight};
+  overflow: auto;
+`;
+
+const TableContainer = styled(Flex)`
+  position: relative;
+  flex-direction: column;
+  border: 1px solid ${Borders.Default.Default};
+  ${shadowMd};
+  background: ${Surface.Default.Default};
+`;
+
+export const TableSibling = styled(Flex)`
+  justify-content: space-between;
+  align-items: center;
+  padding: ${Padding.m};
 `;
 
 const CHECKBOX_COLUMN_WIDTH = 55;
@@ -121,6 +146,8 @@ export function DataTable<T extends Record<string, unknown>>(
     layoutMode = "responsive",
     tableWidth,
     minTableWidth,
+    maxTableHeight = "max-content",
+    manageColumns = false,
   } = props;
 
   const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
@@ -322,8 +349,8 @@ export function DataTable<T extends Record<string, unknown>>(
   }, [visibleColumns, sortField, sortDirection, stickyStyles]);
 
   return (
-    <Flex column gap={Gap.l}>
-      <Flex justify="space-between" align="center" gap={Gap.m}>
+    <TableContainer ref={tableAreaRef}>
+      <TableSibling gap={Gap.m}>
         <If is={searchable}>
           <InputText
             value={search}
@@ -332,24 +359,30 @@ export function DataTable<T extends Record<string, unknown>>(
           />
         </If>
 
-        <DataTableColumnManager
-          columns={columns}
-          columnVisibility={columnVisibility}
-          toggleColumnVisibility={toggleColumnVisibility}
-          resetColumnVisibility={resetColumnVisibility}
-          pinnedColumns={pinnedColumns}
-          pinColumn={pinColumn}
-          resetPinnedColumns={resetPinnedColumns}
-          columnOrder={columnOrder}
-          setColumnOrder={setColumnOrder}
-          resetColumnOrder={resetColumnOrder}
-          mode={mode}
-          showBackdrop={showBackdrop}
-          inlineContainerRef={tableAreaRef}
-        />
-      </Flex>
-      <TableFrame $responsive={isResponsive}>
-        <TableScroll ref={tableAreaRef}>
+        <If is={manageColumns}>
+          <DataTableColumnManager
+            columns={columns}
+            columnVisibility={columnVisibility}
+            toggleColumnVisibility={toggleColumnVisibility}
+            resetColumnVisibility={resetColumnVisibility}
+            pinnedColumns={pinnedColumns}
+            pinColumn={pinColumn}
+            resetPinnedColumns={resetPinnedColumns}
+            columnOrder={columnOrder}
+            setColumnOrder={setColumnOrder}
+            resetColumnOrder={resetColumnOrder}
+            mode={mode}
+            showBackdrop={showBackdrop}
+            inlineContainerRef={tableAreaRef}
+          />
+        </If>
+      </TableSibling>
+      <TableFrame
+        $responsive={isResponsive}
+        $borderTop={searchable || manageColumns}
+        $borderBottom={paginated}
+      >
+        <TableScroll $maxTableHeight={toCssSize(maxTableHeight)}>
           <Table
             $width={isResponsive ? "100%" : tableWidth || "auto"}
             $minWidth={
@@ -534,7 +567,7 @@ export function DataTable<T extends Record<string, unknown>>(
       </TableFrame>
 
       <If is={paginated}>
-        <Flex justify="space-between" align="center">
+        <TableSibling gap={Gap.m}>
           <Label muted>
             {totalRows === 0
               ? "0 results"
@@ -553,8 +586,8 @@ export function DataTable<T extends Record<string, unknown>>(
             showPageSizeSelector
             pageSizeOptions={pageSizeOptions}
           />
-        </Flex>
+        </TableSibling>
       </If>
-    </Flex>
+    </TableContainer>
   );
 }

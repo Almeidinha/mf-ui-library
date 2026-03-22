@@ -88,6 +88,7 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   layoutMode?: DataTableLayoutMode;
   tableWidth?: number | string;
   minTableWidth?: number | string;
+  maxTableHeight?: number | string;
 
   storageKey?: string;
 
@@ -117,6 +118,7 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   defaultColumnOrder?: string[];
   onColumnOrderChange?: (order: string[]) => void;
 
+  manageColumns?: boolean;
   pinnedColumns?: DataTablePinnedColumns;
   defaultPinnedColumns?: DataTablePinnedColumns;
   onPinnedColumnsChange?: (pinned: DataTablePinnedColumns) => void;

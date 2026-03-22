@@ -147,6 +147,7 @@ const meta = {
     layoutMode: "responsive",
     tableWidth: undefined,
     minTableWidth: undefined,
+    maxTableHeight: "max-content",
     paginated: true,
     searchPlaceholder: "Search...",
     emptyMessage: "No rows found...",
@@ -165,6 +166,7 @@ const meta = {
       country: false,
       company: false,
     },
+    manageColumns: true,
     columnOrder: undefined,
     defaultColumnOrder: undefined,
     pinnedColumns: undefined,
@@ -233,6 +235,15 @@ const meta = {
       table: {
         category: "Layout",
         defaultValue: { summary: "undefined" },
+      },
+    },
+    maxTableHeight: {
+      description:
+        "Maximum table height before vertical scrolling is applied. Accepts a number in pixels or any valid CSS height string.",
+      control: "text",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "max-content" },
       },
     },
     paginated: {
@@ -357,6 +368,15 @@ const meta = {
         defaultValue: { summary: "undefined" },
       },
     },
+    manageColumns: {
+      description:
+        "Shows a column management button in the header that allows toggling column visibility, changing column order, and pinning columns.",
+      control: "boolean",
+      table: {
+        category: "Column manager",
+        defaultValue: { summary: "false" },
+      },
+    },
     columnOrder: {
       description:
         "Controlled array describing the rendered column order by field id.",
@@ -438,6 +458,7 @@ export const Primary: Story = {
   args: {
     mode: "inline",
     showBackdrop: true,
+    maxTableHeight: "500px",
   },
 
   loaders: [() => ({ rows: getPersonRows() })],
@@ -469,6 +490,7 @@ export const FixedWidth: Story = {
       city: false,
       state: false,
     },
+    maxTableHeight: "500px",
   },
 
   loaders: [() => ({ rows: getPersonRows() })],
