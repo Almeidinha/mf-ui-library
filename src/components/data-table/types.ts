@@ -150,6 +150,7 @@ export type UseDataTableResult<T extends Record<string, unknown>> = {
   visibleColumns: DataTableColumn<T>[];
 
   selectedKeys: React.Key[];
+  selectedKeySet: Set<React.Key>;
   allVisibleSelected: boolean;
   someVisibleSelected: boolean;
   toggleRow: (row: T) => void;

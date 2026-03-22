@@ -111,16 +111,16 @@ function buildDefaultOrder<T extends Record<string, unknown>>(
   defaultOrder?: string[],
 ) {
   const fields = columns.map(getColumnId);
+  const fieldSet = new Set(fields);
 
   if (!defaultOrder?.length) {
     return fields;
   }
 
-  const validDefaultOrder = defaultOrder.filter((field) =>
-    fields.includes(field),
-  );
+  const validDefaultOrder = defaultOrder.filter((field) => fieldSet.has(field));
+  const validDefaultOrderSet = new Set(validDefaultOrder);
   const missingFields = fields.filter(
-    (field) => !validDefaultOrder.includes(field),
+    (field) => !validDefaultOrderSet.has(field),
   );
 
   return [...validDefaultOrder, ...missingFields];
@@ -130,9 +130,10 @@ function normalizePinnedColumns(
   order: string[],
   pinned?: Partial<DataTablePinnedColumns>,
 ): DataTablePinnedColumns {
-  const left = (pinned?.left ?? []).filter((field) => order.includes(field));
+  const orderSet = new Set(order);
+  const left = (pinned?.left ?? []).filter((field) => orderSet.has(field));
   const right = (pinned?.right ?? []).filter(
-    (field) => order.includes(field) && !left.includes(field),
+    (field) => orderSet.has(field) && !left.includes(field),
   );
 
   return { left, right };
@@ -188,9 +189,22 @@ export function useDataTable<T extends Record<string, unknown>>(
     onPinnedColumnsChange,
   } = props;
 
+  const columnManagementEnabled =
+    props.manageColumns ||
+    controlledColumnVisibility !== undefined ||
+    defaultColumnVisibility !== undefined ||
+    onColumnVisibilityChange !== undefined ||
+    controlledColumnOrder !== undefined ||
+    defaultColumnOrder !== undefined ||
+    onColumnOrderChange !== undefined ||
+    controlledPinnedColumns !== undefined ||
+    defaultPinnedColumns !== undefined ||
+    onPinnedColumnsChange !== undefined ||
+    Boolean(props.storageKey);
+
   const storedState = useMemo(
-    () => readStoredState(props.storageKey),
-    [props.storageKey],
+    () => (columnManagementEnabled ? readStoredState(props.storageKey) : null),
+    [columnManagementEnabled, props.storageKey],
   );
 
   const defaultVisibilityState = useMemo(
@@ -211,15 +225,28 @@ export function useDataTable<T extends Record<string, unknown>>(
     [columns, defaultColumnOrder, storedState],
   );
 
-  const defaultPinnedState = useMemo(
-    () =>
-      buildDefaultPinnedColumns(
-        columns,
-        defaultOrderState,
-        storedState?.pinnedColumns ?? defaultPinnedColumns,
-      ),
-    [columns, defaultOrderState, defaultPinnedColumns, storedState],
+  const defaultColumnOrderState = useMemo(
+    () => columns.map(getColumnId),
+    [columns],
   );
+
+  const defaultPinnedState = useMemo(() => {
+    if (!columnManagementEnabled) {
+      return { left: [], right: [] };
+    }
+
+    return buildDefaultPinnedColumns(
+      columns,
+      defaultOrderState,
+      storedState?.pinnedColumns ?? defaultPinnedColumns,
+    );
+  }, [
+    columnManagementEnabled,
+    columns,
+    defaultOrderState,
+    defaultPinnedColumns,
+    storedState,
+  ]);
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, searchDebounce);
@@ -236,23 +263,43 @@ export function useDataTable<T extends Record<string, unknown>>(
   );
 
   const [internalColumnVisibility, setInternalColumnVisibility] = useState(
-    defaultVisibilityState,
+    () => defaultVisibilityState,
   );
-  const [internalColumnOrder, setInternalColumnOrder] =
-    useState(defaultOrderState);
-  const [internalPinnedColumns, setInternalPinnedColumns] =
-    useState(defaultPinnedState);
+  const [internalColumnOrder, setInternalColumnOrder] = useState(
+    () => defaultOrderState,
+  );
+  const [internalPinnedColumns, setInternalPinnedColumns] = useState(
+    () => defaultPinnedState,
+  );
 
   const sortField = controlledSortField ?? internalSortField;
   const sortDirection = controlledSortDirection ?? internalSortDirection;
   const selectedKeys = selectedRows ?? internalSelectedKeys;
-  const columnVisibility =
-    controlledColumnVisibility ?? internalColumnVisibility;
-  const columnOrder = controlledColumnOrder ?? internalColumnOrder;
-  const pinnedColumns = controlledPinnedColumns ?? internalPinnedColumns;
+  const selectedKeySet = useMemo(() => new Set(selectedKeys), [selectedKeys]);
+  const columnVisibility = columnManagementEnabled
+    ? (controlledColumnVisibility ?? internalColumnVisibility)
+    : defaultVisibilityState;
+  const unmanagedPinnedColumns = useMemo<DataTablePinnedColumns>(
+    () => ({ left: [], right: [] }),
+    [],
+  );
+  const columnOrder = columnManagementEnabled
+    ? (controlledColumnOrder ?? internalColumnOrder)
+    : defaultColumnOrderState;
+  const pinnedColumns = columnManagementEnabled
+    ? (controlledPinnedColumns ?? internalPinnedColumns)
+    : unmanagedPinnedColumns;
+  const columnById = useMemo(
+    () => new Map(columns.map((column) => [getColumnId(column), column])),
+    [columns],
+  );
 
   React.useEffect(() => {
-    if (!props.storageKey || typeof window === "undefined") {
+    if (
+      !columnManagementEnabled ||
+      !props.storageKey ||
+      typeof window === "undefined"
+    ) {
       return;
     }
 
@@ -268,7 +315,13 @@ export function useDataTable<T extends Record<string, unknown>>(
     } catch {
       // ignore storage failures
     }
-  }, [props.storageKey, columnVisibility, columnOrder, pinnedColumns]);
+  }, [
+    columnManagementEnabled,
+    props.storageKey,
+    columnVisibility,
+    columnOrder,
+    pinnedColumns,
+  ]);
 
   const setSort = (nextField: string | null, nextDirection: SortDirection) => {
     if (onSortChange) {
@@ -294,9 +347,11 @@ export function useDataTable<T extends Record<string, unknown>>(
       setInternalSelectedKeys(keys);
     }
 
+    const nextKeySet = new Set(keys);
+
     onSelectedRowsChange?.(
       keys,
-      rows.filter((row) => keys.includes(getRowKeyValue(row, rowKey))),
+      rows.filter((row) => nextKeySet.has(getRowKeyValue(row, rowKey))),
     );
   };
 
@@ -309,7 +364,7 @@ export function useDataTable<T extends Record<string, unknown>>(
   };
 
   const toggleColumnVisibility = (field: string) => {
-    const column = columns.find((col) => getColumnId(col) === field);
+    const column = columnById.get(field);
 
     if (!column || column.hideable === false) {
       return;
@@ -336,7 +391,7 @@ export function useDataTable<T extends Record<string, unknown>>(
   };
 
   const reorderColumn = (field: string, toIndex: number) => {
-    const column = columns.find((col) => getColumnId(col) === field);
+    const column = columnById.get(field);
 
     if (!column || column.reorderable === false) {
       return;
@@ -374,7 +429,7 @@ export function useDataTable<T extends Record<string, unknown>>(
   };
 
   const pinColumn = (field: string, pin: DataTablePin | null) => {
-    const column = columns.find((col) => getColumnId(col) === field);
+    const column = columnById.get(field);
 
     if (!column || column.pinnable === false) {
       return;
@@ -407,6 +462,10 @@ export function useDataTable<T extends Record<string, unknown>>(
   };
 
   const orderedColumns = useMemo(() => {
+    if (!columnManagementEnabled) {
+      return columns;
+    }
+
     const columnMap = new Map(
       columns.map((column) => [getColumnId(column), column]),
     );
@@ -414,32 +473,65 @@ export function useDataTable<T extends Record<string, unknown>>(
     return columnOrder
       .map((field) => columnMap.get(field))
       .filter(Boolean) as DataTableColumn<T>[];
-  }, [columns, columnOrder]);
+  }, [columnManagementEnabled, columns, columnOrder]);
 
   const visibleColumns = useMemo(() => {
+    if (!columnManagementEnabled) {
+      return columns;
+    }
+
+    const leftPinnedSet = new Set(pinnedColumns.left);
+    const rightPinnedSet = new Set(pinnedColumns.right);
+
     const nextVisibleColumns = orderedColumns.filter(
       (column) => columnVisibility[getColumnId(column)] !== false,
     );
 
     const leftPinned = nextVisibleColumns.filter((column) =>
-      pinnedColumns.left.includes(getColumnId(column)),
+      leftPinnedSet.has(getColumnId(column)),
     );
 
     const rightPinned = nextVisibleColumns.filter((column) =>
-      pinnedColumns.right.includes(getColumnId(column)),
+      rightPinnedSet.has(getColumnId(column)),
     );
 
     const center = nextVisibleColumns.filter((column) => {
       const field = getColumnId(column);
 
-      return (
-        !pinnedColumns.left.includes(field) &&
-        !pinnedColumns.right.includes(field)
-      );
+      return !leftPinnedSet.has(field) && !rightPinnedSet.has(field);
     });
 
     return [...leftPinned, ...center, ...rightPinned];
-  }, [orderedColumns, columnVisibility, pinnedColumns]);
+  }, [
+    columnManagementEnabled,
+    columns,
+    orderedColumns,
+    columnVisibility,
+    pinnedColumns,
+  ]);
+
+  const searchableColumns = useMemo(
+    () =>
+      visibleColumns.filter(
+        (column): column is DataTableRegularColumn<T> =>
+          isRegularColumn(column) && column.searchable !== false,
+      ),
+    [visibleColumns],
+  );
+
+  const searchableRows = useMemo(() => {
+    if (!searchable || searchableColumns.length === 0) {
+      return null;
+    }
+
+    return rows.map((row) => ({
+      row,
+      searchText: searchableColumns
+        .map((column) => normalizeSearchValue(getColumnRawValue(row, column)))
+        .filter(Boolean)
+        .join(" "),
+    }));
+  }, [rows, searchable, searchableColumns]);
 
   const filteredRows = useMemo(() => {
     if (!searchable) {
@@ -452,28 +544,21 @@ export function useDataTable<T extends Record<string, unknown>>(
       return rows;
     }
 
-    return rows.filter((row) =>
-      visibleColumns.some((column) => {
-        if (!isRegularColumn(column)) {
-          return false;
-        }
+    if (!searchableRows) {
+      return [];
+    }
 
-        if (column.searchable === false) {
-          return false;
-        }
-
-        const value = getColumnRawValue(row, column);
-        return normalizeSearchValue(value).includes(query);
-      }),
-    );
-  }, [rows, visibleColumns, searchable, debouncedSearch]);
+    return searchableRows
+      .filter(({ searchText }) => searchText.includes(query))
+      .map(({ row }) => row);
+  }, [rows, searchable, debouncedSearch, searchableRows]);
 
   const sortedRows = useMemo(() => {
     if (!sortField || sortDirection === "NONE") {
       return filteredRows;
     }
 
-    const column = columns.find((c) => String(c.field) === sortField);
+    const column = columnById.get(sortField);
 
     if (!column || isActionsColumn(column)) {
       return filteredRows;
@@ -492,7 +577,7 @@ export function useDataTable<T extends Record<string, unknown>>(
     });
 
     return sortDirection === "DESC" ? nextRows.reverse() : nextRows;
-  }, [filteredRows, columns, sortField, sortDirection]);
+  }, [filteredRows, columnById, sortField, sortDirection]);
 
   const pagination = useMemo(() => {
     if (!paginated) {
@@ -515,15 +600,16 @@ export function useDataTable<T extends Record<string, unknown>>(
     () => visibleRows.map((row) => getRowKeyValue(row, rowKey)),
     [visibleRows, rowKey],
   );
+  const visibleKeySet = useMemo(() => new Set(visibleKeys), [visibleKeys]);
 
   const allVisibleSelected =
     checkboxSelection &&
     visibleKeys.length > 0 &&
-    visibleKeys.every((key) => selectedKeys.includes(key));
+    visibleKeys.every((key) => selectedKeySet.has(key));
 
   const someVisibleSelected =
     checkboxSelection &&
-    visibleKeys.some((key) => selectedKeys.includes(key)) &&
+    visibleKeys.some((key) => selectedKeySet.has(key)) &&
     !allVisibleSelected;
 
   const toggleSort = (field: string, sortable?: boolean) => {
@@ -547,7 +633,7 @@ export function useDataTable<T extends Record<string, unknown>>(
     }
 
     const key = getRowKeyValue(row, rowKey);
-    const exists = selectedKeys.includes(key);
+    const exists = selectedKeySet.has(key);
 
     const nextKeys = exists
       ? selectedKeys.filter((k) => k !== key)
@@ -562,7 +648,7 @@ export function useDataTable<T extends Record<string, unknown>>(
     }
 
     if (allVisibleSelected) {
-      const nextKeys = selectedKeys.filter((key) => !visibleKeys.includes(key));
+      const nextKeys = selectedKeys.filter((key) => !visibleKeySet.has(key));
       setSelectedKeys(nextKeys);
       return;
     }
@@ -592,6 +678,7 @@ export function useDataTable<T extends Record<string, unknown>>(
     visibleColumns,
 
     selectedKeys,
+    selectedKeySet,
     allVisibleSelected,
     someVisibleSelected,
     toggleRow,

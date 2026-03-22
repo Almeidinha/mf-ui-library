@@ -123,6 +123,34 @@ function getResolvedColumnWidth<T extends Record<string, unknown>>(
   return column.width ?? (column.fitContent ? 120 : 160);
 }
 
+function buildPinnedOffsets<T extends Record<string, unknown>>(
+  columns: DataTableColumn<T>[],
+  pinnedSet: Set<string>,
+  columnWidthMap: Record<string, number>,
+  initialOffset = 0,
+) {
+  const { entries } = columns.reduce<{
+    offset: number;
+    entries: Array<[string, number]>;
+  }>(
+    (acc, column) => {
+      const field = getColumnId(column);
+
+      if (!pinnedSet.has(field)) {
+        return acc;
+      }
+
+      return {
+        offset: acc.offset + columnWidthMap[field],
+        entries: [...acc.entries, [field, acc.offset]],
+      };
+    },
+    { offset: initialOffset, entries: [] },
+  );
+
+  return Object.fromEntries(entries);
+}
+
 type RenderedColumn<T extends Record<string, unknown>> = {
   column: DataTableColumn<T>;
   field: string;
@@ -173,7 +201,7 @@ export function DataTable<T extends Record<string, unknown>>(
     visibleRows,
     visibleColumns,
 
-    selectedKeys,
+    selectedKeySet,
     allVisibleSelected,
     someVisibleSelected,
     toggleRow,
@@ -244,35 +272,20 @@ export function DataTable<T extends Record<string, unknown>>(
   }, [visibleColumns]);
 
   const leftOffsets = React.useMemo(() => {
-    let offset = checkboxSelection ? CHECKBOX_COLUMN_WIDTH : 0;
-    const map: Record<string, number> = {};
-
-    visibleColumns.forEach((column) => {
-      const field = getColumnId(column);
-
-      if (leftPinnedSet.has(field)) {
-        map[field] = offset;
-        offset += columnWidthMap[field];
-      }
-    });
-
-    return map;
+    return buildPinnedOffsets(
+      visibleColumns,
+      leftPinnedSet,
+      columnWidthMap,
+      checkboxSelection ? CHECKBOX_COLUMN_WIDTH : 0,
+    );
   }, [visibleColumns, leftPinnedSet, columnWidthMap, checkboxSelection]);
 
   const rightOffsets = React.useMemo(() => {
-    let offset = 0;
-    const map: Record<string, number> = {};
-
-    [...visibleColumns].reverse().forEach((column) => {
-      const field = getColumnId(column);
-
-      if (rightPinnedSet.has(field)) {
-        map[field] = offset;
-        offset += columnWidthMap[field];
-      }
-    });
-
-    return map;
+    return buildPinnedOffsets(
+      [...visibleColumns].reverse(),
+      rightPinnedSet,
+      columnWidthMap,
+    );
   }, [visibleColumns, rightPinnedSet, columnWidthMap]);
 
   const computedColumnWidth = React.useMemo(() => {
@@ -473,7 +486,7 @@ export function DataTable<T extends Record<string, unknown>>(
               ) : (
                 visibleRows.map((row) => {
                   const key = getRowKey(row);
-                  const isSelected = selectedKeys.includes(key);
+                  const isSelected = selectedKeySet.has(key);
 
                   return (
                     <TableRow key={key} selected={isSelected}>
