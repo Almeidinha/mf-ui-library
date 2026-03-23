@@ -35,3 +35,4 @@ export * from "./tree-view";
 export * from "./transitions";
 export * from "./overlay";
 export * from "./drawer";
+export * from "./chart";
