@@ -127,6 +127,8 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   tableWidth?: number | string;
   minTableWidth?: number | string;
   maxTableHeight?: number | string;
+  striped?: boolean;
+  showCellBorders?: boolean;
 
   storageKey?: string;
 

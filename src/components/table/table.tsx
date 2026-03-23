@@ -64,6 +64,7 @@ export interface ITableCellProps extends TdHTMLAttributes<HTMLTableCellElement> 
 
 export const Table = styled.table<{
   $bordered?: boolean;
+  $cellBorders?: "all" | "horizontal";
   $width?: number | string;
   $minWidth?: number | string;
 }>`
@@ -87,16 +88,66 @@ export const Table = styled.table<{
           ${shadowMd}
         `
       : ""}
+
+  ${({ $cellBorders }) => {
+    if ($cellBorders === "all") {
+      return css`
+          thead th:not(:last-child) {
+            border-right: 1px solid ${Borders.Default.Muted};
+          }
+
+          tbody td {
+            border-right: 1px solid ${Borders.Default.Muted};
+            border-bottom: 1px solid ${Borders.Default.Muted};
+            box-sizing: border-box;
+          }
+
+          tbody td:last-child {
+            border-right: none;
+          }
+
+          tbody tr:last-child td {
+            border-bottom: none;
+          }
+        `;
+    }
+
+    if ($cellBorders === "horizontal") {
+      return css`
+        tbody td {
+          border-bottom: 1px solid ${Borders.Default.Muted};
+          box-sizing: border-box;
+        }
+
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+      `;
+    }
+
+    return "";
+  }}
 `;
 
-export const TableBody = styled.tbody`
-  tr:nth-child(odd):not([aria-selected="true"]) {
-    background-color: ${Surface.Default.Default};
-  }
+export const TableBody = styled.tbody<{
+  $striped?: boolean;
+}>`
+  ${({ $striped = true }) =>
+    $striped
+      ? css`
+          tr:nth-child(odd):not([aria-selected="true"]) {
+            background-color: ${Surface.Default.Default};
+          }
 
-  tr:nth-child(even):not([aria-selected="true"]) {
-    background-color: ${Surface.Default.Muted};
-  }
+          tr:nth-child(even):not([aria-selected="true"]) {
+            background-color: ${Surface.Default.Muted};
+          }
+        `
+      : css`
+          tr:not([aria-selected="true"]) {
+            background-color: ${Surface.Default.Default};
+          }
+        `}
 `;
 
 export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{

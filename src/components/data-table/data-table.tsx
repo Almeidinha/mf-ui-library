@@ -48,6 +48,8 @@ const TableFrame = styled.div<{
   $borderTop?: boolean;
   $borderBottom?: boolean;
 }>`
+  display: grid;
+  min-width: 0;
   border-top: ${({ $borderTop }) =>
     $borderTop ? `1px solid ${Borders.Default.Default}` : "none"};
   border-bottom: ${({ $borderBottom }) =>
@@ -133,6 +135,8 @@ export function DataTable<T extends Record<string, unknown>>(
     tableWidth,
     minTableWidth,
     maxTableHeight = "max-content",
+    striped = true,
+    showCellBorders = false,
     manageColumns = false,
     rowGrouping: rawRowGrouping,
   } = props;
@@ -244,6 +248,14 @@ export function DataTable<T extends Record<string, unknown>>(
     getColumnRawValue,
   });
   const { hasBodySpans, bodyCellsByKey } = bodySpanState;
+
+  const cellBorderMode = React.useMemo(() => {
+    if (!showCellBorders) {
+      return undefined;
+    }
+
+    return lastLeftPinnedField || firstRightPinnedField ? "horizontal" : "all";
+  }, [showCellBorders, lastLeftPinnedField, firstRightPinnedField]);
 
   const defaultBodyCells = React.useMemo<ResolvedBodyCell<T>[]>(
     () =>
@@ -403,33 +415,35 @@ export function DataTable<T extends Record<string, unknown>>(
 
   return (
     <TableContainer ref={tableAreaRef}>
-      <TableSibling gap={Gap.m}>
-        <If is={searchable}>
-          <InputText
-            value={search}
-            onChange={setSearch}
-            placeholder={searchPlaceholder}
-          />
-        </If>
+      <If is={searchable || manageColumns}>
+        <TableSibling gap={Gap.m}>
+          <If is={searchable}>
+            <InputText
+              value={search}
+              onChange={setSearch}
+              placeholder={searchPlaceholder}
+            />
+          </If>
 
-        <If is={manageColumns}>
-          <DataTableColumnManager
-            columns={columns}
-            columnVisibility={columnVisibility}
-            toggleColumnVisibility={toggleColumnVisibility}
-            resetColumnVisibility={resetColumnVisibility}
-            pinnedColumns={pinnedColumns}
-            pinColumn={pinColumn}
-            resetPinnedColumns={resetPinnedColumns}
-            columnOrder={columnOrder}
-            setColumnOrder={setColumnOrder}
-            resetColumnOrder={resetColumnOrder}
-            mode={mode}
-            showBackdrop={showBackdrop}
-            inlineContainerRef={tableAreaRef}
-          />
-        </If>
-      </TableSibling>
+          <If is={manageColumns}>
+            <DataTableColumnManager
+              columns={columns}
+              columnVisibility={columnVisibility}
+              toggleColumnVisibility={toggleColumnVisibility}
+              resetColumnVisibility={resetColumnVisibility}
+              pinnedColumns={pinnedColumns}
+              pinColumn={pinColumn}
+              resetPinnedColumns={resetPinnedColumns}
+              columnOrder={columnOrder}
+              setColumnOrder={setColumnOrder}
+              resetColumnOrder={resetColumnOrder}
+              mode={mode}
+              showBackdrop={showBackdrop}
+              inlineContainerRef={tableAreaRef}
+            />
+          </If>
+        </TableSibling>
+      </If>
 
       <TableFrame
         $responsive={isResponsive}
@@ -438,6 +452,7 @@ export function DataTable<T extends Record<string, unknown>>(
       >
         <TableScroll $maxTableHeight={toCssSize(maxTableHeight)}>
           <Table
+            $cellBorders={cellBorderMode}
             $width={isResponsive ? "100%" : tableWidth || "auto"}
             $minWidth={
               isResponsive ? undefined : minTableWidth || computedColumnWidth
@@ -528,7 +543,7 @@ export function DataTable<T extends Record<string, unknown>>(
               </If>
             </TableHead>
 
-            <TableBody>
+            <TableBody $striped={striped}>
               {visibleRows.length === 0 ? (
                 <TableRow>
                   <TableBodyCell colSpan={colSpan}>

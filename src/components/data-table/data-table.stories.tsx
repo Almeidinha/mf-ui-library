@@ -66,9 +66,41 @@ function getForwardRunLength<T>(
     return span + 1;
   }, 1);
 }
+const Data = ["rows", "columns", "rowKey", "storageKey"];
+const Layout = [
+  "layoutMode",
+  "tableWidth",
+  "minTableWidth",
+  "maxTableHeight",
+  "striped",
+  "showCellBorders",
+];
+const Pagination = ["paginated", "defaultPageSize", "pageSizeOptions"];
+const Search = ["searchable", "searchPlaceholder", "searchDebounce"];
+const EmptyState = ["emptyMessage"];
+const Selection = ["checkboxSelection", "selectedRows", "onSelectedRowsChange"];
+const Sorting = ["sortField", "sortDirection", "onSortChange"];
+const ColumnVisibility = [
+  "manageColumns",
+  "columnVisibility",
+  "defaultColumnVisibility",
+  "onColumnVisibilityChange",
+];
+const ColumnManager = ["manageColumns", "mode", "showBackdrop"];
+const Pinning = [
+  "pinnedColumns",
+  "defaultPinnedColumns",
+  "onPinnedColumnsChange",
+];
+const ColumnOrder = [
+  "columnOrder",
+  "defaultColumnOrder",
+  "onColumnOrderChange",
+];
+const Grouping = ["columnGroups", "rowGrouping"];
 
 const getPersonRows = (): PersonRow[] => {
-  return Array.from({ length: 500 }, (_, i) => ({
+  return Array.from({ length: 200 }, (_, i) => ({
     id: i + 1,
     firstName: faker.person.firstName(),
     lastName: faker.person.lastName(),
@@ -82,6 +114,8 @@ const getPersonRows = (): PersonRow[] => {
     birth: faker.date.birthdate().toISOString().split("T")[0],
   }));
 };
+
+const personRows = getPersonRows();
 
 const columns: DataTableColumn<PersonRow>[] = [
   {
@@ -419,20 +453,22 @@ const meta = {
   args: {
     rows: [],
     columns: [],
+    showCellBorders: false,
+    striped: true,
     columnGroups: undefined,
     rowGrouping: undefined,
     rowKey: "id",
     layoutMode: "responsive",
     tableWidth: undefined,
     minTableWidth: undefined,
-    maxTableHeight: "max-content",
-    paginated: true,
+    maxTableHeight: 400,
+    paginated: false,
     searchPlaceholder: "Search...",
     emptyMessage: "No rows found...",
     defaultPageSize: 5,
     pageSizeOptions: [5, 10, 25],
-    searchable: true,
-    checkboxSelection: true,
+    searchable: false,
+    checkboxSelection: false,
     selectedRows: undefined,
     sortField: undefined,
     sortDirection: undefined,
@@ -444,7 +480,7 @@ const meta = {
       country: false,
       company: false,
     },
-    manageColumns: true,
+    manageColumns: false,
     columnOrder: undefined,
     defaultColumnOrder: undefined,
     pinnedColumns: undefined,
@@ -469,6 +505,15 @@ const meta = {
       table: {
         category: "Data",
         defaultValue: { summary: "[]" },
+      },
+    },
+    storageKey: {
+      description:
+        "Unique key used to persist user preferences in local storage. When set, column visibility, column order, and pinned columns are saved and loaded automatically.",
+      control: "text",
+      table: {
+        category: "Data",
+        defaultValue: { summary: "undefined" },
       },
     },
     columns: {
@@ -513,6 +558,24 @@ const meta = {
       table: {
         category: "Layout",
         defaultValue: { summary: "responsive" },
+      },
+    },
+    showCellBorders: {
+      description:
+        "Shows borders around individual cells for clearer separation.",
+      control: "boolean",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "false" },
+      },
+    },
+    striped: {
+      description:
+        "Applies alternating background colors to rows for readability.",
+      control: "boolean",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "true" },
       },
     },
     tableWidth: {
@@ -757,15 +820,13 @@ export const Primary: Story = {
     maxTableHeight: "500px",
   },
 
-  loaders: [() => ({ rows: getPersonRows() })],
-
-  render: (args, { loaded: { rows } }) => {
+  render: (args) => {
     return (
       <Flex>
         <DataTable
           {...args}
           key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
-          rows={rows as PersonRow[]}
+          rows={personRows}
           columns={columns}
           rowKey="id"
         />
@@ -781,23 +842,36 @@ export const FixedWidth: Story = {
     tableWidth: "800px",
     minTableWidth: "800px",
     showBackdrop: true,
-    defaultColumnVisibility: {
-      role: false,
-      city: false,
-      state: false,
-    },
+    defaultColumnVisibility: undefined,
+    defaultPinnedColumns: undefined,
     maxTableHeight: "500px",
   },
+  parameters: {
+    controls: {
+      exclude: [
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...ColumnManager,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...Grouping,
+      ],
+    },
+  },
 
-  loaders: [() => ({ rows: getPersonRows() })],
-
-  render: (args, { loaded: { rows } }) => {
+  render: (args) => {
     return (
       <Flex>
         <DataTable
           key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
           {...args}
-          rows={rows as PersonRow[]}
+          rows={personRows}
           columns={columns}
           rowKey="id"
         />
@@ -808,13 +882,11 @@ export const FixedWidth: Story = {
 
 export const RowSpanComplex: Story = {
   args: {
-    manageColumns: false,
-    checkboxSelection: false,
-    searchable: false,
-    paginated: false,
     rowGrouping: {
       field: "portfolio",
     },
+    striped: false,
+    showCellBorders: true,
   },
 
   parameters: {
@@ -823,6 +895,23 @@ export const RowSpanComplex: Story = {
         story:
           "Shows stacked body-cell merging with multiple row-span columns. The portfolio and squad cells merge downward, while the row grouping boundary prevents spans from crossing into the next portfolio section.",
       },
+    },
+    controls: {
+      exclude: [
+        ...Layout,
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...ColumnManager,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...Grouping,
+      ],
     },
   },
 
@@ -842,13 +931,11 @@ export const RowSpanComplex: Story = {
 
 export const ColumnSpanComplex: Story = {
   args: {
-    manageColumns: false,
-    checkboxSelection: false,
-    searchable: false,
-    paginated: false,
     rowGrouping: {
       field: "quarter",
     },
+    striped: false,
+    showCellBorders: true,
   },
 
   parameters: {
@@ -856,6 +943,25 @@ export const ColumnSpanComplex: Story = {
       description: {
         story:
           "Shows summary rows that merge horizontally across adjacent body cells. The line-item column expands across the remaining detail columns inside each quarter section.",
+      },
+    },
+    parameters: {
+      controls: {
+        exclude: [
+          ...Layout,
+          ...Data,
+          ...Pagination,
+          ...Search,
+          ...EmptyState,
+          ...Selection,
+          ...Sorting,
+          ...ColumnVisibility,
+          ...ColumnManager,
+          ...Pinning,
+          ...ColumnOrder,
+          ...Pinning,
+          ...Grouping,
+        ],
       },
     },
   },
@@ -876,12 +982,29 @@ export const ColumnSpanComplex: Story = {
 
 export const CellSpans: Story = {
   args: {
-    manageColumns: false,
-    checkboxSelection: false,
-    searchable: false,
-    paginated: false,
     rowGrouping: {
       field: "region",
+    },
+    striped: false,
+    showCellBorders: true,
+  },
+  parameters: {
+    controls: {
+      exclude: [
+        ...Layout,
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...ColumnManager,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...Grouping,
+      ],
     },
   },
 
@@ -901,8 +1024,17 @@ export const CellSpans: Story = {
 
 export const ColumnGrouping: Story = {
   args: {
-    manageColumns: false,
     checkboxSelection: true,
+    striped: false,
+    showCellBorders: true,
+    defaultPinnedColumns: undefined,
+    defaultColumnVisibility: {
+      role: false,
+      city: false,
+      state: false,
+      country: false,
+      company: false,
+    },
     columnGroups: [
       {
         key: "identity",
@@ -938,18 +1070,29 @@ export const ColumnGrouping: Story = {
       },
     ],
   },
+  parameters: {
+    controls: {
+      exclude: [
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...ColumnManager,
+        ...Grouping,
+      ],
+    },
+  },
 
-  loaders: [() => ({ rows: getPersonRows() })],
-
-  render: (args, { loaded: { rows } }) => {
+  render: (args) => {
     return (
       <Flex>
-        <DataTable
-          {...args}
-          rows={rows as PersonRow[]}
-          columns={columns}
-          rowKey="id"
-        />
+        <DataTable {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
     );
   },
@@ -957,7 +1100,8 @@ export const ColumnGrouping: Story = {
 
 export const RowGrouping: Story = {
   args: {
-    manageColumns: false,
+    striped: false,
+    showCellBorders: true,
     rowGrouping: {
       fields: ["country", "state"],
       collapsible: true,
@@ -979,18 +1123,29 @@ export const RowGrouping: Story = {
       ),
     },
   },
+  parameters: {
+    controls: {
+      exclude: [
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...ColumnManager,
+        ...Grouping,
+      ],
+    },
+  },
 
-  loaders: [() => ({ rows: getPersonRows() })],
-
-  render: (args, { loaded: { rows } }) => {
+  render: (args) => {
     return (
       <Flex>
-        <DataTable
-          {...args}
-          rows={rows as PersonRow[]}
-          columns={columns}
-          rowKey="id"
-        />
+        <DataTable {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
     );
   },
@@ -998,8 +1153,8 @@ export const RowGrouping: Story = {
 
 export const ColumnAndRowGrouping: Story = {
   args: {
-    manageColumns: false,
-    checkboxSelection: true,
+    striped: false,
+    showCellBorders: true,
     columnGroups: [
       {
         key: "identity",
@@ -1042,18 +1197,29 @@ export const ColumnAndRowGrouping: Story = {
       ),
     },
   },
+  parameters: {
+    controls: {
+      exclude: [
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...ColumnManager,
+        ...Grouping,
+      ],
+    },
+  },
 
-  loaders: [() => ({ rows: getPersonRows() })],
-
-  render: (args, { loaded: { rows } }) => {
+  render: (args) => {
     return (
       <Flex>
-        <DataTable
-          {...args}
-          rows={rows as PersonRow[]}
-          columns={columns}
-          rowKey="id"
-        />
+        <DataTable {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
     );
   },

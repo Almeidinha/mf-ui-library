@@ -242,7 +242,161 @@ describe("DataTable grouping", () => {
   });
 });
 
+describe("DataTable row striping", () => {
+  it("keeps row striping enabled by default", () => {
+    render(
+      <DataTable
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const aliceRow = screen.getByText("Alice").closest("tr");
+    const brunoRow = screen.getByText("Bruno").closest("tr");
+
+    expect(aliceRow).not.toBeNull();
+    expect(brunoRow).not.toBeNull();
+    expect(
+      getComputedStyle(aliceRow as HTMLTableRowElement).backgroundColor,
+    ).toBe("rgb(255, 255, 255)");
+    expect(
+      getComputedStyle(brunoRow as HTMLTableRowElement).backgroundColor,
+    ).toBe("rgb(249, 250, 251)");
+  });
+
+  it("can disable row striping", () => {
+    render(
+      <DataTable
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        striped={false}
+      />,
+    );
+
+    const aliceRow = screen.getByText("Alice").closest("tr");
+    const brunoRow = screen.getByText("Bruno").closest("tr");
+
+    expect(aliceRow).not.toBeNull();
+    expect(brunoRow).not.toBeNull();
+    expect(
+      getComputedStyle(aliceRow as HTMLTableRowElement).backgroundColor,
+    ).toBe("rgb(255, 255, 255)");
+    expect(
+      getComputedStyle(brunoRow as HTMLTableRowElement).backgroundColor,
+    ).toBe("rgb(255, 255, 255)");
+  });
+});
+
 describe("DataTable cell spans", () => {
+  it("keeps cell borders disabled by default", () => {
+    render(
+      <DataTable
+        rows={spanRows}
+        columns={spanColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const revenueCell = screen.getAllByText("Revenue")[0]?.closest("td");
+
+    expect(revenueCell).not.toBeNull();
+
+    const styles = getComputedStyle(revenueCell as HTMLTableCellElement);
+
+    expect(styles.borderRightWidth).toBe("");
+    expect(styles.borderBottomWidth).toBe("");
+  });
+
+  it("can render cell borders for spanned layouts", () => {
+    render(
+      <DataTable
+        rows={spanRows}
+        columns={spanColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        showCellBorders
+      />,
+    );
+
+    const revenueCell = screen.getAllByText("Revenue")[0]?.closest("td");
+    const noteCell = screen.getByText("$120k").closest("td");
+
+    expect(revenueCell).not.toBeNull();
+    expect(noteCell).not.toBeNull();
+
+    const revenueStyles = getComputedStyle(revenueCell as HTMLTableCellElement);
+    const noteStyles = getComputedStyle(noteCell as HTMLTableCellElement);
+
+    expect(revenueStyles.borderRightWidth).toBe("1px");
+    expect(revenueStyles.borderRightStyle).toBe("solid");
+    expect(revenueStyles.borderRightColor).toBe("rgb(229, 231, 235)");
+    expect(revenueStyles.borderBottomWidth).toBe("1px");
+    expect(revenueStyles.borderBottomStyle).toBe("solid");
+    expect(revenueStyles.borderBottomColor).toBe("rgb(229, 231, 235)");
+
+    expect(noteStyles.borderRightStyle).toBe("none");
+    expect(noteStyles.borderBottomWidth).toBe("1px");
+    expect(noteStyles.borderBottomStyle).toBe("solid");
+    expect(noteStyles.borderBottomColor).toBe("rgb(229, 231, 235)");
+  });
+
+  it("uses only horizontal cell borders when columns are pinned", () => {
+    render(
+      <DataTable
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        showCellBorders
+        pinnedColumns={{ left: ["name"], right: ["city"] }}
+      />,
+    );
+
+    const nameHeader = screen.getByText("Name").closest("th");
+    const countryHeader = screen.getByText("Country").closest("th");
+    const cityHeader = screen.getByText("City").closest("th");
+    const countryCell = screen.getAllByText("Brazil")[0]?.closest("td");
+
+    expect(nameHeader).not.toBeNull();
+    expect(countryHeader).not.toBeNull();
+    expect(cityHeader).not.toBeNull();
+    expect(countryCell).not.toBeNull();
+
+    const nameHeaderStyles = getComputedStyle(
+      nameHeader as HTMLTableCellElement,
+    );
+    const countryHeaderStyles = getComputedStyle(
+      countryHeader as HTMLTableCellElement,
+    );
+    const cityHeaderStyles = getComputedStyle(
+      cityHeader as HTMLTableCellElement,
+    );
+    const countryCellStyles = getComputedStyle(
+      countryCell as HTMLTableCellElement,
+    );
+
+    expect(nameHeaderStyles.borderRightWidth).toBe("1px");
+    expect(nameHeaderStyles.borderRightStyle).toBe("solid");
+    expect(countryHeaderStyles.borderRightWidth).toBe("");
+    expect(cityHeaderStyles.borderLeftWidth).toBe("1px");
+    expect(cityHeaderStyles.borderLeftStyle).toBe("solid");
+
+    expect(countryCellStyles.borderRightWidth).toBe("");
+    expect(countryCellStyles.borderBottomWidth).toBe("1px");
+    expect(countryCellStyles.borderBottomStyle).toBe("solid");
+    expect(countryCellStyles.borderBottomColor).toBe("rgb(229, 231, 235)");
+  });
+
   it("renders column spans without affecting the default row path", () => {
     render(
       <DataTable
