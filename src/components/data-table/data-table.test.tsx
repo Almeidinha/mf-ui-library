@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import { vi } from "vitest";
 
 import { DataTable } from "./data-table";
 import type { DataTableColumn } from "./types";
@@ -239,6 +240,74 @@ describe("DataTable grouping", () => {
     expect(
       within(brunoRow as HTMLTableRowElement).getByRole("checkbox"),
     ).not.toBeChecked();
+  });
+
+  it("toggles all visible rows off when clicking the header checkbox twice", async () => {
+    const user = userEvent.setup();
+
+    function ControlledTable() {
+      const [selectedRows, setSelectedRows] = React.useState<React.Key[]>([]);
+
+      return (
+        <>
+          <div data-testid="selected-count">{selectedRows.length}</div>
+          <DataTable
+            rows={rows}
+            columns={columns}
+            rowKey="id"
+            paginated={false}
+            searchable={false}
+            checkboxSelection
+            selectedRows={selectedRows}
+            onSelectedRowsChange={(keys) => setSelectedRows(keys)}
+          />
+        </>
+      );
+    }
+
+    render(<ControlledTable />);
+
+    const headerCheckbox = screen.getAllByRole("checkbox")[0];
+
+    await user.click(headerCheckbox);
+    expect(screen.getByTestId("selected-count")).toHaveTextContent("3");
+
+    await user.click(headerCheckbox);
+    expect(screen.getByTestId("selected-count")).toHaveTextContent("0");
+  });
+});
+
+describe("DataTable action columns", () => {
+  it("skips action-column processing when disabled", () => {
+    const getActions = vi.fn((row: TestRow) => [
+      {
+        key: `view-${row.id}`,
+        label: "View",
+        onClick: vi.fn(),
+      },
+    ]);
+
+    render(
+      <DataTable
+        rows={rows}
+        columns={[
+          ...columns,
+          {
+            field: "actions",
+            type: "actions",
+            headerName: "Actions",
+            getActions,
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        showActionColumns={false}
+      />,
+    );
+
+    expect(screen.queryByText("Actions")).not.toBeInTheDocument();
+    expect(getActions).not.toHaveBeenCalled();
   });
 });
 

@@ -159,6 +159,7 @@ export function useDataTable<T extends Record<string, unknown>>(
   const {
     rows,
     columns,
+    showActionColumns = true,
     rowKey,
     paginated = false,
     defaultPageSize = 10,
@@ -185,6 +186,14 @@ export function useDataTable<T extends Record<string, unknown>>(
     onPinnedColumnsChange,
   } = props;
 
+  const enabledColumns = useMemo(
+    () =>
+      showActionColumns
+        ? columns
+        : columns.filter((column) => !isActionsColumn(column)),
+    [columns, showActionColumns],
+  );
+
   const columnManagementEnabled =
     props.manageColumns ||
     controlledColumnVisibility !== undefined ||
@@ -206,24 +215,24 @@ export function useDataTable<T extends Record<string, unknown>>(
   const defaultVisibilityState = useMemo(
     () =>
       buildDefaultVisibility(
-        columns,
+        enabledColumns,
         storedState?.columnVisibility ?? defaultColumnVisibility,
       ),
-    [columns, defaultColumnVisibility, storedState],
+    [enabledColumns, defaultColumnVisibility, storedState],
   );
 
   const defaultOrderState = useMemo(
     () =>
       buildDefaultOrder(
-        columns,
+        enabledColumns,
         storedState?.columnOrder ?? defaultColumnOrder,
       ),
-    [columns, defaultColumnOrder, storedState],
+    [enabledColumns, defaultColumnOrder, storedState],
   );
 
   const defaultColumnOrderState = useMemo(
-    () => columns.map(getColumnId),
-    [columns],
+    () => enabledColumns.map(getColumnId),
+    [enabledColumns],
   );
 
   const defaultPinnedState = useMemo(() => {
@@ -232,13 +241,13 @@ export function useDataTable<T extends Record<string, unknown>>(
     }
 
     return buildDefaultPinnedColumns(
-      columns,
+      enabledColumns,
       defaultOrderState,
       storedState?.pinnedColumns ?? defaultPinnedColumns,
     );
   }, [
     columnManagementEnabled,
-    columns,
+    enabledColumns,
     defaultOrderState,
     defaultPinnedColumns,
     storedState,
@@ -286,8 +295,9 @@ export function useDataTable<T extends Record<string, unknown>>(
     : EMPTY_PINNED_COLUMNS;
 
   const columnById = useMemo(
-    () => new Map(columns.map((column) => [getColumnId(column), column])),
-    [columns],
+    () =>
+      new Map(enabledColumns.map((column) => [getColumnId(column), column])),
+    [enabledColumns],
   );
 
   React.useEffect(() => {
@@ -377,7 +387,7 @@ export function useDataTable<T extends Record<string, unknown>>(
   };
 
   const setColumnOrder = (nextOrder: string[]) => {
-    const normalizedOrder = buildDefaultOrder(columns, nextOrder);
+    const normalizedOrder = buildDefaultOrder(enabledColumns, nextOrder);
 
     if (controlledColumnOrder === undefined) {
       setInternalColumnOrder(normalizedOrder);
@@ -459,17 +469,17 @@ export function useDataTable<T extends Record<string, unknown>>(
 
   const orderedColumns = useMemo(() => {
     if (!columnManagementEnabled) {
-      return columns;
+      return enabledColumns;
     }
 
     return columnOrder
       .map((field) => columnById.get(field))
       .filter(Boolean) as DataTableColumn<T>[];
-  }, [columnManagementEnabled, columns, columnOrder, columnById]);
+  }, [columnManagementEnabled, enabledColumns, columnOrder, columnById]);
 
   const visibleColumns = useMemo(() => {
     if (!columnManagementEnabled) {
-      return columns;
+      return enabledColumns;
     }
 
     const leftPinnedSet = new Set(pinnedColumns.left);
@@ -496,7 +506,7 @@ export function useDataTable<T extends Record<string, unknown>>(
     return [...leftPinned, ...center, ...rightPinned];
   }, [
     columnManagementEnabled,
-    columns,
+    enabledColumns,
     orderedColumns,
     columnVisibility,
     pinnedColumns,

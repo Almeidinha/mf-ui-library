@@ -13,8 +13,6 @@ import {
 import type { GroupedBodyEntry } from "./dataTable.shared";
 import type { DataTableRowGrouping } from "./types";
 
-const EMPTY_KEY_SET = new Set<React.Key>();
-
 type UseDataTableRowGroupingArgs<T extends Record<string, unknown>> = {
   rowGrouping?: DataTableRowGrouping<T>;
   visibleRows: T[];
@@ -161,10 +159,6 @@ export function useDataTableRowGrouping<T extends Record<string, unknown>>({
     [expandedRowKeys],
   );
 
-  const effectiveExpandedRowKeySet = groupingConfig
-    ? expandedRowKeySet
-    : EMPTY_KEY_SET;
-
   const allExpandedSelected =
     checkboxSelection &&
     expandedRowKeys.length > 0 &&
@@ -182,7 +176,7 @@ export function useDataTableRowGrouping<T extends Record<string, unknown>>({
 
     if (allExpandedSelected) {
       setSelectedKeys(
-        selectedKeys.filter((key) => !effectiveExpandedRowKeySet.has(key)),
+        selectedKeys.filter((key) => !expandedRowKeySet.has(key)),
       );
       return;
     }
@@ -193,7 +187,7 @@ export function useDataTableRowGrouping<T extends Record<string, unknown>>({
     allExpandedSelected,
     setSelectedKeys,
     selectedKeys,
-    effectiveExpandedRowKeySet,
+    expandedRowKeySet,
     expandedRowKeys,
   ]);
 

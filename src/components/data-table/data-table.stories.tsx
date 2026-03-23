@@ -74,6 +74,7 @@ const Layout = [
   "maxTableHeight",
   "striped",
   "showCellBorders",
+  "showActionColumns",
 ];
 const Pagination = ["paginated", "defaultPageSize", "pageSizeOptions"];
 const Search = ["searchable", "searchPlaceholder", "searchDebounce"];
@@ -455,6 +456,7 @@ const meta = {
     columns: [],
     showCellBorders: false,
     striped: true,
+    showActionColumns: true,
     columnGroups: undefined,
     rowGrouping: undefined,
     rowKey: "id",
@@ -572,6 +574,15 @@ const meta = {
     striped: {
       description:
         "Applies alternating background colors to rows for readability.",
+      control: "boolean",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "true" },
+      },
+    },
+    showActionColumns: {
+      description:
+        "Renders action columns when present. Disable it to skip action-column processing entirely.",
       control: "boolean",
       table: {
         category: "Layout",
@@ -1027,6 +1038,7 @@ export const ColumnGrouping: Story = {
     checkboxSelection: true,
     striped: false,
     showCellBorders: true,
+    showActionColumns: false,
     defaultPinnedColumns: undefined,
     defaultColumnVisibility: {
       role: false,
@@ -1155,6 +1167,7 @@ export const ColumnAndRowGrouping: Story = {
   args: {
     striped: false,
     showCellBorders: true,
+    showActionColumns: false,
     columnGroups: [
       {
         key: "identity",
