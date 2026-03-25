@@ -4,8 +4,8 @@ import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Label } from "components/typography";
 
-import { DataTable } from "./data-table";
-import type { DataTableColumn, DataTableGroupValue } from "./types";
+import { DataGrid } from "./data-grid";
+import type { DataGridColumn, DataGridGroupValue } from "./types";
 
 type PersonRow = {
   id: number;
@@ -66,6 +66,7 @@ function getForwardRunLength<T>(
     return span + 1;
   }, 1);
 }
+
 const Data = ["rows", "columns", "rowKey", "storageKey"];
 const Layout = [
   "layoutMode",
@@ -146,7 +147,7 @@ const columnAndRowGroupingColumnOrder = [
   "birth",
 ];
 
-const columns: DataTableColumn<PersonRow>[] = [
+const columns: DataGridColumn<PersonRow>[] = [
   {
     field: "id",
     headerName: "ID",
@@ -277,7 +278,7 @@ const spanStoryRows: SpanStoryRow[] = [
   },
 ];
 
-const spanColumns: DataTableColumn<SpanStoryRow>[] = [
+const spanColumns: DataGridColumn<SpanStoryRow>[] = [
   {
     field: "team",
     headerName: "Team",
@@ -352,7 +353,7 @@ const rowSpanStoryRows: RowSpanStoryRow[] = [
   },
 ];
 
-const rowSpanColumns: DataTableColumn<RowSpanStoryRow>[] = [
+const rowSpanColumns: DataGridColumn<RowSpanStoryRow>[] = [
   {
     field: "portfolio",
     headerName: "Portfolio",
@@ -441,7 +442,7 @@ const columnSpanStoryRows: ColumnSpanStoryRow[] = [
   },
 ];
 
-const columnSpanColumns: DataTableColumn<ColumnSpanStoryRow>[] = [
+const columnSpanColumns: DataGridColumn<ColumnSpanStoryRow>[] = [
   {
     field: "quarter",
     headerName: "Quarter",
@@ -476,13 +477,13 @@ const columnSpanColumns: DataTableColumn<ColumnSpanStoryRow>[] = [
 ];
 
 const meta = {
-  title: "Components/DataTable",
-  component: DataTable,
-
+  title: "Components/DataGrid",
+  component: DataGrid,
   args: {
     rows: [],
     columns: [],
     showCellBorders: false,
+    cellSelection: false,
     striped: true,
     showActionColumns: true,
     columnGroups: undefined,
@@ -530,7 +531,7 @@ const meta = {
       },
     },
     rows: {
-      description: "Table row data rendered by the component.",
+      description: "Grid row data rendered by the component.",
       control: false,
       table: {
         category: "Data",
@@ -548,7 +549,7 @@ const meta = {
     },
     columns: {
       description:
-        "Column definitions describing headers, sizing, sorting, custom cell rendering, and optional body-cell merging via `rowSpan` and `colSpan`. Spans are computed only when a visible regular column defines one of those props, and they stop at row-group boundaries.",
+        "Column definitions describing headers, sizing, sorting, custom cell rendering, and optional body-cell merging via `rowSpan` and `colSpan`.",
       control: false,
       table: {
         category: "Data",
@@ -582,7 +583,7 @@ const meta = {
     },
     layoutMode: {
       description:
-        "When responsive, the table stretches to the container width and uses automatic layout. When fixed, it honors explicit table sizing.",
+        "When responsive, the grid stretches to the container width. When fixed, it honors explicit sizing.",
       control: { type: "radio" },
       options: ["responsive", "fixed"],
       table: {
@@ -593,6 +594,15 @@ const meta = {
     showCellBorders: {
       description:
         "Shows borders around individual cells for clearer separation.",
+      control: "boolean",
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "false" },
+      },
+    },
+    cellSelection: {
+      description:
+        "Enables selection of individual cells. When true, clicking a cell selects it and highlights the corresponding row and column headers.",
       control: "boolean",
       table: {
         category: "Layout",
@@ -618,26 +628,14 @@ const meta = {
       },
     },
     tableWidth: {
-      description:
-        "Explicit table width used when `responsive` is disabled. Accepts a number in pixels or any valid CSS width string.",
       control: "text",
-      table: {
-        category: "Layout",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Layout", defaultValue: { summary: "undefined" } },
     },
     minTableWidth: {
-      description:
-        "Minimum table width used when `responsive` is disabled. Useful for forcing horizontal scrolling while preserving column sizing.",
       control: "text",
-      table: {
-        category: "Layout",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Layout", defaultValue: { summary: "undefined" } },
     },
     maxTableHeight: {
-      description:
-        "Maximum table height before vertical scrolling is applied. Accepts a number in pixels or any valid CSS height string.",
       control: "text",
       table: {
         category: "Layout",
@@ -645,103 +643,53 @@ const meta = {
       },
     },
     paginated: {
-      description:
-        "Shows pagination controls and slices the visible rows by page.",
-      table: {
-        category: "Pagination",
-        defaultValue: { summary: "true" },
-      },
+      table: { category: "Pagination", defaultValue: { summary: "true" } },
     },
     defaultPageSize: {
-      description: "Initial number of rows shown per page.",
-      table: {
-        category: "Pagination",
-        defaultValue: { summary: "5" },
-      },
+      table: { category: "Pagination", defaultValue: { summary: "5" } },
     },
     pageSizeOptions: {
-      description: "Available page size values shown in the paginator.",
       table: {
         category: "Pagination",
         defaultValue: { summary: "[5, 10, 25]" },
       },
     },
     searchable: {
-      description: "Adds a search field that filters visible rows.",
-      table: {
-        category: "Search",
-        defaultValue: { summary: "true" },
-      },
+      table: { category: "Search", defaultValue: { summary: "true" } },
     },
     searchPlaceholder: {
-      description: "Placeholder text shown in the search input.",
-      table: {
-        category: "Search",
-        defaultValue: { summary: "Search..." },
-      },
+      table: { category: "Search", defaultValue: { summary: "Search..." } },
     },
     searchDebounce: {
-      description:
-        "Debounce delay in milliseconds applied to search input updates.",
-      table: {
-        category: "Search",
-        defaultValue: { summary: "250" },
-      },
+      table: { category: "Search", defaultValue: { summary: "250" } },
     },
     emptyMessage: {
-      description: "Message shown when there are no rows to display.",
       table: {
         category: "Empty state",
         defaultValue: { summary: "No rows found..." },
       },
     },
     checkboxSelection: {
-      description:
-        "Adds row selection checkboxes and a select-all header checkbox.",
-      table: {
-        category: "Selection",
-        defaultValue: { summary: "true" },
-      },
+      table: { category: "Selection", defaultValue: { summary: "true" } },
     },
     selectedRows: {
-      description:
-        "Controlled list of selected row keys. Use with `onSelectedRowsChange` to manage selection externally.",
       control: { type: "object" },
-      table: {
-        category: "Selection",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Selection", defaultValue: { summary: "undefined" } },
     },
     onSelectedRowsChange: {
-      description:
-        "Called with the selected row keys and the selected row objects whenever selection changes.",
       control: false,
-      table: {
-        category: "Selection",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Selection", defaultValue: { summary: "undefined" } },
     },
     sortDirection: {
-      description: "Initial sort direction used with `sortField`.",
       control: { type: "select" },
       options: ["NONE", "ASC", "DESC"],
-      table: {
-        category: "Sorting",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Sorting", defaultValue: { summary: "undefined" } },
     },
     onSortChange: {
-      description:
-        "Called when sorting changes, with the next sort field and direction.",
       control: false,
-      table: {
-        category: "Sorting",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Sorting", defaultValue: { summary: "undefined" } },
     },
     columnVisibility: {
-      description:
-        "Controlled visibility map keyed by column field. `false` hides a column.",
       control: { type: "object" },
       table: {
         category: "Column visibility",
@@ -749,8 +697,6 @@ const meta = {
       },
     },
     defaultColumnVisibility: {
-      description:
-        "Initial visibility map when column visibility is uncontrolled.",
       control: { type: "object" },
       table: {
         category: "Column visibility",
@@ -758,8 +704,6 @@ const meta = {
       },
     },
     onColumnVisibilityChange: {
-      description:
-        "Called whenever column visibility changes through the column manager.",
       control: false,
       table: {
         category: "Column visibility",
@@ -767,8 +711,6 @@ const meta = {
       },
     },
     manageColumns: {
-      description:
-        "Shows a column management button in the header that allows toggling column visibility, changing column order, and pinning columns.",
       control: "boolean",
       table: {
         category: "Column manager",
@@ -776,8 +718,6 @@ const meta = {
       },
     },
     columnOrder: {
-      description:
-        "Controlled array describing the rendered column order by field id.",
       control: { type: "object" },
       table: {
         category: "Column order",
@@ -785,7 +725,6 @@ const meta = {
       },
     },
     defaultColumnOrder: {
-      description: "Initial column order when ordering is uncontrolled.",
       control: { type: "object" },
       table: {
         category: "Column order",
@@ -793,8 +732,6 @@ const meta = {
       },
     },
     onColumnOrderChange: {
-      description:
-        "Called with the next ordered list of column field ids when the order changes.",
       control: false,
       table: {
         category: "Column order",
@@ -802,34 +739,18 @@ const meta = {
       },
     },
     pinnedColumns: {
-      description:
-        "Controlled pinned column configuration with `left` and `right` field arrays.",
       control: { type: "object" },
-      table: {
-        category: "Pinning",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Pinning", defaultValue: { summary: "undefined" } },
     },
     defaultPinnedColumns: {
-      description:
-        "Initial pinned column configuration when pinning is uncontrolled.",
       control: { type: "object" },
-      table: {
-        category: "Pinning",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Pinning", defaultValue: { summary: "undefined" } },
     },
     onPinnedColumnsChange: {
-      description: "Called whenever the pinned column configuration changes.",
       control: false,
-      table: {
-        category: "Pinning",
-        defaultValue: { summary: "undefined" },
-      },
+      table: { category: "Pinning", defaultValue: { summary: "undefined" } },
     },
     showBackdrop: {
-      description:
-        "Shows a backdrop overlay when the column manager is open to focus attention.",
       control: "boolean",
       table: {
         category: "Column manager",
@@ -837,8 +758,6 @@ const meta = {
       },
     },
     mode: {
-      description:
-        "Determines how the column manager is rendered. `portal` renders in a React portal, while `inline` renders within the table container.",
       control: { type: "radio" },
       options: ["portal", "inline"],
       table: {
@@ -847,7 +766,7 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof DataTable>;
+} satisfies Meta<typeof DataGrid>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -858,11 +777,10 @@ export const Primary: Story = {
     showBackdrop: true,
     maxTableHeight: "500px",
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable
+        <DataGrid
           {...args}
           key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
           rows={personRows}
@@ -903,11 +821,10 @@ export const FixedWidth: Story = {
       ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable
+        <DataGrid
           key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
           {...args}
           rows={personRows}
@@ -927,7 +844,6 @@ export const RowSpanComplex: Story = {
     striped: false,
     showCellBorders: true,
   },
-
   parameters: {
     docs: {
       description: {
@@ -953,11 +869,10 @@ export const RowSpanComplex: Story = {
       ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable
+        <DataGrid
           {...args}
           rows={rowSpanStoryRows}
           columns={rowSpanColumns}
@@ -976,7 +891,6 @@ export const ColumnSpanComplex: Story = {
     striped: false,
     showCellBorders: true,
   },
-
   parameters: {
     docs: {
       description: {
@@ -984,31 +898,28 @@ export const ColumnSpanComplex: Story = {
           "Shows summary rows that merge horizontally across adjacent body cells. The line-item column expands across the remaining detail columns inside each quarter section.",
       },
     },
-    parameters: {
-      controls: {
-        exclude: [
-          ...Layout,
-          ...Data,
-          ...Pagination,
-          ...Search,
-          ...EmptyState,
-          ...Selection,
-          ...Sorting,
-          ...ColumnVisibility,
-          ...ColumnManager,
-          ...Pinning,
-          ...ColumnOrder,
-          ...Pinning,
-          ...Grouping,
-        ],
-      },
+    controls: {
+      exclude: [
+        ...Layout,
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...ColumnManager,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...Grouping,
+      ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable
+        <DataGrid
           {...args}
           rows={columnSpanStoryRows}
           columns={columnSpanColumns}
@@ -1046,11 +957,10 @@ export const CellSpans: Story = {
       ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable
+        <DataGrid
           {...args}
           rows={spanStoryRows}
           columns={spanColumns}
@@ -1128,11 +1038,10 @@ export const ColumnGrouping: Story = {
       ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable {...args} rows={personRows} columns={columns} rowKey="id" />
+        <DataGrid {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
     );
   },
@@ -1146,11 +1055,11 @@ export const RowGrouping: Story = {
       fields: ["country", "state"],
       collapsible: true,
       renderGroupHeader: (
-        value: DataTableGroupValue,
+        value: DataGridGroupValue,
         rows: Record<string, unknown>[],
         collapsed: boolean,
         depth: number,
-        path: DataTableGroupValue[],
+        path: DataGridGroupValue[],
       ) => (
         <Flex justify="space-between" align="center">
           <Label strong>{`${"  ".repeat(depth)}${value ?? "Ungrouped"}`}</Label>
@@ -1181,11 +1090,10 @@ export const RowGrouping: Story = {
       ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable {...args} rows={personRows} columns={columns} rowKey="id" />
+        <DataGrid {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
     );
   },
@@ -1230,7 +1138,7 @@ export const ColumnAndRowGrouping: Story = {
       collapsible: true,
       defaultCollapsed: true,
       renderGroupHeader: (
-        value: DataTableGroupValue,
+        value: DataGridGroupValue,
         rows: Record<string, unknown>[],
         collapsed: boolean,
         depth: number,
@@ -1262,11 +1170,10 @@ export const ColumnAndRowGrouping: Story = {
       ],
     },
   },
-
   render: (args) => {
     return (
       <Flex>
-        <DataTable {...args} rows={personRows} columns={columns} rowKey="id" />
+        <DataGrid {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
     );
   },

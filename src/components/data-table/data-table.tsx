@@ -259,8 +259,9 @@ export function DataTable<T extends Record<string, unknown>>(
 
   const defaultBodyCells = React.useMemo<ResolvedBodyCell<T>[]>(
     () =>
-      renderedColumns.map((renderedColumn) => ({
+      renderedColumns.map((renderedColumn, columnIndex) => ({
         renderedColumn,
+        columnStart: columnIndex + 1,
         colSpan: 1,
         rowSpan: 1,
         rawValue: undefined,

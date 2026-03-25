@@ -6,6 +6,7 @@ import type { DataTableRegularColumn, DataTableSpanValue } from "./types";
 
 export type ResolvedBodyCell<T extends Record<string, unknown>> = {
   renderedColumn: RenderedColumn<T>;
+  columnStart: number;
   colSpan: number;
   rowSpan: number;
   rawValue?: React.ReactNode;
@@ -156,6 +157,7 @@ function buildSectionBodyCells<T extends Record<string, unknown>>(
             return [
               {
                 renderedColumn,
+                columnStart: columnIndex + 1,
                 colSpan: 1,
                 rowSpan: 1,
               },
@@ -193,6 +195,7 @@ function buildSectionBodyCells<T extends Record<string, unknown>>(
           return [
             {
               renderedColumn,
+              columnStart: columnIndex + 1,
               colSpan,
               rowSpan,
               rawValue,

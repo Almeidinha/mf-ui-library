@@ -123,8 +123,10 @@ describe("Modal tests", () => {
     );
 
     expect(handleClose).not.toHaveBeenCalled();
-    const outside = screen.getByTestId("modal-overlay");
-    await user.click(outside);
+    const outside = screen.getByRole("dialog").parentElement;
+
+    expect(outside).not.toBeNull();
+    await user.click(outside as HTMLElement);
     expect(handleClose).toHaveBeenCalled();
   });
 });

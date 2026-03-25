@@ -1,0 +1,582 @@
+import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
+import React from "react";
+import { vi } from "vitest";
+
+import { DataGrid } from "./data-grid";
+import type { DataGridColumn } from "./types";
+
+type TestRow = {
+  id: number;
+  name: string;
+  country: string;
+  state: string;
+  city: string;
+};
+
+type SpanRow = {
+  id: number;
+  region: string;
+  team: string;
+  metric: string;
+  note: string;
+};
+
+const rows: TestRow[] = [
+  {
+    id: 2,
+    name: "Bruno",
+    country: "Brazil",
+    state: "Rio de Janeiro",
+    city: "Rio de Janeiro",
+  },
+  {
+    id: 1,
+    name: "Alice",
+    country: "Brazil",
+    state: "Sao Paulo",
+    city: "Sao Paulo",
+  },
+  {
+    id: 3,
+    name: "Carla",
+    country: "United States",
+    state: "California",
+    city: "San Francisco",
+  },
+];
+
+const columns: DataGridColumn<TestRow>[] = [
+  {
+    field: "name",
+    headerName: "Name",
+    sortable: true,
+  },
+  {
+    field: "country",
+    headerName: "Country",
+    sortable: true,
+  },
+  {
+    field: "actions",
+    type: "actions",
+    headerName: "Actions",
+    getActions: (row) => [
+      {
+        key: `view-${row.id}`,
+        label: `View ${row.name}`,
+        onClick: vi.fn(),
+      },
+    ],
+  },
+];
+
+const groupedColumns: DataGridColumn<TestRow>[] = [
+  {
+    field: "name",
+    headerName: "Name",
+    sortable: true,
+  },
+  {
+    field: "country",
+    headerName: "Country",
+    sortable: true,
+  },
+  {
+    field: "state",
+    headerName: "State",
+    sortable: true,
+  },
+  {
+    field: "city",
+    headerName: "City",
+    sortable: true,
+  },
+];
+
+const spanColumns: DataGridColumn<SpanRow>[] = [
+  {
+    field: "team",
+    headerName: "Team",
+    rowSpan: ({ row, rowIndex, rows }) => {
+      const nextRow = rows[rowIndex + 1];
+
+      return nextRow && nextRow.team === row.team ? 2 : undefined;
+    },
+  },
+  {
+    field: "metric",
+    headerName: "Metric",
+    colSpan: ({ row }) => (row.metric.startsWith("Summary") ? 2 : undefined),
+  },
+  {
+    field: "note",
+    headerName: "Note",
+  },
+];
+
+const spanRows: SpanRow[] = [
+  {
+    id: 1,
+    region: "North",
+    team: "Core",
+    metric: "Revenue",
+    note: "$120k",
+  },
+  {
+    id: 2,
+    region: "North",
+    team: "Core",
+    metric: "Summary: Core",
+    note: "2 active deals",
+  },
+  {
+    id: 3,
+    region: "South",
+    team: "Platform",
+    metric: "Revenue",
+    note: "$90k",
+  },
+  {
+    id: 4,
+    region: "South",
+    team: "Platform",
+    metric: "Summary: Platform",
+    note: "1 renewal",
+  },
+];
+
+function getCellByText(text: string) {
+  const element = screen.getByText(text);
+  const cell = element.closest('[role="gridcell"], [role="columnheader"]');
+
+  expect(cell).not.toBeNull();
+
+  return cell as HTMLDivElement;
+}
+
+describe("DataGrid accessibility", () => {
+  it("does not have accessibility violations in an interactive grouped state", async () => {
+    const { container } = render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        checkboxSelection
+        rowGrouping={{
+          fields: ["country", "state"],
+          collapsible: true,
+        }}
+      />,
+    );
+
+    const results = await axe(container);
+
+    expect(results).toHaveNoViolations();
+  });
+
+  it("reflects controlled selection with aria-selected and aria-multiselectable", () => {
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        checkboxSelection
+        selectedRows={[1, 3]}
+      />,
+    );
+
+    const grid = screen.getByRole("grid", { name: "Data grid" });
+    const aliceNameCell = getCellByText("Alice");
+    const aliceCountryCell = screen
+      .getAllByText("Brazil")[1]
+      ?.closest('[role="gridcell"]');
+    const carlaNameCell = getCellByText("Carla");
+    const brunoNameCell = getCellByText("Bruno");
+
+    expect(aliceCountryCell).not.toBeNull();
+    expect(grid).toHaveAttribute("aria-multiselectable", "true");
+    expect(aliceNameCell).toHaveAttribute("aria-selected", "true");
+    expect(aliceCountryCell).toHaveAttribute("aria-selected", "true");
+    expect(carlaNameCell).toHaveAttribute("aria-selected", "true");
+    expect(brunoNameCell).not.toHaveAttribute("aria-selected");
+  });
+
+  it("omits aria-multiselectable when checkbox selection is disabled", () => {
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const grid = screen.getByRole("grid", { name: "Data grid" });
+
+    expect(grid).not.toHaveAttribute("aria-multiselectable");
+  });
+
+  it("keeps inner controls tabbable when cell selection is disabled", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        checkboxSelection
+      />,
+    );
+
+    await user.tab();
+    expect(
+      screen.getByRole("checkbox", { name: "Select all visible rows" }),
+    ).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Name" })).toHaveFocus();
+  });
+
+  it("does not have accessibility violations with grouped headers and pinned columns", async () => {
+    let container: HTMLElement | undefined;
+
+    act(() => {
+      ({ container } = render(
+        <DataGrid
+          rows={rows}
+          columns={groupedColumns}
+          rowKey="id"
+          paginated={false}
+          searchable={false}
+          showCellBorders
+          columnGroups={[
+            {
+              key: "identity",
+              headerName: "Identity",
+              fields: ["name"],
+            },
+            {
+              key: "geography",
+              headerName: "Geography",
+              fields: ["country", "state", "city"],
+            },
+          ]}
+          pinnedColumns={{ left: ["name"], right: ["city"] }}
+        />,
+      ));
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("columnheader", { name: "Identity" }),
+      ).toBeInTheDocument();
+    });
+
+    const results = await axe(container!);
+
+    expect(results).toHaveNoViolations();
+  });
+
+  it("exposes grid semantics and span metadata", () => {
+    render(
+      <DataGrid
+        rows={spanRows}
+        columns={spanColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const grid = screen.getByRole("grid", { name: "Data grid" });
+    const summaryCell = getCellByText("Summary: Core");
+    const teamCell = getCellByText("Core");
+
+    expect(grid).toHaveAttribute("aria-colcount", "3");
+    expect(grid).toHaveAttribute("aria-rowcount", "5");
+    expect(summaryCell).toHaveAttribute("aria-colspan", "2");
+    expect(teamCell).toHaveAttribute("aria-rowspan", "2");
+  });
+
+  it("supports keyboard selection from header and body cells", async () => {
+    const user = userEvent.setup();
+
+    function ControlledGrid() {
+      const [selectedRows, setSelectedRows] = React.useState<React.Key[]>([]);
+
+      return (
+        <>
+          <div data-testid="selected-count">{selectedRows.length}</div>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            rowKey="id"
+            paginated={false}
+            searchable={false}
+            checkboxSelection
+            cellSelection
+            selectedRows={selectedRows}
+            onSelectedRowsChange={(keys) => setSelectedRows(keys)}
+          />
+        </>
+      );
+    }
+
+    render(<ControlledGrid />);
+
+    await user.tab();
+
+    const headerCheckboxCell = screen.getAllByRole("columnheader")[0];
+
+    expect(headerCheckboxCell).toHaveFocus();
+
+    await user.keyboard("{Space}");
+    expect(screen.getByTestId("selected-count")).toHaveTextContent("3");
+
+    await user.keyboard("{ArrowDown}");
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("gridcell")[0]).toHaveFocus();
+    });
+
+    await user.keyboard("{Space}");
+    expect(screen.getByTestId("selected-count")).toHaveTextContent("2");
+  });
+
+  it("supports keyboard sorting from column headers", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        cellSelection
+      />,
+    );
+
+    await user.tab();
+
+    const nameHeader = screen.getByRole("columnheader", { name: "Name" });
+
+    expect(nameHeader).toHaveFocus();
+
+    await user.keyboard("{Enter}");
+
+    const bodyCells = screen.getAllByRole("gridcell");
+
+    expect(bodyCells[0]).toHaveTextContent("Alice");
+    expect(nameHeader).toHaveAttribute("aria-sort", "ascending");
+  });
+
+  it("supports keyboard opening row actions", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        cellSelection
+      />,
+    );
+
+    await user.tab();
+
+    expect(screen.getByRole("columnheader", { name: "Name" })).toHaveFocus();
+
+    await user.keyboard("{ArrowRight}");
+    await waitFor(() => {
+      expect(
+        screen.getByRole("columnheader", { name: "Country" }),
+      ).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowRight}");
+    await waitFor(() => {
+      expect(
+        screen.getByRole("columnheader", { name: "Actions" }),
+      ).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowDown}");
+    await waitFor(() => {
+      expect(screen.getAllByRole("gridcell")[2]).toHaveFocus();
+    });
+
+    await user.keyboard("{Enter}");
+
+    expect(
+      await screen.findByRole("menuitem", { name: "View Bruno" }),
+    ).toBeInTheDocument();
+  });
+
+  it("supports keyboard navigation across grouped headers and pinned columns", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={groupedColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        cellSelection
+        columnGroups={[
+          {
+            key: "identity",
+            headerName: "Identity",
+            fields: ["name"],
+          },
+          {
+            key: "geography",
+            headerName: "Geography",
+            fields: ["country", "state", "city"],
+          },
+        ]}
+        pinnedColumns={{ left: ["name"], right: ["city"] }}
+      />,
+    );
+
+    await user.tab();
+
+    const identityHeader = screen.getByRole("columnheader", {
+      name: "Identity",
+    });
+    const geographyHeader = screen.getByRole("columnheader", {
+      name: "Geography",
+    });
+    const nameHeader = screen.getByRole("columnheader", { name: "Name" });
+    const countryHeader = screen.getByRole("columnheader", {
+      name: "Country",
+    });
+    const stateHeader = screen.getByRole("columnheader", { name: "State" });
+    const cityHeader = screen.getByRole("columnheader", { name: "City" });
+    const brunoCityCell = document.getElementById("data-grid-cell-2-city");
+
+    expect(brunoCityCell).not.toBeNull();
+    expect(identityHeader).toHaveFocus();
+
+    await user.keyboard("{ArrowRight}");
+    await waitFor(() => {
+      expect(geographyHeader).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowDown}");
+    await waitFor(() => {
+      expect(countryHeader).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowLeft}");
+    await waitFor(() => {
+      expect(nameHeader).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowRight}");
+    await waitFor(() => {
+      expect(countryHeader).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowRight}");
+    await waitFor(() => {
+      expect(stateHeader).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowRight}");
+    await waitFor(() => {
+      expect(cityHeader).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowDown}");
+    await waitFor(() => {
+      expect(brunoCityCell).toHaveFocus();
+    });
+  });
+
+  it("supports keyboard expanding and collapsing grouped rows", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns.slice(0, 2)}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        cellSelection
+        rowGrouping={{
+          fields: ["country", "state"],
+          collapsible: true,
+          defaultCollapsed: true,
+        }}
+      />,
+    );
+
+    await user.tab();
+    await user.keyboard("{ArrowDown}");
+
+    const brazilGroup = getCellByText("Brazil");
+
+    await waitFor(() => {
+      expect(brazilGroup).toHaveFocus();
+    });
+    expect(brazilGroup).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+
+    await user.keyboard("{ArrowRight}");
+
+    expect(brazilGroup).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Sao Paulo")).toBeInTheDocument();
+
+    await user.keyboard("{ArrowDown}");
+    await waitFor(() => {
+      expect(getCellByText("Rio de Janeiro")).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowDown}");
+
+    const saoPauloGroup = getCellByText("Sao Paulo");
+
+    await waitFor(() => {
+      expect(saoPauloGroup).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowRight}");
+
+    expect(saoPauloGroup).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+
+    await user.keyboard("{ArrowLeft}");
+
+    expect(saoPauloGroup).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+
+    await user.keyboard("{ArrowUp}");
+    await waitFor(() => {
+      expect(getCellByText("Rio de Janeiro")).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowUp}");
+    await waitFor(() => {
+      expect(brazilGroup).toHaveFocus();
+    });
+
+    await user.keyboard("{ArrowLeft}");
+
+    expect(brazilGroup).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByText("Sao Paulo")).not.toBeInTheDocument();
+  });
+});

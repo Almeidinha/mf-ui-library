@@ -419,14 +419,17 @@ export function DrawerSurfaceComponent({
   onPointerCancel,
   children,
 }: DrawerSurfaceProps) {
+  const temporaryRole = open ? "dialog" : undefined;
+
   return (
     <Surface
       ref={contentRef}
-      role={temporary ? "dialog" : "complementary"}
-      aria-modal={temporary ? true : undefined}
+      role={temporary ? temporaryRole : "complementary"}
+      aria-modal={temporary && open ? true : undefined}
+      aria-hidden={temporary ? !open : undefined}
       aria-label={ariaLabel}
       aria-labelledby={ariaLabelledBy}
-      tabIndex={temporary ? -1 : undefined}
+      tabIndex={temporary && open ? -1 : undefined}
       $anchor={anchor}
       $open={open}
       $temporary={temporary}

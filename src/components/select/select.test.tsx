@@ -111,7 +111,7 @@ describe("Select Tests", () => {
       "aria-expanded",
       "false",
     );
-    expect(document.querySelector(".select-menu")).not.toBeVisible();
+    expect(document.querySelector(".select-menu")).not.toBeInTheDocument();
 
     expect(handleChange).toHaveBeenCalledWith("MX", {
       label: "Mexico",
