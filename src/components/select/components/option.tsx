@@ -2,7 +2,6 @@ import { Label } from "components/typography";
 import { Padding } from "foundation/spacing";
 import { is } from "helpers/safe-navigation";
 import { JSX, memo, useCallback } from "react";
-import { areEqual } from "react-window";
 import styled from "styled-components";
 
 import { IOption, SelectLabelComponent } from "../types";
@@ -74,6 +73,6 @@ const OptionComponentImpl = <T,>({
   );
 };
 
-export const OptionComponent = memo(OptionComponentImpl, areEqual) as <T>(
+export const OptionComponent = memo(OptionComponentImpl) as <T>(
   props: OptionComponentProps<T>,
 ) => JSX.Element;

@@ -9,7 +9,6 @@ import { Body, Heading4, Label } from "components/typography";
 import { Borders, Icons, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Margin, Padding } from "foundation/spacing";
-import { If } from "helpers/nothing";
 import {
   is,
   isDefined,
@@ -804,17 +803,11 @@ export const HugeListWithCustomLabel: Story = {
           value={value}
         />
         <Flex column gap={Gap.m}>
-          {isNil(value?.code) ? (
-            <Label>Select Something...</Label>
-          ) : (
-            <Label>You Selected: {JSON.stringify(value)}</Label>
-          )}
-          <If is={isDefined(value?.code)}>
-            <Flex gap={Gap.m} style={{ alignItems: "center" }}>
-              <Label style={{ margin: Margin.xxs }}>Flag: </Label>
-              <Flag large code={value?.code as CountryCodes} />
-            </Flex>
-          </If>
+          <Label>
+            {isNil(value?.code)
+              ? "Select Something..."
+              : `You Selected: ${JSON.stringify(value)}`}
+          </Label>
         </Flex>
       </Flex>
     );

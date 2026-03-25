@@ -7,7 +7,7 @@ import {
   safeArray,
 } from "helpers/safe-navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FixedSizeList } from "react-window";
+import { List } from "react-window";
 import styled from "styled-components";
 
 import {
@@ -31,6 +31,15 @@ const MenuPanel = styled.div`
   width: 100%;
   left: 0;
 `;
+
+type MenuListRef = {
+  readonly element: HTMLDivElement | null;
+  scrollToRow: (config: {
+    index: number;
+    align?: "auto" | "center" | "end" | "smart" | "start";
+    behavior?: "auto" | "instant" | "smooth";
+  }) => void;
+};
 
 // eslint-disable-next-line comma-spacing
 export const Menu = <T,>(props: MenuComponentProps<T>) => {
@@ -68,7 +77,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     safeArray(propOptions),
   );
 
-  const listRef = useRef<FixedSizeList>(null);
+  const listRef = useRef<MenuListRef | null>(null);
 
   const height = Math.min(
     Math.max(options.length * rowHeight, rowHeight) + 10,
@@ -92,7 +101,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
       return;
     }
 
-    listRef.current.scrollToItem(selectedIndex, "center");
+    listRef.current.scrollToRow({ index: selectedIndex, align: "center" });
   }, [open, selectedIndex]);
 
   const handleSelect = useCallback(
@@ -187,17 +196,15 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     }
 
     return (
-      <FixedSizeList<ItemData<T>>
+      <List<ItemData<T>>
         className="menu-list"
-        ref={listRef}
-        width="100%"
-        height={height}
-        itemSize={rowHeight}
-        itemCount={itemCount}
-        itemData={itemData}
-      >
-        {is(multiLevel) ? MenuRowWithMultiLevels : MenuRow}
-      </FixedSizeList>
+        listRef={listRef}
+        rowComponent={is(multiLevel) ? MenuRowWithMultiLevels : MenuRow}
+        rowCount={itemCount}
+        rowHeight={rowHeight}
+        rowProps={itemData}
+        style={{ height, width: "100%" }}
+      />
     );
   };
 

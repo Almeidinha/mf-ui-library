@@ -1,14 +1,19 @@
-import { JSX, memo } from "react";
-import { areEqual } from "react-window";
+import { JSX } from "react";
+import { RowComponentProps } from "react-window";
 
-import { IMenuRowProps } from "../types";
+import { ItemData } from "../types";
 import { OptionComponent } from "./option";
 import { OptionMultiLevelComponent } from "./option-multiLevel";
 
 // TODO: we may remove these two functions and use the components directly in the Menu component,
 // but for now we will keep them for better readability and separation of concerns.
 // eslint-disable-next-line comma-spacing
-const MenuRowInner = <T,>({ index, style, data }: IMenuRowProps<T>) => {
+const MenuRowInner = <T,>({
+  ariaAttributes,
+  index,
+  style,
+  ...data
+}: RowComponentProps<ItemData<T>>) => {
   const {
     options,
     labelComponent,
@@ -23,7 +28,7 @@ const MenuRowInner = <T,>({ index, style, data }: IMenuRowProps<T>) => {
   const option = options[index];
 
   return (
-    <div style={style}>
+    <div style={style} {...ariaAttributes}>
       <OptionComponent<T>
         option={option}
         labelComponent={labelComponent}
@@ -39,16 +44,17 @@ const MenuRowInner = <T,>({ index, style, data }: IMenuRowProps<T>) => {
   );
 };
 
-export const MenuRow = memo(MenuRowInner, areEqual) as <T>(
-  props: IMenuRowProps<T>,
+export const MenuRow = MenuRowInner as <T>(
+  props: RowComponentProps<ItemData<T>>,
 ) => JSX.Element;
 
 // eslint-disable-next-line comma-spacing
 const MenuRowWithMultiLevelsInner = <T,>({
+  ariaAttributes,
   index,
   style,
-  data,
-}: IMenuRowProps<T>) => {
+  ...data
+}: RowComponentProps<ItemData<T>>) => {
   const {
     value,
     options,
@@ -65,7 +71,7 @@ const MenuRowWithMultiLevelsInner = <T,>({
   const option = options[index];
 
   return (
-    <div style={style}>
+    <div style={style} {...ariaAttributes}>
       <OptionMultiLevelComponent<T>
         option={option}
         labelComponent={labelComponent}
@@ -83,7 +89,6 @@ const MenuRowWithMultiLevelsInner = <T,>({
   );
 };
 
-export const MenuRowWithMultiLevels = memo(
-  MenuRowWithMultiLevelsInner,
-  areEqual,
-) as <T>(props: IMenuRowProps<T>) => JSX.Element;
+export const MenuRowWithMultiLevels = MenuRowWithMultiLevelsInner as <T>(
+  props: RowComponentProps<ItemData<T>>,
+) => JSX.Element;

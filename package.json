@@ -39,7 +39,7 @@
     "react": "^19.2.4",
     "react-compound-slider": "^3.4.0",
     "react-dom": "^19.2.4",
-    "react-window": "1.8.9",
+    "react-window": "2.2.7",
     "recharts": "^3.8.0",
     "styled-components": "^6.3.9"
   },
@@ -63,7 +63,6 @@
     "@types/node": "^25.3.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@types/react-window": "1.8.8",
     "@types/styled-components": "^5.1.36",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",

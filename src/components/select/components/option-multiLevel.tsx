@@ -5,7 +5,6 @@ import { Typography } from "foundation/typography";
 import { If } from "helpers/nothing";
 import { is, isNilOrEmpty } from "helpers/safe-navigation";
 import { JSX, memo, useCallback } from "react";
-import { areEqual } from "react-window";
 import styled from "styled-components";
 
 import { IOption, SelectLabelComponent } from "../types";
@@ -96,7 +95,8 @@ const OptionMultiLevelComponentImp = <T,>({
   );
 };
 
-export const OptionMultiLevelComponent = memo(
-  OptionMultiLevelComponentImp,
-  areEqual,
-) as <T>(props: OptionMultiLevelComponentProps<T>) => JSX.Element;
+export const OptionMultiLevelComponent = memo(OptionMultiLevelComponentImp) as <
+  T,
+>(
+  props: OptionMultiLevelComponentProps<T>,
+) => JSX.Element;
