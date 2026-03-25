@@ -156,7 +156,174 @@ function getCellByText(text: string) {
   return cell as HTMLDivElement;
 }
 
+function getGridHeader() {
+  const [header] = screen.getAllByRole("rowgroup");
+
+  return header as HTMLDivElement;
+}
+
 describe("DataGrid accessibility", () => {
+  it("keeps explicit column widths fixed in responsive mode when another column can grow", () => {
+    render(
+      <DataGrid
+        rows={rows}
+        columns={[
+          {
+            field: "name",
+            headerName: "Name",
+            width: 120,
+          },
+          {
+            field: "country",
+            headerName: "Country",
+          },
+          {
+            field: "city",
+            headerName: "City",
+            width: 140,
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const styles = getComputedStyle(getGridHeader());
+
+    expect(styles.gridTemplateColumns).toContain("120px");
+    expect(styles.gridTemplateColumns).toContain("140px");
+    expect(styles.gridTemplateColumns).toContain("minmax(160px, 1fr)");
+    expect(styles.gridTemplateColumns).not.toContain("minmax(120px, 1fr)");
+    expect(styles.gridTemplateColumns).not.toContain("minmax(140px, 1fr)");
+  });
+
+  it("allows a fullWidth column to absorb remaining space even with an explicit width", () => {
+    render(
+      <DataGrid
+        rows={rows}
+        columns={[
+          {
+            field: "name",
+            headerName: "Name",
+            width: 120,
+          },
+          {
+            field: "country",
+            headerName: "Country",
+            width: 220,
+            fullWidth: true,
+          },
+          {
+            field: "city",
+            headerName: "City",
+            width: 140,
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const styles = getComputedStyle(getGridHeader());
+
+    expect(styles.gridTemplateColumns).toContain("120px");
+    expect(styles.gridTemplateColumns).toContain("140px");
+    expect(styles.gridTemplateColumns).toContain("minmax(220px, 1fr)");
+  });
+
+  it("shows ellipsis styling for overflowing responsive cell content", () => {
+    render(
+      <DataGrid
+        rows={[
+          {
+            id: 1,
+            name: "Alpha",
+            country:
+              "This is a very long cell value that should truncate with an ellipsis in the responsive grid",
+            state: "Sao Paulo",
+            city: "Sao Paulo",
+          },
+        ]}
+        columns={[
+          {
+            field: "name",
+            headerName: "Name",
+            width: 120,
+          },
+          {
+            field: "country",
+            headerName: "Country",
+            width: 160,
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const cell = getCellByText(
+      "This is a very long cell value that should truncate with an ellipsis in the responsive grid",
+    );
+    const content = cell.firstElementChild as HTMLElement | null;
+
+    expect(content).not.toBeNull();
+
+    const styles = getComputedStyle(content as HTMLElement);
+
+    expect(styles.overflow).toBe("hidden");
+    expect(styles.textOverflow).toBe("ellipsis");
+    expect(styles.whiteSpace).toBe("nowrap");
+  });
+
+  it("supports wrapped cell overflow when configured at column level", () => {
+    render(
+      <DataGrid
+        rows={[
+          {
+            id: 1,
+            name: "Alpha",
+            country:
+              "This is a very long cell value that should wrap instead of truncating when configured at the column level.",
+            state: "Sao Paulo",
+            city: "Sao Paulo",
+          },
+        ]}
+        columns={[
+          {
+            field: "name",
+            headerName: "Name",
+            width: 120,
+          },
+          {
+            field: "country",
+            headerName: "Country",
+            width: 160,
+            overflow: "wrap",
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const cell = getCellByText(
+      "This is a very long cell value that should wrap instead of truncating when configured at the column level.",
+    );
+    const content = cell.firstElementChild as HTMLElement | null;
+
+    expect(content).not.toBeNull();
+
+    const styles = getComputedStyle(content as HTMLElement);
+
+    expect(styles.overflow).toBe("visible");
+    expect(styles.textOverflow).toBe("clip");
+    expect(styles.whiteSpace).toBe("normal");
+  });
+
   it("does not have accessibility violations in an interactive grouped state", async () => {
     const { container } = render(
       <DataGrid

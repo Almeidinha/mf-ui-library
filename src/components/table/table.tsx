@@ -3,6 +3,7 @@ import {
   CheckboxProps,
   CheckboxPropsThreeState,
 } from "components/checkbox";
+import { DataTableCellOverflow } from "components/data-table/types";
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import {
@@ -60,6 +61,32 @@ export interface ITableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> 
 export interface ITableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
   fitContent?: boolean;
   allowOverflow?: boolean;
+  overflow?: DataTableCellOverflow;
+}
+
+function getCellOverflowStyles(overflow: DataTableCellOverflow) {
+  if (overflow === "wrap") {
+    return css`
+      overflow: visible;
+      text-overflow: clip;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    `;
+  }
+
+  if (overflow === "visible") {
+    return css`
+      overflow: visible;
+      text-overflow: clip;
+      white-space: nowrap;
+    `;
+  }
+
+  return css`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  `;
 }
 
 export const Table = styled.table<{
@@ -92,24 +119,24 @@ export const Table = styled.table<{
   ${({ $cellBorders }) => {
     if ($cellBorders === "all") {
       return css`
-          thead th:not(:last-child) {
-            border-right: 1px solid ${Borders.Default.Muted};
-          }
+        thead th:not(:last-child) {
+          border-right: 1px solid ${Borders.Default.Muted};
+        }
 
-          tbody td {
-            border-right: 1px solid ${Borders.Default.Muted};
-            border-bottom: 1px solid ${Borders.Default.Muted};
-            box-sizing: border-box;
-          }
+        tbody td {
+          border-right: 1px solid ${Borders.Default.Muted};
+          border-bottom: 1px solid ${Borders.Default.Muted};
+          box-sizing: border-box;
+        }
 
-          tbody td:last-child {
-            border-right: none;
-          }
+        tbody td:last-child {
+          border-right: none;
+        }
 
-          tbody tr:last-child td {
-            border-bottom: none;
-          }
-        `;
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+      `;
     }
 
     if ($cellBorders === "horizontal") {
@@ -164,11 +191,11 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
 const TableBodyCellFrame = styled.td<{
   $fitContent?: boolean;
   $allowOverflow?: boolean;
+  $overflow?: DataTableCellOverflow;
 }>`
   padding: ${Padding.m};
   ${Typography.Body}
   position: relative;
-  overflow: ${({ $allowOverflow }) => ($allowOverflow ? "visible" : "hidden")};
 
   ${({ $fitContent }) =>
     is($fitContent)
@@ -176,10 +203,14 @@ const TableBodyCellFrame = styled.td<{
           white-space: nowrap;
           width: 1%;
         `
-      : css`
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        `}
+      : ""}
+
+  ${({ $allowOverflow, $overflow = "ellipsis" }) =>
+    $allowOverflow
+      ? css`
+          overflow: visible;
+        `
+      : getCellOverflowStyles($overflow)}
 `;
 
 export const TableRow = styled.tr.attrs<{ selected?: boolean }>(
@@ -289,6 +320,7 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
 export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
   fitContent,
   allowOverflow,
+  overflow,
   ...props
 }) {
   return (
@@ -296,6 +328,7 @@ export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
       {...props}
       $fitContent={fitContent}
       $allowOverflow={allowOverflow}
+      $overflow={overflow}
     />
   );
 };

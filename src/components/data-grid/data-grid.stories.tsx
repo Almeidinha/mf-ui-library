@@ -47,6 +47,21 @@ type ColumnSpanStoryRow = {
   note: string;
 };
 
+type ResponsiveSizingStoryRow = {
+  id: number;
+  code: string;
+  summary: string;
+  owner: string;
+  notes: string;
+};
+
+type OverflowStoryRow = {
+  id: number;
+  ellipsis: string;
+  wrap: string;
+  visible: string;
+};
+
 function getForwardRunLength<T>(
   rows: T[],
   rowIndex: number,
@@ -476,9 +491,93 @@ const columnSpanColumns: DataGridColumn<ColumnSpanStoryRow>[] = [
   },
 ];
 
+const responsiveSizingRows: ResponsiveSizingStoryRow[] = [
+  {
+    id: 1,
+    code: "PLT-142",
+    summary: "Identity provider migration",
+    owner: "Marina",
+    notes: "Widthless summary column should absorb available space.",
+  },
+  {
+    id: 2,
+    code: "GRO-088",
+    summary: "Experiment rollout for checkout copy",
+    owner: "Leo",
+    notes: "Explicit widths stay fixed while the notes column can grow.",
+  },
+  {
+    id: 3,
+    code: "OPS-231",
+    summary: "Support queue automation",
+    owner: "Nina",
+    notes: "fullWidth uses the provided width as the minimum track size.",
+  },
+];
+
+const responsiveSizingColumns: DataGridColumn<ResponsiveSizingStoryRow>[] = [
+  {
+    field: "code",
+    headerName: "Code",
+    width: 110,
+    sortable: true,
+  },
+  {
+    field: "summary",
+    headerName: "Summary",
+    sortable: true,
+  },
+  {
+    field: "owner",
+    headerName: "Owner",
+    width: 120,
+    sortable: true,
+  },
+  {
+    field: "notes",
+    headerName: "Notes",
+    width: 260,
+    fullWidth: true,
+  },
+];
+
+const overflowRows: OverflowStoryRow[] = [
+  {
+    id: 1,
+    ellipsis:
+      "Default ellipsis keeps dense tabular content compact while still hinting that more text exists.",
+    wrap: "Wrap mode allows richer descriptive content to grow the row height instead of clipping.",
+    visible:
+      "Visible overflow leaves the content un-clipped, which is useful for specialized custom cells.",
+  },
+];
+
+const overflowColumns: DataGridColumn<OverflowStoryRow>[] = [
+  {
+    field: "ellipsis",
+    headerName: "Ellipsis",
+    width: 180,
+  },
+  {
+    field: "wrap",
+    headerName: "Wrap",
+    width: 180,
+    overflow: "wrap",
+  },
+  {
+    field: "visible",
+    headerName: "Visible",
+    width: 180,
+    overflow: "visible",
+  },
+];
+
 const meta = {
   title: "Components/DataGrid",
   component: DataGrid,
+  parameters: {
+    layout: "centered",
+  },
   args: {
     rows: [],
     columns: [],
@@ -830,6 +929,97 @@ export const FixedWidth: Story = {
           {...args}
           rows={personRows}
           columns={columns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const ResponsiveColumnSizing: Story = {
+  args: {
+    layoutMode: "responsive",
+    showCellBorders: true,
+    striped: false,
+    tableWidth: undefined,
+    minTableWidth: "720px",
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "In responsive mode, columns with `width` stay fixed. Columns without `width` expand to fill remaining space. Columns with `fullWidth: true` also expand, using their declared width as the minimum size.",
+      },
+    },
+    controls: {
+      exclude: [
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...ColumnManager,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...Grouping,
+      ],
+    },
+  },
+  render: (args) => {
+    return (
+      <Flex style={{ width: "100%", minWidth: 0, maxWidth: "960px" }}>
+        <DataGrid
+          {...args}
+          rows={responsiveSizingRows}
+          columns={responsiveSizingColumns}
+          rowKey="id"
+        />
+      </Flex>
+    );
+  },
+};
+
+export const OverflowModes: Story = {
+  args: {
+    layoutMode: "responsive",
+    striped: false,
+    showCellBorders: true,
+    minTableWidth: "720px",
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Columns default to `overflow: \"ellipsis\"`. Use `overflow: \"wrap\"` for multi-line content or `overflow: \"visible\"` for custom cells that should not clip.",
+      },
+    },
+    controls: {
+      exclude: [
+        ...Data,
+        ...Pagination,
+        ...Search,
+        ...EmptyState,
+        ...Selection,
+        ...Sorting,
+        ...ColumnVisibility,
+        ...ColumnManager,
+        ...Pinning,
+        ...ColumnOrder,
+        ...Pinning,
+        ...Grouping,
+      ],
+    },
+  },
+  render: (args) => {
+    return (
+      <Flex style={{ width: "100%", minWidth: 0, maxWidth: "920px" }}>
+        <DataGrid
+          {...args}
+          rows={overflowRows}
+          columns={overflowColumns}
           rowKey="id"
         />
       </Flex>

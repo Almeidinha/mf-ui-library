@@ -471,12 +471,18 @@ export function DataTable<T extends Record<string, unknown>>(
 
               {renderedColumns.map(({ column, field }) => {
                 const width = getResolvedColumnWidth(column);
+                const flexibleResponsiveColumn =
+                  isResponsive && (column.fullWidth || column.width == null);
 
                 return (
                   <col
                     key={field}
                     style={{
-                      width: column.fitContent ? "fit-content" : width,
+                      width: flexibleResponsiveColumn
+                        ? "auto"
+                        : column.fitContent
+                          ? "fit-content"
+                          : width,
                       minWidth: width,
                     }}
                   />
@@ -648,6 +654,7 @@ export function DataTable<T extends Record<string, unknown>>(
                             <TableBodyCell
                               key={field}
                               fitContent={column.fitContent}
+                              overflow={column.overflow}
                               colSpan={colSpan > 1 ? colSpan : undefined}
                               rowSpan={rowSpan > 1 ? rowSpan : undefined}
                               style={{

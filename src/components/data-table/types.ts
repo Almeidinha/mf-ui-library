@@ -4,6 +4,7 @@ export type SortDirection = "ASC" | "DESC" | "NONE";
 
 export type DataTableAlign = "left" | "center" | "right";
 export type DataTablePin = "left" | "right";
+export type DataTableCellOverflow = "ellipsis" | "wrap" | "visible";
 export type DataTableGroupValue = string | number | boolean | null | undefined;
 export type DataTableSpanArgs<T extends Record<string, unknown>> = {
   row: T;
@@ -39,6 +40,8 @@ type DataTableBaseColumn<T extends Record<string, unknown>> = {
   description?: string;
 
   width?: number | string;
+  fullWidth?: boolean;
+  overflow?: DataTableCellOverflow;
   fitContent?: boolean;
   align?: DataTableAlign;
 
@@ -68,6 +71,8 @@ export type DataTableActionsColumn<T extends Record<string, unknown>> = {
 
   type: "actions";
   width?: number | string;
+  fullWidth?: boolean;
+  overflow?: DataTableCellOverflow;
   fitContent?: boolean;
   align?: DataTableAlign;
 

@@ -118,6 +118,92 @@ const spanRows: SpanRow[] = [
 ];
 
 describe("DataTable grouping", () => {
+  it("supports visible cell overflow when configured at column level", () => {
+    render(
+      <DataTable
+        rows={[
+          {
+            id: 1,
+            name: "Alice",
+            country:
+              "This is a very long cell value that should remain visible without ellipsis when configured.",
+            state: "Sao Paulo",
+            city: "Sao Paulo",
+          },
+        ]}
+        columns={[
+          {
+            field: "name",
+            headerName: "Name",
+            width: 120,
+          },
+          {
+            field: "country",
+            headerName: "Country",
+            overflow: "visible",
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const cell = screen
+      .getByText(
+        "This is a very long cell value that should remain visible without ellipsis when configured.",
+      )
+      .closest("td");
+
+    expect(cell).not.toBeNull();
+    expect(cell).toHaveStyle({
+      overflow: "visible",
+      textOverflow: "clip",
+      whiteSpace: "nowrap",
+    });
+  });
+
+  it("keeps explicit widths fixed in responsive mode while widthless and fullWidth columns stay flexible", () => {
+    const { container } = render(
+      <DataTable
+        rows={rows}
+        columns={[
+          {
+            field: "name",
+            headerName: "Name",
+            width: 120,
+          },
+          {
+            field: "country",
+            headerName: "Country",
+          },
+          {
+            field: "state",
+            headerName: "State",
+            width: 220,
+            fullWidth: true,
+          },
+          {
+            field: "city",
+            headerName: "City",
+            width: 140,
+          },
+        ]}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    const cols = Array.from(container.querySelectorAll("colgroup col"));
+
+    expect(cols).toHaveLength(4);
+    expect(cols[0]).toHaveStyle({ width: "120px", minWidth: "120px" });
+    expect(cols[1]).toHaveStyle({ width: "auto", minWidth: "160px" });
+    expect(cols[2]).toHaveStyle({ width: "auto", minWidth: "220px" });
+    expect(cols[3]).toHaveStyle({ width: "140px", minWidth: "140px" });
+  });
+
   it("renders nested column group headers", () => {
     render(
       <DataTable

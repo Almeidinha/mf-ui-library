@@ -1,4 +1,5 @@
 import { Checkbox } from "components/checkbox";
+import { DataTableCellOverflow } from "components/data-table/types";
 import { IconMinor } from "components/icon";
 import { InputText } from "components/input-field";
 import { Flex } from "components/layout";
@@ -25,6 +26,7 @@ import type {
 import {
   getColumnId,
   getDefaultGroupLabel,
+  getResolvedColumnWidth,
   getTextAlign,
   isActionsColumn,
 } from "../data-table/dataTable.shared";
@@ -220,10 +222,48 @@ const HeaderSortButton = styled(Button).attrs({
   subtle: true,
 })`
   all: unset;
+  display: flex;
+  align-items: center;
+  gap: ${Padding.xs};
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+`;
+
+const CellContent = styled.span<{
+  $textAlign: "left" | "center" | "right";
+  $fitContent?: boolean;
+  $overflow?: DataTableCellOverflow;
+}>`
+  display: block;
+  min-width: 0;
+  width: ${({ $fitContent }) => ($fitContent ? "auto" : "100%")};
+  flex: ${({ $fitContent }) => ($fitContent ? "0 0 auto" : "1 1 auto")};
+  overflow: ${({ $overflow = "ellipsis" }) =>
+    $overflow === "ellipsis" ? "hidden" : "visible"};
+  text-overflow: ${({ $overflow = "ellipsis" }) =>
+    $overflow === "ellipsis" ? "ellipsis" : "clip"};
+  white-space: ${({ $overflow = "ellipsis" }) =>
+    $overflow === "wrap" ? "normal" : "nowrap"};
+  overflow-wrap: ${({ $overflow = "ellipsis" }) =>
+    $overflow === "wrap" ? "anywhere" : "normal"};
+  text-align: ${({ $textAlign }) => $textAlign};
+`;
+
+const HeaderSortContent = styled.span<{
+  $textAlign: "left" | "center" | "right";
+}>`
   display: inline-flex;
   align-items: center;
   gap: ${Padding.xs};
-  cursor: pointer;
+  width: 100%;
+  min-width: 0;
+  justify-content: ${({ $textAlign }) =>
+    $textAlign === "right"
+      ? "flex-end"
+      : $textAlign === "center"
+        ? "center"
+        : "flex-start"};
 `;
 
 const GroupToggleButton = styled.button`
@@ -274,16 +314,23 @@ function createGridTemplateColumns<T extends Record<string, unknown>>(
   checkboxColumnWidth: number,
   columnWidthMap: Record<string, number>,
 ) {
-  const columns = renderedColumns.map(({ field }) => {
-    const width = columnWidthMap[field] ?? 160;
+  const columns = renderedColumns.map(({ column, field }) => {
+    const estimatedWidth = columnWidthMap[field] ?? 160;
+    const resolvedWidth = getResolvedColumnWidth(column);
+    const minWidth =
+      typeof resolvedWidth === "number"
+        ? `${resolvedWidth}px`
+        : (resolvedWidth ?? `${estimatedWidth}px`);
 
     if (!isResponsive) {
-      return `${width}px`;
+      return minWidth;
     }
 
-    const flexFactor = Math.max(width / 120, 1);
+    if (column.fullWidth || column.width == null) {
+      return `minmax(${minWidth}, 1fr)`;
+    }
 
-    return `minmax(${width}px, ${flexFactor}fr)`;
+    return minWidth;
   });
 
   if (checkboxSelection) {
@@ -1310,27 +1357,33 @@ export function DataGrid<T extends Record<string, unknown>>(
                 tabIndex={cellSelection ? -1 : undefined}
                 onClick={() => toggleSort(field, sortable)}
               >
-                <Flex>
-                  {typeof column.headerName === "string" ? (
-                    <Label strong muted>
-                      {column.headerName}
-                    </Label>
-                  ) : (
-                    (column.headerName ?? "")
-                  )}
+                <HeaderSortContent $textAlign={textAlign}>
+                  <CellContent $textAlign={textAlign}>
+                    {typeof column.headerName === "string" ? (
+                      <Label strong muted>
+                        {column.headerName}
+                      </Label>
+                    ) : (
+                      (column.headerName ?? "")
+                    )}
+                  </CellContent>
                   {currentSort === "ASC" ? (
                     <IconMinor.ChevronUpSolid />
                   ) : currentSort === "DESC" ? (
                     <IconMinor.ChevronDownSolid />
                   ) : null}
-                </Flex>
+                </HeaderSortContent>
               </HeaderSortButton>
             ) : typeof column.headerName === "string" ? (
-              <Label strong muted>
-                {column.headerName}
-              </Label>
+              <CellContent $textAlign={textAlign}>
+                <Label strong muted>
+                  {column.headerName}
+                </Label>
+              </CellContent>
             ) : (
-              (column.headerName ?? "")
+              <CellContent $textAlign={textAlign}>
+                {column.headerName ?? ""}
+              </CellContent>
             )}
           </HeaderCellFrame>,
         );
@@ -1400,27 +1453,33 @@ export function DataGrid<T extends Record<string, unknown>>(
                   tabIndex={cellSelection ? -1 : undefined}
                   onClick={() => toggleSort(field, sortable)}
                 >
-                  <Flex>
-                    {typeof column.headerName === "string" ? (
-                      <Label strong muted>
-                        {column.headerName}
-                      </Label>
-                    ) : (
-                      (column.headerName ?? "")
-                    )}
+                  <HeaderSortContent $textAlign={textAlign}>
+                    <CellContent $textAlign={textAlign}>
+                      {typeof column.headerName === "string" ? (
+                        <Label strong muted>
+                          {column.headerName}
+                        </Label>
+                      ) : (
+                        (column.headerName ?? "")
+                      )}
+                    </CellContent>
                     {currentSort === "ASC" ? (
                       <IconMinor.ChevronUpSolid />
                     ) : currentSort === "DESC" ? (
                       <IconMinor.ChevronDownSolid />
                     ) : null}
-                  </Flex>
+                  </HeaderSortContent>
                 </HeaderSortButton>
               ) : typeof column.headerName === "string" ? (
-                <Label strong muted>
-                  {column.headerName}
-                </Label>
+                <CellContent $textAlign={textAlign}>
+                  <Label strong muted>
+                    {column.headerName}
+                  </Label>
+                </CellContent>
               ) : (
-                (column.headerName ?? "")
+                <CellContent $textAlign={textAlign}>
+                  {column.headerName ?? ""}
+                </CellContent>
               )}
             </HeaderCellFrame>,
           );
@@ -1465,11 +1524,15 @@ export function DataGrid<T extends Record<string, unknown>>(
             }}
           >
             {typeof cell.group.headerName === "string" ? (
-              <Label strong muted>
-                {cell.group.headerName}
-              </Label>
+              <CellContent $textAlign={cell.group.align ?? "left"}>
+                <Label strong muted>
+                  {cell.group.headerName}
+                </Label>
+              </CellContent>
             ) : (
-              cell.group.headerName
+              <CellContent $textAlign={cell.group.align ?? "left"}>
+                {cell.group.headerName}
+              </CellContent>
             )}
           </HeaderCellFrame>,
         );
@@ -1729,7 +1792,13 @@ export function DataGrid<T extends Record<string, unknown>>(
                     : Surface.Default.Default,
               }}
             >
-              {content}
+              <CellContent
+                $textAlign={textAlign}
+                $fitContent={column.fitContent}
+                $overflow={column.overflow}
+              >
+                {content}
+              </CellContent>
             </BodyCellFrame>,
           );
         },

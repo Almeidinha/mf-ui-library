@@ -4,6 +4,7 @@ export type {
   DataTableAction as DataGridAction,
   DataTableActionsColumn as DataGridActionsColumn,
   DataTableAlign as DataGridAlign,
+  DataTableCellOverflow as DataGridCellOverflow,
   DataTableColumn as DataGridColumn,
   DataTableColumnGroup as DataGridColumnGroup,
   DataTableColumnManagerMode as DataGridColumnManagerMode,
