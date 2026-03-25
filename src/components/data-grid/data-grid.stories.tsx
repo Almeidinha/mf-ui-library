@@ -505,7 +505,6 @@ const meta = {
     sortDirection: undefined,
     columnVisibility: undefined,
     defaultColumnVisibility: {
-      role: false,
       city: false,
       state: false,
       country: false,
@@ -776,6 +775,8 @@ export const Primary: Story = {
     mode: "inline",
     showBackdrop: true,
     maxTableHeight: "500px",
+    defaultPinnedColumns: undefined,
+    showActionColumns: false,
   },
   render: (args) => {
     return (
