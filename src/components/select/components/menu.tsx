@@ -1,4 +1,5 @@
 import { Slide } from "components/transitions";
+import { clamp } from "helpers/numbers";
 import {
   defaultTo,
   is,
@@ -86,11 +87,8 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
 
   const listRef = useRef<MenuListRef | null>(null);
   const listRowHeight = rowHeight + 4 * 2;
-
-  const height = Math.min(
-    Math.max(options.length * listRowHeight, listRowHeight),
-    menuHeight,
-  );
+  const contentHeight = options.length * listRowHeight;
+  const height = clamp(contentHeight, listRowHeight, menuHeight);
 
   useEffect(() => {
     setOptions(safeArray(propOptions));

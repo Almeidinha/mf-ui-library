@@ -1,3 +1,4 @@
+import { clamp } from "helpers/numbers";
 import React from "react";
 
 import type { GroupedBodyEntry, RenderedColumn } from "./dataTable.shared";
@@ -56,14 +57,10 @@ function collectRowSections<T extends Record<string, unknown>>(
   return rowSections;
 }
 
-function clampSpanValue(value: unknown, max: number) {
+function resolveClampedSpanValue(value: unknown, max: number) {
   const parsedValue = typeof value === "number" ? value : Number(value);
 
-  if (!Number.isFinite(parsedValue)) {
-    return 1;
-  }
-
-  return Math.max(1, Math.min(Math.floor(parsedValue), max));
+  return clamp(Math.floor(parsedValue), 1, max);
 }
 
 function resolveSpanValue<T extends Record<string, unknown>>(
@@ -171,7 +168,7 @@ function buildSectionBodyCells<T extends Record<string, unknown>>(
             rows: sectionRows,
             value: rawValue,
           };
-          const colSpan = clampSpanValue(
+          const colSpan = resolveClampedSpanValue(
             resolveSpanValue(column.colSpan, spanArgs),
             getAvailableColSpanCount(
               blockedColumns,
@@ -179,7 +176,7 @@ function buildSectionBodyCells<T extends Record<string, unknown>>(
               columnIndex,
             ),
           );
-          const rowSpan = clampSpanValue(
+          const rowSpan = resolveClampedSpanValue(
             resolveSpanValue(column.rowSpan, spanArgs),
             sectionEntries.length - rowIndex,
           );

@@ -8,6 +8,7 @@ import { Borders, Surface } from "foundation/colors";
 import { Gap } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { If } from "helpers/nothing";
+import { clamp } from "helpers/numbers";
 import { isNil } from "helpers/safe-navigation";
 import { KeyboardEvent, useEffect, useState } from "react";
 import styled from "styled-components";
@@ -74,15 +75,15 @@ const PageSizeContainer = styled(Flex)`
 `;
 
 const PageSelectorContainer = styled(Select)`
+  width: 70px;
   & .select-value {
     border-radius: 6px 0px 0px 6px;
     border-right: 0;
   }
-  width: 70px;
+  & .menu-list {
+    height: auto !important;
+  }
 `;
-
-const clampPage = (p: number, total: number) =>
-  Math.min(Math.max(p, FIRST_PAGE), total);
 
 export const Pagination = ({
   page = FIRST_PAGE,
@@ -97,7 +98,7 @@ export const Pagination = ({
   pageSizeOptions = PAGE_SIZE_OPTIONS,
 }: IPaginationProps) => {
   const safeTotal = Math.max(total ?? 0, FIRST_PAGE);
-  const clampedPage = clampPage(page, safeTotal);
+  const clampedPage = clamp(page, FIRST_PAGE, safeTotal);
 
   const [inputValue, setInputValue] = useState<number | undefined>(clampedPage);
 
@@ -111,7 +112,7 @@ export const Pagination = ({
       return;
     }
 
-    const next = clampPage(Math.trunc(raw), safeTotal);
+    const next = clamp(Math.trunc(raw), FIRST_PAGE, safeTotal);
     setInputValue(next);
 
     if (next !== clampedPage) {
@@ -129,14 +130,14 @@ export const Pagination = ({
   };
 
   const handlePrevious = () => {
-    const next = clampPage(clampedPage - 1, safeTotal);
+    const next = clamp(clampedPage - 1, FIRST_PAGE, safeTotal);
     if (next !== clampedPage) {
       onChange?.(next);
     }
   };
 
   const handleNext = () => {
-    const next = clampPage(clampedPage + 1, safeTotal);
+    const next = clamp(clampedPage + 1, FIRST_PAGE, safeTotal);
     if (next !== clampedPage) {
       onChange?.(next);
     }
@@ -203,7 +204,6 @@ export const Pagination = ({
             ariaLabel="Items per page"
             id="items-per-page-label"
             ariaLabelledBy="items-per-page-label"
-            menuHeight={500}
             menuPosition="top"
             value={pageSize}
             options={pageSizeOptions.map((option) => ({

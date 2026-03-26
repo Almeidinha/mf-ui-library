@@ -3,6 +3,7 @@ import { Borders } from "foundation/colors";
 import { Margin } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { isReactElementOfType } from "helpers/isReactElementOfType";
+import { clamp } from "helpers/numbers";
 import { is, safeCallback } from "helpers/safe-navigation";
 import { Slot, StylableSlot } from "helpers/slots";
 import React, {
@@ -59,10 +60,6 @@ const isTab = isReactElementOfType(Tab);
 const isTabList = isReactElementOfType(Navigation);
 const isContent = isReactElementOfType(Content);
 
-function clampIndex(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
 function tabId(prefix: string, i: number) {
   return `${prefix}-tab-${i}`;
 }
@@ -117,7 +114,7 @@ export const Tabs: FC<TabsProps, SubComponents> = (props) => {
     if (tabTotal <= 0) {
       return 0;
     }
-    return clampIndex(selected, 0, tabTotal - 1);
+    return clamp(selected, 0, tabTotal - 1);
   }, [selected, tabTotal]);
 
   const safeOnChange = useCallback(
@@ -125,7 +122,7 @@ export const Tabs: FC<TabsProps, SubComponents> = (props) => {
       if (tabTotal <= 0) {
         return;
       }
-      const clamped = clampIndex(next, 0, tabTotal - 1);
+      const clamped = clamp(next, 0, tabTotal - 1);
       if (clamped !== safeSelected) {
         onChange?.(clamped);
       }

@@ -1,3 +1,4 @@
+import { clamp } from "helpers/numbers";
 import React, { useCallback } from "react";
 
 type NavKey =
@@ -29,10 +30,6 @@ export type RovingKeyDownOptions = {
    */
   isItemDisabled?: (el: HTMLElement) => boolean;
 };
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
 
 const DEFAULT_KEYS: ReadonlyArray<NavKey | ActivateKey> = [
   "ArrowLeft",
