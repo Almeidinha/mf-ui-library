@@ -42,6 +42,7 @@ import { useDataTableRowGrouping } from "../data-table/useDataTableRowGrouping";
 import type { DataGridProps } from "./types";
 
 const CHECKBOX_COLUMN_FIELD = "__checkbox__";
+const HEADER_SCROLLBAR_SPACER = 15;
 
 const GridFrame = styled.div<{
   $borderTop?: boolean;
@@ -62,7 +63,19 @@ const GridFrame = styled.div<{
     $borderBottom ? 0 : "6px"};
 `;
 
-const GridScroll = styled.div<{ $maxHeight?: string }>`
+const GridHeaderScroll = styled.div`
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const GridBodyScroll = styled.div<{ $maxHeight?: string }>`
   width: 100%;
   min-width: 0;
   max-height: ${({ $maxHeight }) => $maxHeight};
@@ -102,8 +115,6 @@ const GridHeader = styled.div<{
     ${({ $rowCount }) => $rowCount},
     minmax(48px, auto)
   );
-  position: sticky;
-  top: 0;
   z-index: 4;
   background: ${Surface.Default.Muted};
 `;
@@ -218,6 +229,11 @@ const GroupCellFrame = styled.div<GridCellStyleProps>`
   ${cellStyles}
   background: ${Surface.Default.Muted};
   font-weight: 600;
+`;
+
+const HeaderScrollbarSpacerCell = styled.div`
+  background: ${Surface.Default.Muted};
+  border-bottom: 1px solid ${Borders.Default.Muted};
 `;
 
 const EmptyCellFrame = styled.div<GridCellStyleProps>`
@@ -367,6 +383,23 @@ function getGridBodyBackground(striped: boolean, rowIndex: number) {
   return rowIndex % 2 === 1;
 }
 
+function addScrollbarSpacerToSize(size: string, spacer: number) {
+  if (spacer <= 0 || !size) {
+    return size;
+  }
+
+  if (
+    size === "auto" ||
+    size === "max-content" ||
+    size === "min-content" ||
+    size === "fit-content"
+  ) {
+    return size;
+  }
+
+  return `calc(${size} + ${spacer}px)`;
+}
+
 type ActionDescriptor<T extends Record<string, unknown>> = {
   key: string;
   label: React.ReactNode;
@@ -506,11 +539,17 @@ export function DataGrid<T extends Record<string, unknown>>(
   } = props;
 
   const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
+  const headerScrollRef = React.useRef<HTMLDivElement | null>(null);
+  const bodyScrollRef = React.useRef<HTMLDivElement | null>(null);
   const cellRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const actionTriggerRefs = React.useRef<
     Record<string, HTMLButtonElement | null>
   >({});
   const isResponsive = layoutMode === "responsive";
+  const [hasBodyVerticalScrollbar, setHasBodyVerticalScrollbar] =
+    React.useState(false);
+  const [hasBodyHorizontalScrollbar, setHasBodyHorizontalScrollbar] =
+    React.useState(false);
 
   const {
     search,
@@ -645,6 +684,34 @@ export function DataGrid<T extends Record<string, unknown>>(
   const gridMinWidth = isResponsive
     ? toCssSize(minTableWidth)
     : (toCssSize(minTableWidth) ?? `${computedColumnWidth}px`);
+  const headerScrollbarSpacer = hasBodyVerticalScrollbar
+    ? HEADER_SCROLLBAR_SPACER
+    : 0;
+  const shouldExtendHeaderSurface =
+    hasBodyVerticalScrollbar && hasBodyHorizontalScrollbar;
+  const headerGridTemplateColumns = React.useMemo(
+    () =>
+      headerScrollbarSpacer > 0
+        ? `${gridTemplateColumns} ${headerScrollbarSpacer}px`
+        : gridTemplateColumns,
+    [gridTemplateColumns, headerScrollbarSpacer],
+  );
+  const headerGridWidth = React.useMemo(
+    () =>
+      addScrollbarSpacerToSize(
+        gridWidth,
+        shouldExtendHeaderSurface ? headerScrollbarSpacer : 0,
+      ),
+    [gridWidth, headerScrollbarSpacer, shouldExtendHeaderSurface],
+  );
+  const headerGridMinWidth = React.useMemo(
+    () =>
+      addScrollbarSpacerToSize(
+        gridMinWidth,
+        shouldExtendHeaderSurface ? headerScrollbarSpacer : 0,
+      ),
+    [gridMinWidth, headerScrollbarSpacer, shouldExtendHeaderSurface],
+  );
 
   const getGroupHeaderStickyStyle = React.useCallback(
     (leafColumns: RenderedColumn<T>[]) => {
@@ -1988,6 +2055,85 @@ export function DataGrid<T extends Record<string, unknown>>(
     checkboxSelection,
   ]);
 
+  const syncScrollLeft = React.useCallback((source: "header" | "body") => {
+    const sourceElement =
+      source === "header" ? headerScrollRef.current : bodyScrollRef.current;
+    const targetElement =
+      source === "header" ? bodyScrollRef.current : headerScrollRef.current;
+
+    if (!sourceElement || !targetElement) {
+      return;
+    }
+
+    if (targetElement.scrollLeft !== sourceElement.scrollLeft) {
+      targetElement.scrollLeft = sourceElement.scrollLeft;
+    }
+  }, []);
+
+  const updateBodyVerticalScrollbar = React.useCallback(() => {
+    const bodyScrollElement = bodyScrollRef.current;
+
+    if (!bodyScrollElement) {
+      setHasBodyVerticalScrollbar(false);
+      setHasBodyHorizontalScrollbar(false);
+      return;
+    }
+
+    setHasBodyVerticalScrollbar(
+      bodyScrollElement.scrollHeight > bodyScrollElement.clientHeight + 1,
+    );
+    setHasBodyHorizontalScrollbar(
+      bodyScrollElement.scrollWidth > bodyScrollElement.clientWidth + 1,
+    );
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const bodyScrollElement = bodyScrollRef.current;
+    const headerScrollElement = headerScrollRef.current;
+
+    if (bodyScrollElement && headerScrollElement) {
+      if (headerScrollElement.scrollLeft !== bodyScrollElement.scrollLeft) {
+        headerScrollElement.scrollLeft = bodyScrollElement.scrollLeft;
+      }
+    }
+
+    updateBodyVerticalScrollbar();
+
+    if (!bodyScrollElement) {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateBodyVerticalScrollbar();
+    });
+
+    resizeObserver.observe(bodyScrollElement);
+
+    const contentElement = bodyScrollElement.firstElementChild;
+
+    if (contentElement instanceof HTMLElement) {
+      resizeObserver.observe(contentElement);
+    }
+
+    window.addEventListener("resize", updateBodyVerticalScrollbar);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateBodyVerticalScrollbar);
+    };
+  }, [
+    updateBodyVerticalScrollbar,
+    groupedBodyEntries.length,
+    visibleRows.length,
+    gridTemplateColumns,
+    gridWidth,
+    gridMinWidth,
+    headerGridTemplateColumns,
+    headerGridWidth,
+    headerGridMinWidth,
+    maxTableHeight,
+  ]);
+
   return (
     <GridContainer ref={tableAreaRef}>
       {searchable || manageColumns ? (
@@ -2023,26 +2169,46 @@ export function DataGrid<T extends Record<string, unknown>>(
       <GridFrame
         $borderTop={searchable || manageColumns}
         $borderBottom={paginated}
+        role="grid"
+        aria-label="Data grid"
+        aria-colcount={totalColumnCount}
+        aria-rowcount={totalGridRows}
+        aria-readonly="true"
+        aria-multiselectable={checkboxSelection || undefined}
       >
-        <GridScroll $maxHeight={toCssSize(maxTableHeight)}>
+        <GridHeaderScroll
+          ref={headerScrollRef}
+          onScroll={() => syncScrollLeft("header")}
+        >
           <GridSurface
-            $width={gridWidth}
-            $minWidth={gridMinWidth}
-            role="grid"
-            aria-label="Data grid"
-            aria-colcount={totalColumnCount}
-            aria-rowcount={totalGridRows}
-            aria-readonly="true"
-            aria-multiselectable={checkboxSelection || undefined}
+            $width={headerGridWidth}
+            $minWidth={headerGridMinWidth}
           >
             <GridHeader
-              $templateColumns={gridTemplateColumns}
+              $templateColumns={headerGridTemplateColumns}
               $rowCount={headerRowCount}
               role="rowgroup"
             >
               {headerCells}
+              {headerScrollbarSpacer > 0 ? (
+                <HeaderScrollbarSpacerCell
+                  aria-hidden="true"
+                  style={{
+                    gridColumn: toGridSpan(totalColumnCount + 1),
+                    gridRow: toGridSpan(1, headerRowCount),
+                  }}
+                />
+              ) : null}
             </GridHeader>
+          </GridSurface>
+        </GridHeaderScroll>
 
+        <GridBodyScroll
+          ref={bodyScrollRef}
+          $maxHeight={toCssSize(maxTableHeight)}
+          onScroll={() => syncScrollLeft("body")}
+        >
+          <GridSurface $width={gridWidth} $minWidth={gridMinWidth}>
             <GridBody
               $templateColumns={gridTemplateColumns}
               $rowCount={Math.max(groupedBodyEntries.length, 1)}
@@ -2052,7 +2218,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               {bodyCells}
             </GridBody>
           </GridSurface>
-        </GridScroll>
+        </GridBodyScroll>
       </GridFrame>
 
       {paginated ? (
