@@ -802,7 +802,6 @@ const DataGridDataRow = memo(
                     colIndex: gridColumnStart,
                     rowSpan,
                     colSpan,
-                    field,
                     rowKey: key,
                     selected: isSelected,
                   })}
@@ -855,7 +854,6 @@ const DataGridDataRow = memo(
                   colIndex: gridColumnStart,
                   rowSpan,
                   colSpan,
-                  field,
                   rowKey: key,
                   selected: isSelected,
                 })}
@@ -1354,7 +1352,6 @@ export function DataGrid<T extends Record<string, unknown>>(
             colIndex: gridColumnStart,
             rowSpan,
             colSpan,
-            field: renderedColumn.field,
             rowKey: entry.key,
             selected: selectedKeySet.has(entry.key),
           });
@@ -1696,7 +1693,7 @@ export function DataGrid<T extends Record<string, unknown>>(
   const getFocusableCellProps = useCallback(
     (cell: FocusableGridCell): FocusableCellDomProps => ({
       id: getGridCellDomId(cell.key),
-      role: cell.kind.startsWith("header") ? "columnheader" : "gridcell",
+      role: "gridcell",
       tabIndex: cellSelection
         ? activeCellKey === cell.key
           ? 0
