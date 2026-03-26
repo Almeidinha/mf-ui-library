@@ -16,7 +16,23 @@ import { shadowMd } from "foundation/shadows";
 import { Gap, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
-import React from "react";
+import { useMergedRefs, useOnClickOutside } from "hooks";
+import React, {
+  ComponentType,
+  HTMLAttributes,
+  JSX,
+  Key,
+  KeyboardEvent,
+  memo,
+  ReactNode,
+  RefObject,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styled, { css } from "styled-components";
 
 import type {
@@ -405,11 +421,11 @@ function addScrollbarSpacerToSize(size: string, spacer: number) {
 
 type ActionDescriptor<T extends Record<string, unknown>> = {
   key: string;
-  label: React.ReactNode;
+  label: ReactNode;
   onClick: (row: T) => void;
   disabled?: boolean | ((row: T) => boolean);
   destructive?: boolean;
-  icon?: React.ComponentType;
+  icon?: ComponentType;
 };
 
 type FocusableGridCellKind =
@@ -435,10 +451,10 @@ type FocusableGridCell = {
   collapsed?: boolean;
   collapsible?: boolean;
   selected?: boolean;
-  rowKey?: React.Key;
+  rowKey?: Key;
 };
 
-type FocusableCellDomProps = React.HTMLAttributes<HTMLDivElement> & {
+type FocusableCellDomProps = HTMLAttributes<HTMLDivElement> & {
   id: string;
   role: "columnheader" | "gridcell";
   tabIndex?: number;
@@ -478,7 +494,7 @@ function GridActionsCell<T extends Record<string, unknown>>({
     closeOnItemSelect: true,
   });
 
-  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   return (
     <ActionMenuRoot ref={clickOutsideRef}>
@@ -536,14 +552,14 @@ function GridActionsCell<T extends Record<string, unknown>>({
 }
 
 type DataGridEmptyRowProps = {
-  emptyMessage: React.ReactNode;
+  emptyMessage: ReactNode;
   headerRowCount: number;
   totalColumnCount: number;
   isFocused: boolean;
   getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
 };
 
-const DataGridEmptyRow = React.memo(function DataGridEmptyRow({
+const DataGridEmptyRow = memo(function DataGridEmptyRow({
   emptyMessage,
   headerRowCount,
   totalColumnCount,
@@ -582,11 +598,11 @@ type DataGridGroupRowProps<T extends Record<string, unknown>> = {
   isFocused: boolean;
   renderGroupHeaderContent: (
     entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
-  ) => React.ReactNode;
+  ) => ReactNode;
   getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
 };
 
-const DataGridGroupRow = React.memo(
+const DataGridGroupRow = memo(
   function DataGridGroupRow<T extends Record<string, unknown>>({
     entry,
     rowIndex,
@@ -639,7 +655,7 @@ const DataGridGroupRow = React.memo(
   },
 ) as <T extends Record<string, unknown>>(
   props: DataGridGroupRowProps<T>,
-) => React.JSX.Element;
+) => JSX.Element;
 
 type DataGridDataRowProps<T extends Record<string, unknown>> = {
   entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
@@ -654,16 +670,13 @@ type DataGridDataRowProps<T extends Record<string, unknown>> = {
   resolvedBodyCells: ResolvedBodyCell<T>[];
   shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
   getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-  toggleRowSelection: (rowKey: React.Key) => void;
-  getColumnRawValue: (
-    row: T,
-    column: DataTableRegularColumn<T>,
-  ) => React.ReactNode;
+  toggleRowSelection: (rowKey: Key) => void;
+  getColumnRawValue: (row: T, column: DataTableRegularColumn<T>) => ReactNode;
   cellSelection: boolean;
-  actionTriggerRefs: React.RefObject<Record<string, HTMLButtonElement | null>>;
+  actionTriggerRefs: RefObject<Record<string, HTMLButtonElement | null>>;
 };
 
-const DataGridDataRow = React.memo(
+const DataGridDataRow = memo(
   function DataGridDataRow<T extends Record<string, unknown>>({
     entry,
     rowIndex,
@@ -864,7 +877,7 @@ const DataGridDataRow = React.memo(
   },
 ) as <T extends Record<string, unknown>>(
   props: DataGridDataRowProps<T>,
-) => React.JSX.Element;
+) => JSX.Element;
 
 export function DataGrid<T extends Record<string, unknown>>(
   props: DataGridProps<T>,
@@ -889,18 +902,19 @@ export function DataGrid<T extends Record<string, unknown>>(
     cellSelection = false,
   } = props;
 
-  const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
-  const headerScrollRef = React.useRef<HTMLDivElement | null>(null);
-  const bodyScrollRef = React.useRef<HTMLDivElement | null>(null);
-  const cellRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
-  const actionTriggerRefs = React.useRef<
-    Record<string, HTMLButtonElement | null>
-  >({});
+  const tableAreaRef = useRef<HTMLDivElement | null>(null);
+  const headerScrollRef = useRef<HTMLDivElement | null>(null);
+  const bodyScrollRef = useRef<HTMLDivElement | null>(null);
+  const cellRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const actionTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>(
+    {},
+  );
   const isResponsive = layoutMode === "responsive";
   const [hasBodyVerticalScrollbar, setHasBodyVerticalScrollbar] =
-    React.useState(false);
+    useState(false);
   const [hasBodyHorizontalScrollbar, setHasBodyHorizontalScrollbar] =
-    React.useState(false);
+    useState(false);
+  const previousCellSelectionRef = useRef(cellSelection);
 
   const {
     search,
@@ -954,7 +968,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     borderColor: Borders.Default.Default,
   });
 
-  const renderedColumns = React.useMemo<RenderedColumn<T>[]>(() => {
+  const renderedColumns = useMemo<RenderedColumn<T>[]>(() => {
     return visibleColumns.map((column) => {
       const field = getColumnId(column);
       const sortable = !isActionsColumn(column) && column.sortable;
@@ -999,7 +1013,7 @@ export function DataGrid<T extends Record<string, unknown>>(
   });
   const { hasBodySpans, bodyCellsByKey } = bodySpanState;
 
-  const defaultBodyCells = React.useMemo<ResolvedBodyCell<T>[]>(
+  const defaultBodyCells = useMemo<ResolvedBodyCell<T>[]>(
     () =>
       renderedColumns.map((renderedColumn, columnIndex) => ({
         renderedColumn,
@@ -1011,7 +1025,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [renderedColumns],
   );
 
-  const gridTemplateColumns = React.useMemo(
+  const gridTemplateColumns = useMemo(
     () =>
       createGridTemplateColumns(
         renderedColumns,
@@ -1040,14 +1054,14 @@ export function DataGrid<T extends Record<string, unknown>>(
     : 0;
   const shouldExtendHeaderSurface =
     hasBodyVerticalScrollbar && hasBodyHorizontalScrollbar;
-  const headerGridTemplateColumns = React.useMemo(
+  const headerGridTemplateColumns = useMemo(
     () =>
       headerScrollbarSpacer > 0
         ? `${gridTemplateColumns} ${headerScrollbarSpacer}px`
         : gridTemplateColumns,
     [gridTemplateColumns, headerScrollbarSpacer],
   );
-  const headerGridWidth = React.useMemo(
+  const headerGridWidth = useMemo(
     () =>
       addScrollbarSpacerToSize(
         gridWidth,
@@ -1055,7 +1069,7 @@ export function DataGrid<T extends Record<string, unknown>>(
       ),
     [gridWidth, headerScrollbarSpacer, shouldExtendHeaderSurface],
   );
-  const headerGridMinWidth = React.useMemo(
+  const headerGridMinWidth = useMemo(
     () =>
       addScrollbarSpacerToSize(
         gridMinWidth,
@@ -1064,7 +1078,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [gridMinWidth, headerScrollbarSpacer, shouldExtendHeaderSurface],
   );
 
-  const getGroupHeaderStickyStyle = React.useCallback(
+  const getGroupHeaderStickyStyle = useCallback(
     (leafColumns: RenderedColumn<T>[]) => {
       const leafFields = leafColumns.map(({ field }) => field);
       const allPinnedLeft = leafFields.every((field) =>
@@ -1114,7 +1128,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     ],
   );
 
-  const fieldBeforeFirstRightPinned = React.useMemo(() => {
+  const fieldBeforeFirstRightPinned = useMemo(() => {
     if (!firstRightPinnedField) {
       return null;
     }
@@ -1132,7 +1146,7 @@ export function DataGrid<T extends Record<string, unknown>>(
 
   const lastVisibleField = renderedColumns[renderedColumns.length - 1]?.field;
 
-  const shouldRenderBorderRight = React.useCallback(
+  const shouldRenderBorderRight = useCallback(
     (field: string, colSpan = 1) => {
       if (!showCellBorders || colSpan !== 1) {
         return false;
@@ -1151,7 +1165,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [showCellBorders, fieldBeforeFirstRightPinned, lastVisibleField],
   );
 
-  const shouldRenderHeaderDivider = React.useCallback(
+  const shouldRenderHeaderDivider = useCallback(
     (field: string) => {
       if (showCellBorders) {
         return false;
@@ -1178,7 +1192,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     ],
   );
 
-  const renderGroupHeaderContent = React.useCallback(
+  const renderGroupHeaderContent = useCallback(
     (entry: Extract<GroupedBodyEntry<T>, { type: "group" }>) => {
       const content = renderGroupHeader ? (
         renderGroupHeader(
@@ -1216,8 +1230,8 @@ export function DataGrid<T extends Record<string, unknown>>(
     [cellSelection, renderGroupHeader, toggleGroup],
   );
 
-  const toggleRowSelection = React.useCallback(
-    (rowKey: React.Key) => {
+  const toggleRowSelection = useCallback(
+    (rowKey: Key) => {
       const next = selectedKeys.includes(rowKey)
         ? selectedKeys.filter((selectedKey) => selectedKey !== rowKey)
         : [...selectedKeys, rowKey];
@@ -1227,7 +1241,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [selectedKeys, setSelectedKeys],
   );
 
-  const focusableCells = React.useMemo<FocusableGridCell[]>(() => {
+  const focusableCells = useMemo<FocusableGridCell[]>(() => {
     if (!cellSelection) {
       return EMPTY_FOCUSABLE_CELLS;
     }
@@ -1383,7 +1397,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     defaultBodyCells,
   ]);
 
-  const focusableCellMap = React.useMemo(
+  const focusableCellMap = useMemo(
     () =>
       cellSelection
         ? new Map(focusableCells.map((cell) => [cell.key, cell]))
@@ -1391,7 +1405,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [cellSelection, focusableCells],
   );
 
-  const slotOwnerMap = React.useMemo(() => {
+  const slotOwnerMap = useMemo(() => {
     if (!cellSelection) {
       return EMPTY_SLOT_OWNER_MAP;
     }
@@ -1418,31 +1432,52 @@ export function DataGrid<T extends Record<string, unknown>>(
   }, [cellSelection, focusableCells]);
 
   const totalGridRows = headerRowCount + Math.max(groupedBodyEntries.length, 1);
-  const [activeCellKey, setActiveCellKey] = React.useState<string | null>(() =>
+  const [activeCellKey, setActiveCellKey] = useState<string | null>(() =>
     cellSelection ? (focusableCells[0]?.key ?? null) : null,
   );
+  const clickAwayRef = useOnClickOutside(() => {
+    if (!cellSelection) {
+      return;
+    }
 
-  React.useEffect(() => {
+    setActiveCellKey(null);
+  });
+  const mergedContainerRef = useMergedRefs<HTMLDivElement>(
+    tableAreaRef,
+    clickAwayRef,
+  );
+
+  useEffect(() => {
     if (!cellSelection) {
       setActiveCellKey(null);
+      previousCellSelectionRef.current = false;
       return;
     }
 
     if (focusableCells.length === 0) {
       setActiveCellKey(null);
+      previousCellSelectionRef.current = true;
       return;
     }
+
+    const wasCellSelectionEnabled = previousCellSelectionRef.current;
 
     setActiveCellKey((previous) => {
       if (previous && focusableCellMap.has(previous)) {
         return previous;
       }
 
+      if (previous === null && wasCellSelectionEnabled) {
+        return null;
+      }
+
       return focusableCells[0]?.key ?? null;
     });
+
+    previousCellSelectionRef.current = true;
   }, [cellSelection, focusableCells, focusableCellMap]);
 
-  const focusCell = React.useCallback(
+  const focusCell = useCallback(
     (cellKey: string) => {
       if (!cellSelection) {
         return;
@@ -1462,7 +1497,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [cellSelection],
   );
 
-  const moveFocusByCoordinates = React.useCallback(
+  const moveFocusByCoordinates = useCallback(
     (
       currentCell: FocusableGridCell,
       nextRowIndex: number,
@@ -1495,7 +1530,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     [focusCell, slotOwnerMap, totalColumnCount, totalGridRows],
   );
 
-  const activateFocusedCell = React.useCallback(
+  const activateFocusedCell = useCallback(
     (cell: FocusableGridCell) => {
       switch (cell.kind) {
         case "header-checkbox":
@@ -1533,8 +1568,8 @@ export function DataGrid<T extends Record<string, unknown>>(
     [toggleAllExpanded, toggleSort, toggleGroup, toggleRowSelection],
   );
 
-  const handleCellKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>, cellKey: string) => {
+  const handleCellKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>, cellKey: string) => {
       if (event.target !== event.currentTarget) {
         return;
       }
@@ -1696,7 +1731,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     ],
   );
 
-  const getFocusableCellProps = React.useCallback(
+  const getFocusableCellProps = useCallback(
     (cell: FocusableGridCell): FocusableCellDomProps => ({
       id: getGridCellDomId(cell.key),
       role: cell.kind.startsWith("header") ? "columnheader" : "gridcell",
@@ -1730,20 +1765,20 @@ export function DataGrid<T extends Record<string, unknown>>(
           }
         : undefined,
       onKeyDown: cellSelection
-        ? (event: React.KeyboardEvent<HTMLDivElement>) =>
+        ? (event: KeyboardEvent<HTMLDivElement>) =>
             handleCellKeyDown(event, cell.key)
         : undefined,
     }),
     [activeCellKey, cellSelection, handleCellKeyDown],
   );
 
-  const headerCells = React.useMemo(() => {
+  const headerCells = useMemo(() => {
     const rows = Array.from(
       { length: headerRowCount },
-      () => [] as React.ReactNode[],
+      () => [] as ReactNode[],
     );
 
-    const pushHeaderCell = (rowIndex: number, node: React.ReactNode) => {
+    const pushHeaderCell = (rowIndex: number, node: ReactNode) => {
       rows[rowIndex]?.push(node);
     };
 
@@ -2056,7 +2091,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     visibleColumns.length,
   ]);
 
-  const bodyRows = React.useMemo(() => {
+  const bodyRows = useMemo(() => {
     if (visibleRows.length === 0) {
       return [
         <DataGridEmptyRow
@@ -2139,12 +2174,12 @@ export function DataGrid<T extends Record<string, unknown>>(
     actionTriggerRefs,
   ]);
 
-  const bodyRowDividers = React.useMemo(() => {
+  const bodyRowDividers = useMemo(() => {
     if (!showCellBorders) {
       return [];
     }
 
-    const dividers: React.ReactNode[] = [];
+    const dividers: ReactNode[] = [];
 
     groupedBodyEntries.forEach((entry, entryIndex) => {
       if (entryIndex === 0) {
@@ -2239,7 +2274,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     checkboxSelection,
   ]);
 
-  const syncScrollLeft = React.useCallback((source: "header" | "body") => {
+  const syncScrollLeft = useCallback((source: "header" | "body") => {
     const sourceElement =
       source === "header" ? headerScrollRef.current : bodyScrollRef.current;
     const targetElement =
@@ -2254,7 +2289,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     }
   }, []);
 
-  const updateBodyVerticalScrollbar = React.useCallback(() => {
+  const updateBodyVerticalScrollbar = useCallback(() => {
     const bodyScrollElement = bodyScrollRef.current;
 
     if (!bodyScrollElement) {
@@ -2271,7 +2306,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     );
   }, []);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     const bodyScrollElement = bodyScrollRef.current;
     const headerScrollElement = headerScrollRef.current;
 
@@ -2319,7 +2354,7 @@ export function DataGrid<T extends Record<string, unknown>>(
   ]);
 
   return (
-    <GridContainer ref={tableAreaRef}>
+    <GridContainer ref={mergedContainerRef}>
       {searchable || manageColumns ? (
         <GridSibling gap={Gap.m}>
           {searchable ? (
