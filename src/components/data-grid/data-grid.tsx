@@ -10,12 +10,15 @@ import {
 } from "components/molecules";
 import { Button } from "components/molecules/button";
 import { Pagination } from "components/pagination";
+import { TransformIconWrapper } from "components/shared-styled-components";
 import { Label } from "components/typography";
 import { Borders, Focus, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
+import { If } from "helpers/nothing";
+import { isDefined } from "helpers/safe-navigation";
 import { useMergedRefs, useOnClickOutside } from "hooks";
 import {
   ComponentType,
@@ -32,6 +35,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import styled, { css } from "styled-components";
 
 import type {
@@ -60,6 +64,144 @@ import type { DataGridProps } from "./types";
 
 const CHECKBOX_COLUMN_FIELD = "__checkbox__";
 const HEADER_SCROLLBAR_SPACER = 15;
+
+const EMPTY_FOCUSABLE_CELLS: FocusableGridCell[] = [];
+const EMPTY_FOCUSABLE_CELL_MAP = new Map<string, FocusableGridCell>();
+const EMPTY_SLOT_OWNER_MAP = new Map<string, string>();
+
+type GridCellStyleProps = {
+  $sticky?: boolean;
+  $fitContent?: boolean;
+  $allowOverflow?: boolean;
+  $borderRight?: boolean;
+  $borderBottom?: boolean;
+  $focused?: boolean;
+  $showCellBorders?: boolean;
+};
+
+type ActionDescriptor<T extends Record<string, unknown>> = {
+  key: string;
+  label: ReactNode;
+  onClick: (row: T) => void;
+  disabled?: boolean | ((row: T) => boolean);
+  destructive?: boolean;
+  icon?: ComponentType;
+};
+
+type FocusableGridCellKind =
+  | "body-checkbox"
+  | "body-cell"
+  | "body-actions"
+  | "group-row"
+  | "empty";
+
+type FocusableGridCell = {
+  key: string;
+  kind: FocusableGridCellKind;
+  itemIndex?: number;
+  rowIndex: number;
+  colIndex: number;
+  rowSpan: number;
+  colSpan: number;
+  groupKey?: string;
+  collapsed?: boolean;
+  collapsible?: boolean;
+  selected?: boolean;
+  rowKey?: Key;
+};
+
+type FocusableCellDomProps = HTMLAttributes<HTMLDivElement> & {
+  id: string;
+  role: "gridcell";
+  tabIndex?: number;
+  "aria-colindex": number;
+  "aria-rowindex": number;
+  "aria-colspan"?: number;
+  "aria-rowspan"?: number;
+  "aria-selected"?: true;
+  "aria-expanded"?: boolean;
+  ref?: (node: HTMLDivElement | null) => void;
+};
+
+type DataGridEmptyRowProps = {
+  emptyMessage: ReactNode;
+  headerRowCount: number;
+  totalColumnCount: number;
+  showCellBorders: boolean;
+  hasBorderBottom: boolean;
+  isFocused: boolean;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+};
+
+type DataGridGroupRowProps<T extends Record<string, unknown>> = {
+  entry: Extract<GroupedBodyEntry<T>, { type: "group" }>;
+  rowIndex: number;
+  headerRowCount: number;
+  totalColumnCount: number;
+  showCellBorders: boolean;
+  hasBorderBottom: boolean;
+  isFocused: boolean;
+  renderGroupHeaderContent: (
+    entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
+  ) => ReactNode;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+};
+
+type DataGridDataRowProps<T extends Record<string, unknown>> = {
+  entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
+  rowIndex: number;
+  headerRowCount: number;
+  checkboxSelection: boolean;
+  lastLeftPinnedField: string | null;
+  showCellBorders: boolean;
+  isSelected: boolean;
+  isStriped: boolean;
+  activeCellKey: string | null;
+  resolvedBodyCells: ResolvedBodyCell<T>[];
+  shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
+  shouldRenderBorderBottom: (rowIndex: number, rowSpan?: number) => boolean;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+  toggleRowSelection: (rowKey: Key) => void;
+  getColumnRawValue: (row: T, column: DataTableRegularColumn<T>) => ReactNode;
+  cellSelection: boolean;
+  actionTriggerRefs: RefObject<Record<string, HTMLButtonElement | null>>;
+};
+
+type VirtualizedDataGridGroupRowProps<T extends Record<string, unknown>> = {
+  entry: Extract<GroupedBodyEntry<T>, { type: "group" }>;
+  itemIndex: number;
+  headerRowCount: number;
+  totalColumnCount: number;
+  gridTemplateColumns: string;
+  showCellBorders: boolean;
+  hasBorderBottom: boolean;
+  isFocused: boolean;
+  renderGroupHeaderContent: (
+    entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
+  ) => ReactNode;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+};
+
+type VirtualizedDataGridRowProps<T extends Record<string, unknown>> = {
+  entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
+  itemIndex: number;
+  headerRowCount: number;
+  gridTemplateColumns: string;
+  checkboxSelection: boolean;
+  lastLeftPinnedField: string | null;
+  showCellBorders: boolean;
+  isSelected: boolean;
+  isStriped: boolean;
+  activeCellKey: string | null;
+  resolvedBodyCells: ResolvedBodyCell<T>[];
+  shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
+  shouldRenderBorderBottom: (rowIndex: number, rowSpan?: number) => boolean;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+  toggleRowSelection: (rowKey: Key) => void;
+  getColumnRawValue: (row: T, column: DataTableRegularColumn<T>) => ReactNode;
+  cellSelection: boolean;
+  actionTriggerRefs: RefObject<Record<string, HTMLButtonElement | null>>;
+};
 
 const GridFrame = styled.div<{
   $borderTop?: boolean;
@@ -153,15 +295,20 @@ const GridRow = styled.div`
   display: contents;
 `;
 
-type GridCellStyleProps = {
-  $sticky?: boolean;
-  $fitContent?: boolean;
-  $allowOverflow?: boolean;
-  $borderRight?: boolean;
-  $borderBottom?: boolean;
-  $focused?: boolean;
-  $showCellBorders?: boolean;
-};
+const VirtualGridRow = styled.div<{
+  $templateColumns: string;
+}>`
+  display: grid;
+  grid-template-columns: ${({ $templateColumns }) => $templateColumns};
+  align-items: stretch;
+  width: 100%;
+`;
+
+const VirtualizedBodyList = styled.div.attrs({
+  role: "rowgroup",
+})`
+  width: 100%;
+`;
 
 const cellStyles = css<GridCellStyleProps>`
   box-sizing: border-box;
@@ -172,13 +319,9 @@ const cellStyles = css<GridCellStyleProps>`
   position: relative;
   overflow: ${({ $allowOverflow }) => ($allowOverflow ? "visible" : "hidden")};
   border-right: ${({ $borderRight }) =>
-    $borderRight
-      ? `1px solid ${Borders.Default.Muted}`
-      : "none"};
+    $borderRight ? `1px solid ${Borders.Default.Muted}` : "none"};
   border-bottom: ${({ $borderBottom }) =>
-    $borderBottom
-      ? `1px solid ${Borders.Default.Muted}`
-      : "none"};
+    $borderBottom ? `1px solid ${Borders.Default.Muted}` : "none"};
   white-space: ${({ $fitContent }) => ($fitContent ? "nowrap" : "nowrap")};
   text-overflow: ellipsis;
   ${({ $focused, $showCellBorders, $borderRight, $borderBottom }) =>
@@ -434,53 +577,6 @@ function addScrollbarSpacerToSize(size: string, spacer: number) {
   return `calc(${size} + ${spacer}px)`;
 }
 
-type ActionDescriptor<T extends Record<string, unknown>> = {
-  key: string;
-  label: ReactNode;
-  onClick: (row: T) => void;
-  disabled?: boolean | ((row: T) => boolean);
-  destructive?: boolean;
-  icon?: ComponentType;
-};
-
-type FocusableGridCellKind =
-  | "body-checkbox"
-  | "body-cell"
-  | "body-actions"
-  | "group-row"
-  | "empty";
-
-type FocusableGridCell = {
-  key: string;
-  kind: FocusableGridCellKind;
-  rowIndex: number;
-  colIndex: number;
-  rowSpan: number;
-  colSpan: number;
-  groupKey?: string;
-  collapsed?: boolean;
-  collapsible?: boolean;
-  selected?: boolean;
-  rowKey?: Key;
-};
-
-type FocusableCellDomProps = HTMLAttributes<HTMLDivElement> & {
-  id: string;
-  role: "gridcell";
-  tabIndex?: number;
-  "aria-colindex": number;
-  "aria-rowindex": number;
-  "aria-colspan"?: number;
-  "aria-rowspan"?: number;
-  "aria-selected"?: true;
-  "aria-expanded"?: boolean;
-  ref?: (node: HTMLDivElement | null) => void;
-};
-
-const EMPTY_FOCUSABLE_CELLS: FocusableGridCell[] = [];
-const EMPTY_FOCUSABLE_CELL_MAP = new Map<string, FocusableGridCell>();
-const EMPTY_SLOT_OWNER_MAP = new Map<string, string>();
-
 function getGridSlotKey(rowIndex: number, colIndex: number) {
   return `${rowIndex}:${colIndex}`;
 }
@@ -524,7 +620,7 @@ function GridActionsCell<T extends Record<string, unknown>>({
         <ActionsIcon />
       </Button>
 
-      {isOpen ? (
+      <If is={isOpen}>
         <ActionMenu
           usePortal
           open={isOpen}
@@ -556,20 +652,10 @@ function GridActionsCell<T extends Record<string, unknown>>({
             );
           })}
         </ActionMenu>
-      ) : null}
+      </If>
     </ActionMenuRoot>
   );
 }
-
-type DataGridEmptyRowProps = {
-  emptyMessage: ReactNode;
-  headerRowCount: number;
-  totalColumnCount: number;
-  showCellBorders: boolean;
-  hasBorderBottom: boolean;
-  isFocused: boolean;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-};
 
 const DataGridEmptyRow = memo(function DataGridEmptyRow({
   emptyMessage,
@@ -605,20 +691,6 @@ const DataGridEmptyRow = memo(function DataGridEmptyRow({
     </GridRow>
   );
 });
-
-type DataGridGroupRowProps<T extends Record<string, unknown>> = {
-  entry: Extract<GroupedBodyEntry<T>, { type: "group" }>;
-  rowIndex: number;
-  headerRowCount: number;
-  totalColumnCount: number;
-  showCellBorders: boolean;
-  hasBorderBottom: boolean;
-  isFocused: boolean;
-  renderGroupHeaderContent: (
-    entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
-  ) => ReactNode;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-};
 
 const DataGridGroupRow = memo(
   function DataGridGroupRow<T extends Record<string, unknown>>({
@@ -661,6 +733,7 @@ const DataGridGroupRow = memo(
       </GridRow>
     );
   },
+
   function areGroupRowPropsEqual<T extends Record<string, unknown>>(
     previous: DataGridGroupRowProps<T>,
     next: DataGridGroupRowProps<T>,
@@ -680,26 +753,6 @@ const DataGridGroupRow = memo(
 ) as <T extends Record<string, unknown>>(
   props: DataGridGroupRowProps<T>,
 ) => JSX.Element;
-
-type DataGridDataRowProps<T extends Record<string, unknown>> = {
-  entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
-  rowIndex: number;
-  headerRowCount: number;
-  checkboxSelection: boolean;
-  lastLeftPinnedField: string | null;
-  showCellBorders: boolean;
-  isSelected: boolean;
-  isStriped: boolean;
-  activeCellKey: string | null;
-  resolvedBodyCells: ResolvedBodyCell<T>[];
-  shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
-  shouldRenderBorderBottom: (rowIndex: number, rowSpan?: number) => boolean;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-  toggleRowSelection: (rowKey: Key) => void;
-  getColumnRawValue: (row: T, column: DataTableRegularColumn<T>) => ReactNode;
-  cellSelection: boolean;
-  actionTriggerRefs: RefObject<Record<string, HTMLButtonElement | null>>;
-};
 
 const DataGridDataRow = memo(
   function DataGridDataRow<T extends Record<string, unknown>>({
@@ -726,7 +779,7 @@ const DataGridDataRow = memo(
 
     return (
       <GridRow role="row">
-        {checkboxSelection ? (
+        <If is={checkboxSelection}>
           <BodyCellFrame
             key={`${key}-${CHECKBOX_COLUMN_FIELD}`}
             $sticky
@@ -767,7 +820,7 @@ const DataGridDataRow = memo(
               aria-label={`Select row ${String(key)}`}
             />
           </BodyCellFrame>
-        ) : null}
+        </If>
 
         {resolvedBodyCells.map(
           ({ renderedColumn, columnStart, colSpan, rowSpan, rawValue }) => {
@@ -910,6 +963,235 @@ const DataGridDataRow = memo(
   props: DataGridDataRowProps<T>,
 ) => JSX.Element;
 
+const VirtualizedDataGridGroupRow = memo(function VirtualizedDataGridGroupRow<
+  T extends Record<string, unknown>,
+>({
+  entry,
+  itemIndex,
+  headerRowCount,
+  totalColumnCount,
+  gridTemplateColumns,
+  showCellBorders,
+  hasBorderBottom,
+  isFocused,
+  renderGroupHeaderContent,
+  getFocusableCellProps,
+}: VirtualizedDataGridGroupRowProps<T>) {
+  return (
+    <VirtualGridRow $templateColumns={gridTemplateColumns} role="row">
+      <GroupCellFrame
+        $focused={isFocused}
+        $showCellBorders={showCellBorders}
+        $borderBottom={hasBorderBottom}
+        {...getFocusableCellProps({
+          key: `group-row-${entry.key}`,
+          kind: "group-row",
+          itemIndex,
+          rowIndex: headerRowCount + itemIndex + 1,
+          colIndex: 1,
+          rowSpan: 1,
+          colSpan: totalColumnCount,
+          groupKey: entry.key,
+          collapsed: entry.collapsed,
+          collapsible: entry.collapsible,
+        })}
+        style={{
+          gridColumn: `1 / span ${totalColumnCount}`,
+        }}
+      >
+        {renderGroupHeaderContent(entry)}
+      </GroupCellFrame>
+    </VirtualGridRow>
+  );
+}) as <T extends Record<string, unknown>>(
+  props: VirtualizedDataGridGroupRowProps<T>,
+) => JSX.Element;
+
+const VirtualizedDataGridRow = memo(function VirtualizedDataGridRow<
+  T extends Record<string, unknown>,
+>({
+  entry,
+  itemIndex,
+  headerRowCount,
+  gridTemplateColumns,
+  checkboxSelection,
+  lastLeftPinnedField,
+  showCellBorders,
+  isSelected,
+  isStriped,
+  activeCellKey,
+  resolvedBodyCells,
+  shouldRenderBorderRight,
+  shouldRenderBorderBottom,
+  getFocusableCellProps,
+  toggleRowSelection,
+  getColumnRawValue,
+  cellSelection,
+  actionTriggerRefs,
+}: VirtualizedDataGridRowProps<T>) {
+  const { row, key } = entry;
+
+  return (
+    <VirtualGridRow $templateColumns={gridTemplateColumns} role="row">
+      <If is={checkboxSelection}>
+        <BodyCellFrame
+          key={`${key}-${CHECKBOX_COLUMN_FIELD}`}
+          $sticky
+          $focused={activeCellKey === `${key}-${CHECKBOX_COLUMN_FIELD}`}
+          $textAlign="center"
+          $selected={isSelected}
+          $striped={isStriped}
+          $showCellBorders={showCellBorders}
+          $borderRight={Boolean(!lastLeftPinnedField && showCellBorders)}
+          $borderBottom={shouldRenderBorderBottom(itemIndex)}
+          {...getFocusableCellProps({
+            key: `${key}-${CHECKBOX_COLUMN_FIELD}`,
+            kind: "body-checkbox",
+            itemIndex,
+            rowIndex: headerRowCount + itemIndex + 1,
+            colIndex: 1,
+            rowSpan: 1,
+            colSpan: 1,
+            rowKey: key,
+            selected: isSelected,
+          })}
+          style={{
+            gridColumn: toGridSpan(1),
+            position: "sticky",
+            left: 0,
+            zIndex: 3,
+            background: isSelected
+              ? Surface.Selected.Default
+              : isStriped
+                ? Surface.Default.Muted
+                : Surface.Default.Default,
+          }}
+        >
+          <Checkbox
+            checked={isSelected}
+            tabIndex={cellSelection ? -1 : undefined}
+            onChange={() => toggleRowSelection(key)}
+            aria-label={`Select row ${String(key)}`}
+          />
+        </BodyCellFrame>
+      </If>
+
+      {resolvedBodyCells.map(
+        ({ renderedColumn, columnStart, colSpan, rowSpan, rawValue }) => {
+          const { field, textAlign, stickyStyle, column } = renderedColumn;
+          const resolvedColumnStart = Number(columnStart);
+          const gridColumnStart =
+            resolvedColumnStart + (checkboxSelection ? 1 : 0);
+
+          if (isActionsColumn(column)) {
+            const actions = column
+              .getActions(row)
+              .filter((action) => !resolveActionFlag(action.hidden, row));
+
+            return (
+              <BodyCellFrame
+                key={`${key}-${field}`}
+                $sticky={Boolean(stickyStyle)}
+                $focused={activeCellKey === `${key}-${field}`}
+                $textAlign={textAlign}
+                $fitContent={column.fitContent ?? true}
+                $allowOverflow
+                $selected={isSelected}
+                $striped={isStriped}
+                $spansRows={rowSpan > 1}
+                $showCellBorders={showCellBorders}
+                $borderRight={shouldRenderBorderRight(field, colSpan)}
+                $borderBottom={shouldRenderBorderBottom(itemIndex, rowSpan)}
+                {...getFocusableCellProps({
+                  key: `${key}-${field}`,
+                  kind: "body-actions",
+                  itemIndex,
+                  rowIndex: headerRowCount + itemIndex + 1,
+                  colIndex: gridColumnStart,
+                  rowSpan,
+                  colSpan,
+                  rowKey: key,
+                  selected: isSelected,
+                })}
+                style={{
+                  gridColumn: toGridSpan(gridColumnStart, colSpan),
+                  ...stickyStyle,
+                  background: isSelected
+                    ? Surface.Selected.Default
+                    : isStriped
+                      ? Surface.Default.Muted
+                      : Surface.Default.Default,
+                  zIndex: stickyStyle ? 3 : undefined,
+                }}
+              >
+                <GridActionsCell
+                  actions={actions}
+                  row={row}
+                  buttonTabIndex={cellSelection ? -1 : undefined}
+                  onTriggerRef={(node) => {
+                    actionTriggerRefs.current[`${key}-${field}`] = node;
+                  }}
+                />
+              </BodyCellFrame>
+            );
+          }
+
+          const resolvedValue = rawValue ?? getColumnRawValue(row, column);
+          const content = column.renderCell
+            ? column.renderCell(row, resolvedValue)
+            : resolvedValue;
+
+          return (
+            <BodyCellFrame
+              key={`${key}-${field}`}
+              $sticky={Boolean(stickyStyle)}
+              $focused={activeCellKey === `${key}-${field}`}
+              $textAlign={textAlign}
+              $fitContent={column.fitContent}
+              $selected={isSelected}
+              $striped={isStriped}
+              $spansRows={rowSpan > 1}
+              $showCellBorders={showCellBorders}
+              $borderRight={shouldRenderBorderRight(field, colSpan)}
+              $borderBottom={shouldRenderBorderBottom(itemIndex, rowSpan)}
+              {...getFocusableCellProps({
+                key: `${key}-${field}`,
+                kind: "body-cell",
+                itemIndex,
+                rowIndex: headerRowCount + itemIndex + 1,
+                colIndex: gridColumnStart,
+                rowSpan,
+                colSpan,
+                rowKey: key,
+                selected: isSelected,
+              })}
+              style={{
+                gridColumn: toGridSpan(gridColumnStart, colSpan),
+                ...stickyStyle,
+                background: isSelected
+                  ? Surface.Selected.Default
+                  : isStriped
+                    ? Surface.Default.Muted
+                    : Surface.Default.Default,
+              }}
+            >
+              <CellContent
+                $textAlign={textAlign}
+                $fitContent={column.fitContent}
+                $overflow={column.overflow}
+              >
+                {content}
+              </CellContent>
+            </BodyCellFrame>
+          );
+        },
+      )}
+    </VirtualGridRow>
+  );
+}) as <T extends Record<string, unknown>>(
+  props: VirtualizedDataGridRowProps<T>,
+) => JSX.Element;
+
 export function DataGrid<T extends Record<string, unknown>>(
   props: DataGridProps<T>,
 ) {
@@ -936,6 +1218,7 @@ export function DataGrid<T extends Record<string, unknown>>(
   const tableAreaRef = useRef<HTMLDivElement | null>(null);
   const headerScrollRef = useRef<HTMLDivElement | null>(null);
   const bodyScrollRef = useRef<HTMLDivElement | null>(null);
+  const virtuosoRef = useRef<VirtuosoHandle | null>(null);
   const cellRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const actionTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>(
     {},
@@ -945,6 +1228,8 @@ export function DataGrid<T extends Record<string, unknown>>(
     useState(false);
   const [hasBodyHorizontalScrollbar, setHasBodyHorizontalScrollbar] =
     useState(false);
+  const [bodyScrollElement, setBodyScrollElement] =
+    useState<HTMLDivElement | null>(null);
 
   const {
     search,
@@ -1042,6 +1327,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     getColumnRawValue,
   });
   const { hasBodySpans, bodyCellsByKey } = bodySpanState;
+  const shouldVirtualizeBody = !hasBodySpans && groupedBodyEntries.length > 0;
 
   const defaultBodyCells = useMemo<ResolvedBodyCell<T>[]>(
     () =>
@@ -1178,15 +1464,12 @@ export function DataGrid<T extends Record<string, unknown>>(
 
   const shouldRenderBorderRight = useCallback(
     (field: string, colSpan = 1) => {
-      if (!showCellBorders || colSpan !== 1) {
-        return false;
-      }
-
-      if (field === fieldBeforeFirstRightPinned) {
-        return false;
-      }
-
-      if (field === lastVisibleField) {
+      if (
+        !showCellBorders ||
+        colSpan !== 1 ||
+        field === fieldBeforeFirstRightPinned ||
+        field === lastVisibleField
+      ) {
         return false;
       }
 
@@ -1259,11 +1542,13 @@ export function DataGrid<T extends Record<string, unknown>>(
           onClick={() => toggleGroup(entry.key)}
           style={{ paddingLeft: entry.depth * 16 }}
         >
-          {entry.collapsed ? (
+          <TransformIconWrapper
+            $rotate={!entry.collapsed}
+            $angle={90}
+            aria-hidden="true"
+          >
             <IconMinor.ChevronRightSolid />
-          ) : (
-            <IconMinor.ChevronDownSolid />
-          )}
+          </TransformIconWrapper>
           {content}
         </GroupToggleButton>
       );
@@ -1293,6 +1578,7 @@ export function DataGrid<T extends Record<string, unknown>>(
       cells.push({
         key: "empty",
         kind: "empty",
+        itemIndex: 0,
         rowIndex: headerRowCount + 1,
         colIndex: 1,
         rowSpan: 1,
@@ -1309,6 +1595,7 @@ export function DataGrid<T extends Record<string, unknown>>(
         cells.push({
           key: `group-row-${entry.key}`,
           kind: "group-row",
+          itemIndex: rowIndex,
           rowIndex: gridRowIndex,
           colIndex: 1,
           rowSpan: 1,
@@ -1324,6 +1611,7 @@ export function DataGrid<T extends Record<string, unknown>>(
         cells.push({
           key: `${entry.key}-${CHECKBOX_COLUMN_FIELD}`,
           kind: "body-checkbox",
+          itemIndex: rowIndex,
           rowIndex: gridRowIndex,
           colIndex: 1,
           rowSpan: 1,
@@ -1348,6 +1636,7 @@ export function DataGrid<T extends Record<string, unknown>>(
             kind: isActionsColumn(renderedColumn.column)
               ? "body-actions"
               : "body-cell",
+            itemIndex: rowIndex,
             rowIndex: gridRowIndex,
             colIndex: gridColumnStart,
             rowSpan,
@@ -1428,12 +1717,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     }
 
     return focusableCells[0]?.key ?? null;
-  }, [
-    cellSelection,
-    focusableCells,
-    focusableCellMap,
-    requestedActiveCellKey,
-  ]);
+  }, [cellSelection, focusableCells, focusableCellMap, requestedActiveCellKey]);
   const clickAwayRef = useOnClickOutside(() => {
     if (!cellSelection) {
       return;
@@ -1454,17 +1738,52 @@ export function DataGrid<T extends Record<string, unknown>>(
 
       setRequestedActiveCellKey(cellKey);
 
+      const itemIndex = focusableCellMap.get(cellKey)?.itemIndex;
+
+      if (shouldVirtualizeBody && itemIndex !== undefined) {
+        virtuosoRef.current?.scrollToIndex({
+          index: itemIndex,
+          align: "center",
+          behavior: "auto",
+        });
+      }
+
       requestAnimationFrame(() => {
         const node = cellRefs.current[cellKey];
 
-        node?.focus();
-        if (typeof node?.scrollIntoView === "function") {
+        node?.focus({ preventScroll: true });
+        if (
+          !shouldVirtualizeBody &&
+          typeof node?.scrollIntoView === "function"
+        ) {
           node.scrollIntoView({ block: "nearest", inline: "nearest" });
         }
       });
     },
-    [cellSelection],
+    [cellSelection, focusableCellMap, shouldVirtualizeBody],
   );
+
+  useLayoutEffect(() => {
+    if (!cellSelection || !activeCellKey) {
+      return;
+    }
+
+    const node = cellRefs.current[activeCellKey];
+
+    if (!node) {
+      return;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      if (cellRefs.current[activeCellKey] === node) {
+        node.focus({ preventScroll: true });
+      }
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [activeCellKey, cellSelection]);
 
   const moveFocusByCoordinates = useCallback(
     (
@@ -1827,11 +2146,14 @@ export function DataGrid<T extends Record<string, unknown>>(
                       (column.headerName ?? "")
                     )}
                   </CellContent>
-                  {currentSort === "ASC" ? (
-                    <IconMinor.ChevronUpSolid />
-                  ) : currentSort === "DESC" ? (
-                    <IconMinor.ChevronDownSolid />
-                  ) : null}
+                  <If is={isDefined(currentSort) && currentSort !== "NONE"}>
+                    <TransformIconWrapper
+                      $rotate={currentSort === "DESC"}
+                      aria-hidden="true"
+                    >
+                      <IconMinor.ChevronDownSolid />
+                    </TransformIconWrapper>
+                  </If>
                 </HeaderSortContent>
               </HeaderSortButton>
             ) : typeof column.headerName === "string" ? (
@@ -1913,11 +2235,14 @@ export function DataGrid<T extends Record<string, unknown>>(
                         (column.headerName ?? "")
                       )}
                     </CellContent>
-                    {currentSort === "ASC" ? (
-                      <IconMinor.ChevronUpSolid />
-                    ) : currentSort === "DESC" ? (
-                      <IconMinor.ChevronDownSolid />
-                    ) : null}
+                    <If is={isDefined(currentSort) && currentSort !== "NONE"}>
+                      <TransformIconWrapper
+                        $rotate={currentSort === "DESC"}
+                        aria-hidden="true"
+                      >
+                        <IconMinor.ChevronDownSolid />
+                      </TransformIconWrapper>
+                    </If>
                   </HeaderSortContent>
                 </HeaderSortButton>
               ) : typeof column.headerName === "string" ? (
@@ -2007,6 +2332,10 @@ export function DataGrid<T extends Record<string, unknown>>(
   ]);
 
   const bodyRows = useMemo(() => {
+    if (shouldVirtualizeBody) {
+      return [];
+    }
+
     if (visibleRows.length === 0) {
       return [
         <DataGridEmptyRow
@@ -2071,6 +2400,7 @@ export function DataGrid<T extends Record<string, unknown>>(
       );
     });
   }, [
+    shouldVirtualizeBody,
     visibleRows.length,
     totalColumnCount,
     emptyMessage,
@@ -2095,6 +2425,114 @@ export function DataGrid<T extends Record<string, unknown>>(
     actionTriggerRefs,
   ]);
 
+  const renderVirtualizedBodyItem = useCallback(
+    (index: number, entry?: GroupedBodyEntry<T>) => {
+      if (!entry) {
+        return null;
+      }
+
+      if (entry.type === "group") {
+        return (
+          <VirtualizedDataGridGroupRow
+            entry={entry}
+            itemIndex={index}
+            headerRowCount={headerRowCount}
+            totalColumnCount={totalColumnCount}
+            gridTemplateColumns={gridTemplateColumns}
+            showCellBorders={showCellBorders}
+            hasBorderBottom={shouldRenderBodyBorderBottom(index)}
+            isFocused={activeCellKey === `group-row-${entry.key}`}
+            renderGroupHeaderContent={renderGroupHeaderContent}
+            getFocusableCellProps={getFocusableCellProps}
+          />
+        );
+      }
+
+      const isSelected = selectedKeySet.has(entry.key);
+      const isStriped = getGridBodyBackground(striped, index);
+      const resolvedBodyCells: ResolvedBodyCell<T>[] =
+        bodyCellsByKey.get(entry.key) ?? defaultBodyCells;
+
+      return (
+        <VirtualizedDataGridRow
+          entry={entry}
+          itemIndex={index}
+          headerRowCount={headerRowCount}
+          gridTemplateColumns={gridTemplateColumns}
+          checkboxSelection={checkboxSelection}
+          lastLeftPinnedField={lastLeftPinnedField}
+          showCellBorders={showCellBorders}
+          isSelected={isSelected}
+          isStriped={isStriped}
+          activeCellKey={activeCellKey}
+          resolvedBodyCells={resolvedBodyCells}
+          shouldRenderBorderRight={shouldRenderBorderRight}
+          shouldRenderBorderBottom={shouldRenderBodyBorderBottom}
+          getFocusableCellProps={getFocusableCellProps}
+          toggleRowSelection={toggleRowSelection}
+          getColumnRawValue={getColumnRawValue}
+          cellSelection={cellSelection}
+          actionTriggerRefs={actionTriggerRefs}
+        />
+      );
+    },
+    [
+      headerRowCount,
+      totalColumnCount,
+      gridTemplateColumns,
+      showCellBorders,
+      shouldRenderBodyBorderBottom,
+      activeCellKey,
+      renderGroupHeaderContent,
+      getFocusableCellProps,
+      selectedKeySet,
+      striped,
+      bodyCellsByKey,
+      defaultBodyCells,
+      checkboxSelection,
+      lastLeftPinnedField,
+      shouldRenderBorderRight,
+      toggleRowSelection,
+      getColumnRawValue,
+      cellSelection,
+      actionTriggerRefs,
+    ],
+  );
+
+  const getVirtualizedItemKey = useCallback(
+    (index: number, entry?: GroupedBodyEntry<T>) =>
+      entry ? `${entry.type}-${String(entry.key)}` : index,
+    [],
+  );
+
+  const virtualizedBodyContent = useMemo(() => {
+    if (!shouldVirtualizeBody || !bodyScrollElement) {
+      return null;
+    }
+
+    return (
+      <Virtuoso<GroupedBodyEntry<T>>
+        ref={virtuosoRef}
+        customScrollParent={bodyScrollElement}
+        data={groupedBodyEntries}
+        computeItemKey={getVirtualizedItemKey}
+        defaultItemHeight={48}
+        initialItemCount={Math.min(groupedBodyEntries.length, 20)}
+        overscan={320}
+        components={{
+          List: VirtualizedBodyList,
+        }}
+        itemContent={renderVirtualizedBodyItem}
+      />
+    );
+  }, [
+    shouldVirtualizeBody,
+    bodyScrollElement,
+    groupedBodyEntries,
+    getVirtualizedItemKey,
+    renderVirtualizedBodyItem,
+  ]);
+
   const syncScrollLeft = useCallback((source: "header" | "body") => {
     const sourceElement =
       source === "header" ? headerScrollRef.current : bodyScrollRef.current;
@@ -2112,7 +2550,8 @@ export function DataGrid<T extends Record<string, unknown>>(
 
   const updateBodyVerticalScrollbar = useCallback(
     (bodyScrollElement?: HTMLDivElement | null) => {
-      const resolvedBodyScrollElement = bodyScrollElement ?? bodyScrollRef.current;
+      const resolvedBodyScrollElement =
+        bodyScrollElement ?? bodyScrollRef.current;
 
       if (!resolvedBodyScrollElement) {
         setHasBodyVerticalScrollbar(false);
@@ -2134,6 +2573,9 @@ export function DataGrid<T extends Record<string, unknown>>(
   const handleBodyScrollRef = useCallback(
     (node: HTMLDivElement | null) => {
       bodyScrollRef.current = node;
+      setBodyScrollElement((currentNode) =>
+        currentNode === node ? currentNode : node,
+      );
       updateBodyVerticalScrollbar(node);
     },
     [updateBodyVerticalScrollbar],
@@ -2153,6 +2595,18 @@ export function DataGrid<T extends Record<string, unknown>>(
       return;
     }
 
+    const handleWindowResize = () => {
+      updateBodyVerticalScrollbar();
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+
+    if (typeof ResizeObserver === "undefined") {
+      return () => {
+        window.removeEventListener("resize", handleWindowResize);
+      };
+    }
+
     const resizeObserver = new ResizeObserver(() => {
       updateBodyVerticalScrollbar();
     });
@@ -2164,12 +2618,6 @@ export function DataGrid<T extends Record<string, unknown>>(
     if (contentElement instanceof HTMLElement) {
       resizeObserver.observe(contentElement);
     }
-
-    const handleWindowResize = () => {
-      updateBodyVerticalScrollbar();
-    };
-
-    window.addEventListener("resize", handleWindowResize);
 
     return () => {
       resizeObserver.disconnect();
@@ -2190,7 +2638,7 @@ export function DataGrid<T extends Record<string, unknown>>(
 
   return (
     <GridContainer ref={mergedContainerRef}>
-      {searchable || manageColumns ? (
+      <If is={searchable || manageColumns}>
         <GridSibling gap={Gap.m}>
           {searchable ? (
             <InputText
@@ -2200,7 +2648,7 @@ export function DataGrid<T extends Record<string, unknown>>(
             />
           ) : null}
 
-          {manageColumns ? (
+          <If is={manageColumns}>
             <DataTableColumnManager
               columns={columns}
               columnVisibility={columnVisibility}
@@ -2216,9 +2664,9 @@ export function DataGrid<T extends Record<string, unknown>>(
               showBackdrop={showBackdrop}
               inlineContainerRef={tableAreaRef}
             />
-          ) : null}
+          </If>
         </GridSibling>
-      ) : null}
+      </If>
 
       <GridFrame
         $borderTop={searchable || manageColumns}
@@ -2241,18 +2689,18 @@ export function DataGrid<T extends Record<string, unknown>>(
               role="rowgroup"
             >
               {headerCells}
-              {headerScrollbarSpacer > 0
-                ? Array.from({ length: headerRowCount }, (_, rowIndex) => (
-                    <HeaderScrollbarSpacerCell
-                      key={`header-scrollbar-spacer-${rowIndex + 1}`}
-                      aria-hidden="true"
-                      style={{
-                        gridColumn: toGridSpan(totalColumnCount + 1),
-                        gridRow: toGridSpan(rowIndex + 1),
-                      }}
-                    />
-                  ))
-                : null}
+              <If is={headerScrollbarSpacer > 0}>
+                {Array.from({ length: headerRowCount }, (_, rowIndex) => (
+                  <HeaderScrollbarSpacerCell
+                    key={`header-scrollbar-spacer-${rowIndex + 1}`}
+                    aria-hidden="true"
+                    style={{
+                      gridColumn: toGridSpan(totalColumnCount + 1),
+                      gridRow: toGridSpan(rowIndex + 1),
+                    }}
+                  />
+                ))}
+              </If>
             </GridHeader>
           </GridSurface>
         </GridHeaderScroll>
@@ -2263,18 +2711,22 @@ export function DataGrid<T extends Record<string, unknown>>(
           onScroll={() => syncScrollLeft("body")}
         >
           <GridSurface $width={gridWidth} $minWidth={gridMinWidth}>
-            <GridBody
-              $templateColumns={gridTemplateColumns}
-              $rowCount={Math.max(groupedBodyEntries.length, 1)}
-              role="rowgroup"
-            >
-              {bodyRows}
-            </GridBody>
+            {virtualizedBodyContent ? (
+              virtualizedBodyContent
+            ) : (
+              <GridBody
+                $templateColumns={gridTemplateColumns}
+                $rowCount={Math.max(groupedBodyEntries.length, 1)}
+                role="rowgroup"
+              >
+                {bodyRows}
+              </GridBody>
+            )}
           </GridSurface>
         </GridBodyScroll>
       </GridFrame>
 
-      {paginated ? (
+      <If is={paginated}>
         <GridSibling gap={Gap.m}>
           <Label muted>
             {totalRows === 0
@@ -2295,7 +2747,7 @@ export function DataGrid<T extends Record<string, unknown>>(
             pageSizeOptions={pageSizeOptions}
           />
         </GridSibling>
-      ) : null}
+      </If>
     </GridContainer>
   );
 }

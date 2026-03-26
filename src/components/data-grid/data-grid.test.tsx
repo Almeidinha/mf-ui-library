@@ -474,7 +474,7 @@ describe("DataGrid accessibility", () => {
     expect(teamCell).toHaveAttribute("aria-rowspan", "2");
   });
 
-  it("supports keyboard selection from header and body cells", async () => {
+  it("supports header controls and keyboard body-cell selection", async () => {
     const user = userEvent.setup();
 
     function ControlledGrid() {
@@ -502,14 +502,18 @@ describe("DataGrid accessibility", () => {
 
     await user.tab();
 
-    const headerCheckboxCell = screen.getAllByRole("columnheader")[0];
+    const selectAllCheckbox = screen.getByRole("checkbox", {
+      name: "Select all visible rows",
+    });
 
-    expect(headerCheckboxCell).toHaveFocus();
+    expect(selectAllCheckbox).toHaveFocus();
 
-    await user.keyboard("{Space}");
+    await user.click(selectAllCheckbox);
     expect(screen.getByTestId("selected-count")).toHaveTextContent("3");
 
-    await user.keyboard("{ArrowDown}");
+    await user.tab();
+    await user.tab();
+    await user.tab();
 
     await waitFor(() => {
       expect(screen.getAllByRole("gridcell")[0]).toHaveFocus();
@@ -535,16 +539,19 @@ describe("DataGrid accessibility", () => {
 
     await user.tab();
 
-    const nameHeader = screen.getByRole("columnheader", { name: "Name" });
+    const nameHeaderButton = screen.getByRole("button", { name: "Name" });
 
-    expect(nameHeader).toHaveFocus();
+    expect(nameHeaderButton).toHaveFocus();
 
     await user.keyboard("{Enter}");
 
     const bodyCells = screen.getAllByRole("gridcell");
 
     expect(bodyCells[0]).toHaveTextContent("Alice");
-    expect(nameHeader).toHaveAttribute("aria-sort", "ascending");
+    expect(screen.getByRole("columnheader", { name: /Name/ })).toHaveAttribute(
+      "aria-sort",
+      "ascending",
+    );
   });
 
   it("supports keyboard opening row actions", async () => {
@@ -562,24 +569,19 @@ describe("DataGrid accessibility", () => {
     );
 
     await user.tab();
+    await user.tab();
+    await user.tab();
 
-    expect(screen.getByRole("columnheader", { name: "Name" })).toHaveFocus();
-
-    await user.keyboard("{ArrowRight}");
     await waitFor(() => {
-      expect(
-        screen.getByRole("columnheader", { name: "Country" }),
-      ).toHaveFocus();
+      expect(screen.getAllByRole("gridcell")[0]).toHaveFocus();
     });
 
     await user.keyboard("{ArrowRight}");
     await waitFor(() => {
-      expect(
-        screen.getByRole("columnheader", { name: "Actions" }),
-      ).toHaveFocus();
+      expect(screen.getAllByRole("gridcell")[1]).toHaveFocus();
     });
 
-    await user.keyboard("{ArrowDown}");
+    await user.keyboard("{ArrowRight}");
     await waitFor(() => {
       expect(screen.getAllByRole("gridcell")[2]).toHaveFocus();
     });
@@ -591,7 +593,7 @@ describe("DataGrid accessibility", () => {
     ).toBeInTheDocument();
   });
 
-  it("supports keyboard navigation across grouped headers and pinned columns", async () => {
+  it("supports keyboard navigation across body cells with grouped headers and pinned columns", async () => {
     const user = userEvent.setup();
 
     render(
@@ -619,55 +621,33 @@ describe("DataGrid accessibility", () => {
     );
 
     await user.tab();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    await user.tab();
 
-    const identityHeader = screen.getByRole("columnheader", {
-      name: "Identity",
-    });
-    const geographyHeader = screen.getByRole("columnheader", {
-      name: "Geography",
-    });
-    const nameHeader = screen.getByRole("columnheader", { name: "Name" });
-    const countryHeader = screen.getByRole("columnheader", {
-      name: "Country",
-    });
-    const stateHeader = screen.getByRole("columnheader", { name: "State" });
-    const cityHeader = screen.getByRole("columnheader", { name: "City" });
+    const brunoNameCell = document.getElementById("data-grid-cell-2-name");
+    const brunoCountryCell = document.getElementById("data-grid-cell-2-country");
+    const brunoStateCell = document.getElementById("data-grid-cell-2-state");
     const brunoCityCell = document.getElementById("data-grid-cell-2-city");
 
+    expect(brunoNameCell).not.toBeNull();
+    expect(brunoCountryCell).not.toBeNull();
+    expect(brunoStateCell).not.toBeNull();
     expect(brunoCityCell).not.toBeNull();
-    expect(identityHeader).toHaveFocus();
+    expect(brunoNameCell).toHaveFocus();
 
     await user.keyboard("{ArrowRight}");
     await waitFor(() => {
-      expect(geographyHeader).toHaveFocus();
-    });
-
-    await user.keyboard("{ArrowDown}");
-    await waitFor(() => {
-      expect(countryHeader).toHaveFocus();
-    });
-
-    await user.keyboard("{ArrowLeft}");
-    await waitFor(() => {
-      expect(nameHeader).toHaveFocus();
+      expect(brunoCountryCell).toHaveFocus();
     });
 
     await user.keyboard("{ArrowRight}");
     await waitFor(() => {
-      expect(countryHeader).toHaveFocus();
+      expect(brunoStateCell).toHaveFocus();
     });
 
     await user.keyboard("{ArrowRight}");
-    await waitFor(() => {
-      expect(stateHeader).toHaveFocus();
-    });
-
-    await user.keyboard("{ArrowRight}");
-    await waitFor(() => {
-      expect(cityHeader).toHaveFocus();
-    });
-
-    await user.keyboard("{ArrowDown}");
     await waitFor(() => {
       expect(brunoCityCell).toHaveFocus();
     });
@@ -693,7 +673,8 @@ describe("DataGrid accessibility", () => {
     );
 
     await user.tab();
-    await user.keyboard("{ArrowDown}");
+    await user.tab();
+    await user.tab();
 
     const brazilGroup = getCellByText("Brazil");
 
@@ -706,7 +687,7 @@ describe("DataGrid accessibility", () => {
     await user.keyboard("{ArrowRight}");
 
     expect(brazilGroup).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText("Sao Paulo")).toBeInTheDocument();
+    expect(screen.getByText("Rio de Janeiro")).toBeInTheDocument();
 
     await user.keyboard("{ArrowDown}");
     await waitFor(() => {
