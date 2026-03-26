@@ -779,18 +779,26 @@ export function DataGrid<T extends Record<string, unknown>>(
     return renderedColumns[firstRightPinnedIndex - 1]?.field ?? null;
   }, [renderedColumns, firstRightPinnedField]);
 
+  const lastVisibleField = renderedColumns[renderedColumns.length - 1]?.field;
+
   const shouldRenderBorderRight = React.useCallback(
     (field: string, colSpan = 1) => {
       if (!showCellBorders || colSpan !== 1) {
         return false;
       }
 
-      return field !== fieldBeforeFirstRightPinned;
-    },
-    [showCellBorders, fieldBeforeFirstRightPinned],
-  );
+      if (field === fieldBeforeFirstRightPinned) {
+        return false;
+      }
 
-  const lastVisibleField = renderedColumns[renderedColumns.length - 1]?.field;
+      if (field === lastVisibleField) {
+        return false;
+      }
+
+      return true;
+    },
+    [showCellBorders, fieldBeforeFirstRightPinned, lastVisibleField],
+  );
 
   const shouldRenderHeaderDivider = React.useCallback(
     (field: string) => {
@@ -2190,15 +2198,18 @@ export function DataGrid<T extends Record<string, unknown>>(
               role="rowgroup"
             >
               {headerCells}
-              {headerScrollbarSpacer > 0 ? (
-                <HeaderScrollbarSpacerCell
-                  aria-hidden="true"
-                  style={{
-                    gridColumn: toGridSpan(totalColumnCount + 1),
-                    gridRow: toGridSpan(1, headerRowCount),
-                  }}
-                />
-              ) : null}
+              {headerScrollbarSpacer > 0
+                ? Array.from({ length: headerRowCount }, (_, rowIndex) => (
+                    <HeaderScrollbarSpacerCell
+                      key={`header-scrollbar-spacer-${rowIndex + 1}`}
+                      aria-hidden="true"
+                      style={{
+                        gridColumn: toGridSpan(totalColumnCount + 1),
+                        gridRow: toGridSpan(rowIndex + 1),
+                      }}
+                    />
+                  ))
+                : null}
             </GridHeader>
           </GridSurface>
         </GridHeaderScroll>
