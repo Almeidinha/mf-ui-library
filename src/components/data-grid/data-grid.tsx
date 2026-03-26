@@ -17,7 +17,7 @@ import { Gap, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
 import { useMergedRefs, useOnClickOutside } from "hooks";
-import React, {
+import {
   ComponentType,
   HTMLAttributes,
   JSX,
@@ -27,7 +27,6 @@ import React, {
   ReactNode,
   RefObject,
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -914,7 +913,6 @@ export function DataGrid<T extends Record<string, unknown>>(
     useState(false);
   const [hasBodyHorizontalScrollbar, setHasBodyHorizontalScrollbar] =
     useState(false);
-  const previousCellSelectionRef = useRef(cellSelection);
 
   const {
     search,
@@ -1432,50 +1430,43 @@ export function DataGrid<T extends Record<string, unknown>>(
   }, [cellSelection, focusableCells]);
 
   const totalGridRows = headerRowCount + Math.max(groupedBodyEntries.length, 1);
-  const [activeCellKey, setActiveCellKey] = useState<string | null>(() =>
-    cellSelection ? (focusableCells[0]?.key ?? null) : null,
-  );
+  const [requestedActiveCellKey, setRequestedActiveCellKey] = useState<
+    string | null | undefined
+  >(undefined);
+  const activeCellKey = useMemo(() => {
+    if (!cellSelection || focusableCells.length === 0) {
+      return null;
+    }
+
+    if (requestedActiveCellKey === null) {
+      return null;
+    }
+
+    if (
+      requestedActiveCellKey !== undefined &&
+      focusableCellMap.has(requestedActiveCellKey)
+    ) {
+      return requestedActiveCellKey;
+    }
+
+    return focusableCells[0]?.key ?? null;
+  }, [
+    cellSelection,
+    focusableCells,
+    focusableCellMap,
+    requestedActiveCellKey,
+  ]);
   const clickAwayRef = useOnClickOutside(() => {
     if (!cellSelection) {
       return;
     }
 
-    setActiveCellKey(null);
+    setRequestedActiveCellKey(null);
   });
   const mergedContainerRef = useMergedRefs<HTMLDivElement>(
     tableAreaRef,
     clickAwayRef,
   );
-
-  useEffect(() => {
-    if (!cellSelection) {
-      setActiveCellKey(null);
-      previousCellSelectionRef.current = false;
-      return;
-    }
-
-    if (focusableCells.length === 0) {
-      setActiveCellKey(null);
-      previousCellSelectionRef.current = true;
-      return;
-    }
-
-    const wasCellSelectionEnabled = previousCellSelectionRef.current;
-
-    setActiveCellKey((previous) => {
-      if (previous && focusableCellMap.has(previous)) {
-        return previous;
-      }
-
-      if (previous === null && wasCellSelectionEnabled) {
-        return null;
-      }
-
-      return focusableCells[0]?.key ?? null;
-    });
-
-    previousCellSelectionRef.current = true;
-  }, [cellSelection, focusableCells, focusableCellMap]);
 
   const focusCell = useCallback(
     (cellKey: string) => {
@@ -1483,7 +1474,7 @@ export function DataGrid<T extends Record<string, unknown>>(
         return;
       }
 
-      setActiveCellKey(cellKey);
+      setRequestedActiveCellKey(cellKey);
 
       requestAnimationFrame(() => {
         const node = cellRefs.current[cellKey];
@@ -1756,12 +1747,12 @@ export function DataGrid<T extends Record<string, unknown>>(
         : undefined,
       onFocus: cellSelection
         ? () => {
-            setActiveCellKey(cell.key);
+            setRequestedActiveCellKey(cell.key);
           }
         : undefined,
       onClick: cellSelection
         ? () => {
-            setActiveCellKey(cell.key);
+            setRequestedActiveCellKey(cell.key);
           }
         : undefined,
       onKeyDown: cellSelection
@@ -2289,22 +2280,34 @@ export function DataGrid<T extends Record<string, unknown>>(
     }
   }, []);
 
-  const updateBodyVerticalScrollbar = useCallback(() => {
-    const bodyScrollElement = bodyScrollRef.current;
+  const updateBodyVerticalScrollbar = useCallback(
+    (bodyScrollElement?: HTMLDivElement | null) => {
+      const resolvedBodyScrollElement = bodyScrollElement ?? bodyScrollRef.current;
 
-    if (!bodyScrollElement) {
-      setHasBodyVerticalScrollbar(false);
-      setHasBodyHorizontalScrollbar(false);
-      return;
-    }
+      if (!resolvedBodyScrollElement) {
+        setHasBodyVerticalScrollbar(false);
+        setHasBodyHorizontalScrollbar(false);
+        return;
+      }
 
-    setHasBodyVerticalScrollbar(
-      bodyScrollElement.scrollHeight > bodyScrollElement.clientHeight + 1,
-    );
-    setHasBodyHorizontalScrollbar(
-      bodyScrollElement.scrollWidth > bodyScrollElement.clientWidth + 1,
-    );
-  }, []);
+      setHasBodyVerticalScrollbar(
+        resolvedBodyScrollElement.scrollHeight >
+          resolvedBodyScrollElement.clientHeight + 1,
+      );
+      setHasBodyHorizontalScrollbar(
+        resolvedBodyScrollElement.scrollWidth >
+          resolvedBodyScrollElement.clientWidth + 1,
+      );
+    },
+    [],
+  );
+  const handleBodyScrollRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      bodyScrollRef.current = node;
+      updateBodyVerticalScrollbar(node);
+    },
+    [updateBodyVerticalScrollbar],
+  );
 
   useLayoutEffect(() => {
     const bodyScrollElement = bodyScrollRef.current;
@@ -2315,8 +2318,6 @@ export function DataGrid<T extends Record<string, unknown>>(
         headerScrollElement.scrollLeft = bodyScrollElement.scrollLeft;
       }
     }
-
-    updateBodyVerticalScrollbar();
 
     if (!bodyScrollElement) {
       return;
@@ -2334,11 +2335,15 @@ export function DataGrid<T extends Record<string, unknown>>(
       resizeObserver.observe(contentElement);
     }
 
-    window.addEventListener("resize", updateBodyVerticalScrollbar);
+    const handleWindowResize = () => {
+      updateBodyVerticalScrollbar();
+    };
+
+    window.addEventListener("resize", handleWindowResize);
 
     return () => {
       resizeObserver.disconnect();
-      window.removeEventListener("resize", updateBodyVerticalScrollbar);
+      window.removeEventListener("resize", handleWindowResize);
     };
   }, [
     updateBodyVerticalScrollbar,
@@ -2423,7 +2428,7 @@ export function DataGrid<T extends Record<string, unknown>>(
         </GridHeaderScroll>
 
         <GridBodyScroll
-          ref={bodyScrollRef}
+          ref={handleBodyScrollRef}
           $maxHeight={toCssSize(maxTableHeight)}
           onScroll={() => syncScrollLeft("body")}
         >
