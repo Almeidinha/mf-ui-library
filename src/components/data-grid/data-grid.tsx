@@ -161,6 +161,7 @@ const cellStyles = css<GridCellStyleProps>`
 const HeaderCellFrame = styled.div<
   GridCellStyleProps & {
     $textAlign: "left" | "center" | "right";
+    $dividerRight?: boolean;
   }
 >`
   ${cellStyles}
@@ -172,6 +173,20 @@ const HeaderCellFrame = styled.div<
         : "flex-start"};
   background: ${Surface.Default.Muted};
   font-weight: 600;
+
+  ${({ $dividerRight }) =>
+    $dividerRight &&
+    css`
+      &::after {
+        content: "";
+        position: absolute;
+        top: ${Padding.s};
+        right: 0;
+        bottom: ${Padding.s};
+        width: 1px;
+        background: ${Borders.Default.Muted};
+      }
+    `}
 `;
 
 const BodyCellFrame = styled.div<
@@ -706,6 +721,35 @@ export function DataGrid<T extends Record<string, unknown>>(
       return field !== fieldBeforeFirstRightPinned;
     },
     [showCellBorders, fieldBeforeFirstRightPinned],
+  );
+
+  const lastVisibleField = renderedColumns[renderedColumns.length - 1]?.field;
+
+  const shouldRenderHeaderDivider = React.useCallback(
+    (field: string) => {
+      if (showCellBorders) {
+        return false;
+      }
+
+      if (!field || field === lastVisibleField) {
+        return false;
+      }
+
+      if (
+        field === lastLeftPinnedField ||
+        field === fieldBeforeFirstRightPinned
+      ) {
+        return false;
+      }
+
+      return true;
+    },
+    [
+      showCellBorders,
+      lastVisibleField,
+      lastLeftPinnedField,
+      fieldBeforeFirstRightPinned,
+    ],
   );
 
   const renderGroupHeaderContent = React.useCallback(
@@ -1273,6 +1317,7 @@ export function DataGrid<T extends Record<string, unknown>>(
           $sticky
           $focused={activeCellKey === `${CHECKBOX_COLUMN_FIELD}-header`}
           $textAlign="center"
+          $dividerRight={!showCellBorders && visibleColumns.length > 0}
           $borderBottom
           aria-label="Select rows"
           {...getFocusableCellProps(
@@ -1292,9 +1337,10 @@ export function DataGrid<T extends Record<string, unknown>>(
             left: 0,
             zIndex: 6,
             background: Surface.Default.Muted,
-            borderRight: !lastLeftPinnedField
-              ? `1px solid ${Borders.Default.Default}`
-              : undefined,
+            borderRight:
+              showCellBorders && !lastLeftPinnedField
+                ? `1px solid ${Borders.Default.Default}`
+                : undefined,
           }}
         >
           <Checkbox
@@ -1321,6 +1367,7 @@ export function DataGrid<T extends Record<string, unknown>>(
             $sticky={Boolean(stickyStyle)}
             $focused={activeCellKey === field}
             $textAlign={textAlign}
+            $dividerRight={shouldRenderHeaderDivider(field)}
             $borderRight={shouldRenderBorderRight(field)}
             $borderBottom
             {...getFocusableCellProps(
@@ -1417,6 +1464,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               $sticky={Boolean(stickyStyle)}
               $focused={activeCellKey === `${field}-header`}
               $textAlign={textAlign}
+              $dividerRight={shouldRenderHeaderDivider(field)}
               $borderRight={shouldRenderBorderRight(field)}
               $borderBottom
               {...getFocusableCellProps(
@@ -1499,6 +1547,9 @@ export function DataGrid<T extends Record<string, unknown>>(
               activeCellKey === `group-${cell.group.key}-${rowIndex + 1}`
             }
             $textAlign={cell.group.align ?? "left"}
+            $dividerRight={shouldRenderHeaderDivider(
+              cell.leafColumns[cell.leafColumns.length - 1]?.field ?? "",
+            )}
             $borderRight={shouldRenderBorderRight(
               cell.leafColumns[cell.leafColumns.length - 1]?.field ?? "",
             )}
@@ -1550,6 +1601,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     checkboxSelection,
     headerRowCount,
     lastLeftPinnedField,
+    showCellBorders,
     selectAllState,
     toggleAllExpanded,
     activeCellKey,
@@ -1559,9 +1611,11 @@ export function DataGrid<T extends Record<string, unknown>>(
     headerRows,
     getGroupHeaderStickyStyle,
     shouldRenderBorderRight,
+    shouldRenderHeaderDivider,
     getFocusableCellProps,
     focusableCellMap,
     cellSelection,
+    visibleColumns.length,
   ]);
 
   const bodyCells = React.useMemo(() => {

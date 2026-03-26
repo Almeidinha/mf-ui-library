@@ -32,7 +32,9 @@ import {
 } from "react";
 import styled, { css } from "styled-components";
 
-type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate">;
+type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate"> & {
+  dividerRight?: boolean;
+};
 type TableBodySelectProps = CheckboxProps & { selected?: boolean };
 type TableBodyActionProps = PropsWithChildren<{
   onClick?: () => void;
@@ -56,6 +58,7 @@ export interface ITableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> 
   isPlaceholder?: boolean;
   sort?: "ASC" | "DESC" | "NONE";
   onSortClick?: () => void;
+  dividerRight?: boolean;
 }
 
 export interface ITableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
@@ -179,13 +182,29 @@ export const TableBody = styled.tbody<{
 
 export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
   $bordered?: boolean;
+  $dividerRight?: boolean;
 }>`
   text-align: left;
   padding: ${Padding.m};
+  position: relative;
   border-top: ${({ $bordered = true }) =>
     $bordered ? "none" : `1px solid ${Borders.Default.Muted}`};
   border-bottom: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Muted};
+
+  ${({ $dividerRight }) =>
+    $dividerRight &&
+    css`
+      &::after {
+        content: "";
+        position: absolute;
+        top: ${Padding.s};
+        right: 0;
+        bottom: ${Padding.s};
+        width: 1px;
+        background: ${Borders.Default.Muted};
+      }
+    `}
 `;
 
 const TableBodyCellFrame = styled.td<{
@@ -272,6 +291,7 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
   sort,
   isPlaceholder,
   onSortClick,
+  dividerRight,
   children,
   ...htmlProps
 }) {
@@ -302,6 +322,7 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
   return (
     <TableHeaderFrame
       {...htmlProps}
+      $dividerRight={dividerRight}
       aria-sort={
         sort === "ASC" ? "ascending" : sort === "DESC" ? "descending" : "none"
       }
@@ -335,10 +356,11 @@ export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
 
 const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
   style,
+  dividerRight,
   ...rest
 }: TableHeadSelectProps) {
   return (
-    <TableHeaderFrame style={style}>
+    <TableHeaderFrame style={style} $dividerRight={dividerRight}>
       <Checkbox {...rest} indeterminate />
     </TableHeaderFrame>
   );

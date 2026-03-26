@@ -269,19 +269,50 @@ export function DataTable<T extends Record<string, unknown>>(
     [renderedColumns],
   );
 
+  const lastVisibleField = renderedColumns[renderedColumns.length - 1]?.field;
+
+  const shouldRenderHeaderDivider = React.useCallback(
+    (field: string) => {
+      if (showCellBorders) {
+        return false;
+      }
+
+      if (!field || field === lastVisibleField) {
+        return false;
+      }
+
+      if (field === lastLeftPinnedField || field === firstRightPinnedField) {
+        return false;
+      }
+
+      return true;
+    },
+    [
+      showCellBorders,
+      lastVisibleField,
+      lastLeftPinnedField,
+      firstRightPinnedField,
+    ],
+  );
+
   const renderSelectAllHeader = React.useCallback(
     (rowSpan?: number) => {
       const sharedStyle = {
         ...checkboxStickyStyle,
         background: Surface.Default.Muted,
-        borderRight: !lastLeftPinnedField
-          ? `1px solid ${Borders.Default.Default}`
-          : undefined,
+        borderRight:
+          showCellBorders && !lastLeftPinnedField
+            ? `1px solid ${Borders.Default.Default}`
+            : undefined,
       };
 
       if (rowSpan) {
         return (
-          <TableHeaderCell rowSpan={rowSpan} style={sharedStyle}>
+          <TableHeaderCell
+            rowSpan={rowSpan}
+            style={sharedStyle}
+            dividerRight={!showCellBorders && visibleColumns.length > 0}
+          >
             <Checkbox
               checked={selectAllState}
               onChange={toggleAllExpanded}
@@ -292,14 +323,25 @@ export function DataTable<T extends Record<string, unknown>>(
       }
 
       return (
-        <TableHeaderCell.Select
-          checked={selectAllState}
-          onChange={toggleAllExpanded}
+        <TableHeaderCell
           style={sharedStyle}
-        />
+          dividerRight={!showCellBorders && visibleColumns.length > 0}
+        >
+          <Checkbox
+            checked={selectAllState}
+            onChange={toggleAllExpanded}
+            indeterminate
+          />
+        </TableHeaderCell>
       );
     },
-    [lastLeftPinnedField, selectAllState, toggleAllExpanded],
+    [
+      lastLeftPinnedField,
+      selectAllState,
+      toggleAllExpanded,
+      showCellBorders,
+      visibleColumns.length,
+    ],
   );
 
   const renderColumnHeaderCell = React.useCallback(
@@ -311,6 +353,7 @@ export function DataTable<T extends Record<string, unknown>>(
         <TableHeaderCell
           key={field}
           rowSpan={rowSpan}
+          dividerRight={shouldRenderHeaderDivider(field)}
           sort={sortable ? currentSort : undefined}
           onSortClick={() => toggleSort(field, sortable)}
           style={{
@@ -324,7 +367,7 @@ export function DataTable<T extends Record<string, unknown>>(
         </TableHeaderCell>
       );
     },
-    [toggleSort],
+    [toggleSort, shouldRenderHeaderDivider],
   );
 
   const getGroupHeaderStickyStyle = React.useCallback(
@@ -524,6 +567,10 @@ export function DataTable<T extends Record<string, unknown>>(
                         <TableHeaderCell
                           key={`${cell.group.key}-${cell.leafColumns[0].field}`}
                           colSpan={cell.colSpan}
+                          dividerRight={shouldRenderHeaderDivider(
+                            cell.leafColumns[cell.leafColumns.length - 1]
+                              ?.field ?? "",
+                          )}
                           style={{
                             textAlign: cell.group.align ?? "left",
                             ...getGroupHeaderStickyStyle(cell.leafColumns),
