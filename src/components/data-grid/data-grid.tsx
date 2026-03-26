@@ -14,6 +14,7 @@ import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Padding } from "foundation/spacing";
+import { Typography } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
 import React from "react";
 import styled, { css } from "styled-components";
@@ -31,6 +32,7 @@ import {
   isActionsColumn,
 } from "../data-table/dataTable.shared";
 import { DataTableColumnManager } from "../data-table/DataTableColumnManager";
+import type { DataTableRegularColumn } from "../data-table/types";
 import { useDataTable } from "../data-table/useDataTable";
 import {
   type ResolvedBodyCell,
@@ -279,6 +281,7 @@ const CellContent = styled.span<{
   overflow-wrap: ${({ $overflow = "ellipsis" }) =>
     $overflow === "wrap" ? "anywhere" : "normal"};
   text-align: ${({ $textAlign }) => $textAlign};
+  ${Typography.Body}
 `;
 
 const HeaderSortContent = styled.span<{
@@ -435,6 +438,19 @@ type FocusableGridCell = {
   rowKey?: React.Key;
 };
 
+type FocusableCellDomProps = React.HTMLAttributes<HTMLDivElement> & {
+  id: string;
+  role: "columnheader" | "gridcell";
+  tabIndex?: number;
+  "aria-colindex": number;
+  "aria-rowindex": number;
+  "aria-colspan"?: number;
+  "aria-rowspan"?: number;
+  "aria-selected"?: true;
+  "aria-expanded"?: boolean;
+  ref?: (node: HTMLDivElement | null) => void;
+};
+
 const EMPTY_FOCUSABLE_CELLS: FocusableGridCell[] = [];
 const EMPTY_FOCUSABLE_CELL_MAP = new Map<string, FocusableGridCell>();
 const EMPTY_SLOT_OWNER_MAP = new Map<string, string>();
@@ -518,6 +534,337 @@ function GridActionsCell<T extends Record<string, unknown>>({
     </ActionMenuRoot>
   );
 }
+
+type DataGridEmptyRowProps = {
+  emptyMessage: React.ReactNode;
+  headerRowCount: number;
+  totalColumnCount: number;
+  isFocused: boolean;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+};
+
+const DataGridEmptyRow = React.memo(function DataGridEmptyRow({
+  emptyMessage,
+  headerRowCount,
+  totalColumnCount,
+  isFocused,
+  getFocusableCellProps,
+}: DataGridEmptyRowProps) {
+  return (
+    <GridRow role="row">
+      <EmptyCellFrame
+        key="empty"
+        $focused={isFocused}
+        {...getFocusableCellProps({
+          key: "empty",
+          kind: "empty",
+          rowIndex: headerRowCount + 1,
+          colIndex: 1,
+          rowSpan: 1,
+          colSpan: totalColumnCount,
+        })}
+        style={{
+          gridColumn: `1 / span ${totalColumnCount}`,
+          gridRow: toGridSpan(1),
+        }}
+      >
+        <Label muted>{emptyMessage}</Label>
+      </EmptyCellFrame>
+    </GridRow>
+  );
+});
+
+type DataGridGroupRowProps<T extends Record<string, unknown>> = {
+  entry: Extract<GroupedBodyEntry<T>, { type: "group" }>;
+  rowIndex: number;
+  headerRowCount: number;
+  totalColumnCount: number;
+  isFocused: boolean;
+  renderGroupHeaderContent: (
+    entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
+  ) => React.ReactNode;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+};
+
+const DataGridGroupRow = React.memo(
+  function DataGridGroupRow<T extends Record<string, unknown>>({
+    entry,
+    rowIndex,
+    headerRowCount,
+    totalColumnCount,
+    isFocused,
+    renderGroupHeaderContent,
+    getFocusableCellProps,
+  }: DataGridGroupRowProps<T>) {
+    const gridRowStart = rowIndex + 1;
+
+    return (
+      <GridRow role="row">
+        <GroupCellFrame
+          $focused={isFocused}
+          {...getFocusableCellProps({
+            key: `group-row-${entry.key}`,
+            kind: "group-row",
+            rowIndex: headerRowCount + rowIndex + 1,
+            colIndex: 1,
+            rowSpan: 1,
+            colSpan: totalColumnCount,
+            groupKey: entry.key,
+            collapsed: entry.collapsed,
+            collapsible: entry.collapsible,
+          })}
+          style={{
+            gridColumn: `1 / span ${totalColumnCount}`,
+            gridRow: toGridSpan(gridRowStart),
+          }}
+        >
+          {renderGroupHeaderContent(entry)}
+        </GroupCellFrame>
+      </GridRow>
+    );
+  },
+  function areGroupRowPropsEqual<T extends Record<string, unknown>>(
+    previous: DataGridGroupRowProps<T>,
+    next: DataGridGroupRowProps<T>,
+  ) {
+    return (
+      previous.entry === next.entry &&
+      previous.rowIndex === next.rowIndex &&
+      previous.headerRowCount === next.headerRowCount &&
+      previous.totalColumnCount === next.totalColumnCount &&
+      previous.isFocused === next.isFocused &&
+      previous.renderGroupHeaderContent === next.renderGroupHeaderContent &&
+      previous.getFocusableCellProps === next.getFocusableCellProps
+    );
+  },
+) as <T extends Record<string, unknown>>(
+  props: DataGridGroupRowProps<T>,
+) => React.JSX.Element;
+
+type DataGridDataRowProps<T extends Record<string, unknown>> = {
+  entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
+  rowIndex: number;
+  headerRowCount: number;
+  checkboxSelection: boolean;
+  lastLeftPinnedField: string | null;
+  showCellBorders: boolean;
+  isSelected: boolean;
+  isStriped: boolean;
+  activeCellKey: string | null;
+  resolvedBodyCells: ResolvedBodyCell<T>[];
+  shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
+  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
+  toggleRowSelection: (rowKey: React.Key) => void;
+  getColumnRawValue: (
+    row: T,
+    column: DataTableRegularColumn<T>,
+  ) => React.ReactNode;
+  cellSelection: boolean;
+  actionTriggerRefs: React.RefObject<Record<string, HTMLButtonElement | null>>;
+};
+
+const DataGridDataRow = React.memo(
+  function DataGridDataRow<T extends Record<string, unknown>>({
+    entry,
+    rowIndex,
+    headerRowCount,
+    checkboxSelection,
+    lastLeftPinnedField,
+    showCellBorders,
+    isSelected,
+    isStriped,
+    activeCellKey,
+    resolvedBodyCells,
+    shouldRenderBorderRight,
+    getFocusableCellProps,
+    toggleRowSelection,
+    getColumnRawValue,
+    cellSelection,
+    actionTriggerRefs,
+  }: DataGridDataRowProps<T>) {
+    const { row, key } = entry;
+    const gridRowStart = rowIndex + 1;
+
+    return (
+      <GridRow role="row">
+        {checkboxSelection ? (
+          <BodyCellFrame
+            key={`${key}-${CHECKBOX_COLUMN_FIELD}`}
+            $sticky
+            $focused={activeCellKey === `${key}-${CHECKBOX_COLUMN_FIELD}`}
+            $textAlign="center"
+            $selected={isSelected}
+            $striped={isStriped}
+            $borderRight={Boolean(!lastLeftPinnedField && showCellBorders)}
+            {...getFocusableCellProps({
+              key: `${key}-${CHECKBOX_COLUMN_FIELD}`,
+              kind: "body-checkbox",
+              rowIndex: headerRowCount + rowIndex + 1,
+              colIndex: 1,
+              rowSpan: 1,
+              colSpan: 1,
+              rowKey: key,
+              selected: isSelected,
+            })}
+            style={{
+              gridColumn: toGridSpan(1),
+              gridRow: toGridSpan(gridRowStart),
+              position: "sticky",
+              left: 0,
+              zIndex: 3,
+              background: isSelected
+                ? Surface.Selected.Default
+                : isStriped
+                  ? Surface.Default.Muted
+                  : Surface.Default.Default,
+            }}
+          >
+            <Checkbox
+              checked={isSelected}
+              tabIndex={cellSelection ? -1 : undefined}
+              onChange={() => toggleRowSelection(key)}
+              aria-label={`Select row ${String(key)}`}
+            />
+          </BodyCellFrame>
+        ) : null}
+
+        {resolvedBodyCells.map(
+          ({ renderedColumn, columnStart, colSpan, rowSpan, rawValue }) => {
+            const { field, textAlign, stickyStyle, column } = renderedColumn;
+            const resolvedColumnStart = Number(columnStart);
+            const gridColumnStart =
+              resolvedColumnStart + (checkboxSelection ? 1 : 0);
+
+            if (isActionsColumn(column)) {
+              const actions = column
+                .getActions(row)
+                .filter((action) => !resolveActionFlag(action.hidden, row));
+
+              return (
+                <BodyCellFrame
+                  key={`${key}-${field}`}
+                  $sticky={Boolean(stickyStyle)}
+                  $focused={activeCellKey === `${key}-${field}`}
+                  $textAlign={textAlign}
+                  $fitContent={column.fitContent ?? true}
+                  $allowOverflow
+                  $selected={isSelected}
+                  $striped={isStriped}
+                  $spansRows={rowSpan > 1}
+                  $borderRight={shouldRenderBorderRight(field, colSpan)}
+                  {...getFocusableCellProps({
+                    key: `${key}-${field}`,
+                    kind: "body-actions",
+                    rowIndex: headerRowCount + rowIndex + 1,
+                    colIndex: gridColumnStart,
+                    rowSpan,
+                    colSpan,
+                    field,
+                    rowKey: key,
+                    selected: isSelected,
+                  })}
+                  style={{
+                    gridColumn: toGridSpan(gridColumnStart, colSpan),
+                    gridRow: toGridSpan(gridRowStart, rowSpan),
+                    ...stickyStyle,
+                    background: isSelected
+                      ? Surface.Selected.Default
+                      : isStriped
+                        ? Surface.Default.Muted
+                        : Surface.Default.Default,
+                    zIndex: stickyStyle ? 3 : undefined,
+                  }}
+                >
+                  <GridActionsCell
+                    actions={actions}
+                    row={row}
+                    buttonTabIndex={cellSelection ? -1 : undefined}
+                    onTriggerRef={(node) => {
+                      actionTriggerRefs.current[`${key}-${field}`] = node;
+                    }}
+                  />
+                </BodyCellFrame>
+              );
+            }
+
+            const resolvedValue = rawValue ?? getColumnRawValue(row, column);
+            const content = column.renderCell
+              ? column.renderCell(row, resolvedValue)
+              : resolvedValue;
+
+            return (
+              <BodyCellFrame
+                key={`${key}-${field}`}
+                $sticky={Boolean(stickyStyle)}
+                $focused={activeCellKey === `${key}-${field}`}
+                $textAlign={textAlign}
+                $fitContent={column.fitContent}
+                $selected={isSelected}
+                $striped={isStriped}
+                $spansRows={rowSpan > 1}
+                $borderRight={shouldRenderBorderRight(field, colSpan)}
+                {...getFocusableCellProps({
+                  key: `${key}-${field}`,
+                  kind: "body-cell",
+                  rowIndex: headerRowCount + rowIndex + 1,
+                  colIndex: gridColumnStart,
+                  rowSpan,
+                  colSpan,
+                  field,
+                  rowKey: key,
+                  selected: isSelected,
+                })}
+                style={{
+                  gridColumn: toGridSpan(gridColumnStart, colSpan),
+                  gridRow: toGridSpan(gridRowStart, rowSpan),
+                  ...stickyStyle,
+                  background: isSelected
+                    ? Surface.Selected.Default
+                    : isStriped
+                      ? Surface.Default.Muted
+                      : Surface.Default.Default,
+                }}
+              >
+                <CellContent
+                  $textAlign={textAlign}
+                  $fitContent={column.fitContent}
+                  $overflow={column.overflow}
+                >
+                  {content}
+                </CellContent>
+              </BodyCellFrame>
+            );
+          },
+        )}
+      </GridRow>
+    );
+  },
+  function areDataRowPropsEqual<T extends Record<string, unknown>>(
+    previous: DataGridDataRowProps<T>,
+    next: DataGridDataRowProps<T>,
+  ) {
+    return (
+      previous.entry === next.entry &&
+      previous.rowIndex === next.rowIndex &&
+      previous.headerRowCount === next.headerRowCount &&
+      previous.checkboxSelection === next.checkboxSelection &&
+      previous.lastLeftPinnedField === next.lastLeftPinnedField &&
+      previous.showCellBorders === next.showCellBorders &&
+      previous.isSelected === next.isSelected &&
+      previous.isStriped === next.isStriped &&
+      previous.activeCellKey === next.activeCellKey &&
+      previous.resolvedBodyCells === next.resolvedBodyCells &&
+      previous.shouldRenderBorderRight === next.shouldRenderBorderRight &&
+      previous.getFocusableCellProps === next.getFocusableCellProps &&
+      previous.toggleRowSelection === next.toggleRowSelection &&
+      previous.getColumnRawValue === next.getColumnRawValue &&
+      previous.cellSelection === next.cellSelection &&
+      previous.actionTriggerRefs === next.actionTriggerRefs
+    );
+  },
+) as <T extends Record<string, unknown>>(
+  props: DataGridDataRowProps<T>,
+) => React.JSX.Element;
 
 export function DataGrid<T extends Record<string, unknown>>(
   props: DataGridProps<T>,
@@ -1350,7 +1697,7 @@ export function DataGrid<T extends Record<string, unknown>>(
   );
 
   const getFocusableCellProps = React.useCallback(
-    (cell: FocusableGridCell) => ({
+    (cell: FocusableGridCell): FocusableCellDomProps => ({
       id: getGridCellDomId(cell.key),
       role: cell.kind.startsWith("header") ? "columnheader" : "gridcell",
       tabIndex: cellSelection
@@ -1709,252 +2056,65 @@ export function DataGrid<T extends Record<string, unknown>>(
     visibleColumns.length,
   ]);
 
-  const bodyCells = React.useMemo(() => {
+  const bodyRows = React.useMemo(() => {
     if (visibleRows.length === 0) {
       return [
-        <GridRow key="body-row-empty" role="row">
-          <EmptyCellFrame
-            key="empty"
-            $focused={activeCellKey === "empty"}
-            {...getFocusableCellProps(
-              focusableCellMap.get("empty") ?? {
-                key: "empty",
-                kind: "empty",
-                rowIndex: headerRowCount + 1,
-                colIndex: 1,
-                rowSpan: 1,
-                colSpan: totalColumnCount,
-              },
-            )}
-            style={{
-              gridColumn: `1 / span ${totalColumnCount}`,
-              gridRow: toGridSpan(1),
-            }}
-          >
-            <Label muted>{emptyMessage}</Label>
-          </EmptyCellFrame>
-        </GridRow>,
+        <DataGridEmptyRow
+          key="body-row-empty"
+          emptyMessage={emptyMessage}
+          headerRowCount={headerRowCount}
+          totalColumnCount={totalColumnCount}
+          isFocused={activeCellKey === "empty"}
+          getFocusableCellProps={getFocusableCellProps}
+        />,
       ];
     }
 
-    const rows = Array.from(
-      { length: groupedBodyEntries.length },
-      () => [] as React.ReactNode[],
-    );
-
-    const pushBodyCell = (rowIndex: number, node: React.ReactNode) => {
-      rows[rowIndex]?.push(node);
-    };
-
-    groupedBodyEntries.forEach((entry, rowIndex) => {
-      const gridRowStart = rowIndex + 1;
-
+    return groupedBodyEntries.map((entry, rowIndex) => {
       if (entry.type === "group") {
-        pushBodyCell(
-          rowIndex,
-          <GroupCellFrame
-            key={entry.key}
-            $focused={activeCellKey === `group-row-${entry.key}`}
-            {...getFocusableCellProps(
-              focusableCellMap.get(`group-row-${entry.key}`) ?? {
-                key: `group-row-${entry.key}`,
-                kind: "group-row",
-                rowIndex: headerRowCount + rowIndex + 1,
-                colIndex: 1,
-                rowSpan: 1,
-                colSpan: totalColumnCount,
-                groupKey: entry.key,
-                collapsed: entry.collapsed,
-                collapsible: entry.collapsible,
-              },
-            )}
-            style={{
-              gridColumn: `1 / span ${totalColumnCount}`,
-              gridRow: toGridSpan(gridRowStart),
-            }}
-          >
-            {renderGroupHeaderContent(entry)}
-          </GroupCellFrame>,
+        return (
+          <DataGridGroupRow
+            key={`body-group-row-${entry.key}`}
+            entry={entry}
+            rowIndex={rowIndex}
+            headerRowCount={headerRowCount}
+            totalColumnCount={totalColumnCount}
+            isFocused={activeCellKey === `group-row-${entry.key}`}
+            renderGroupHeaderContent={renderGroupHeaderContent}
+            getFocusableCellProps={getFocusableCellProps}
+          />
         );
-        return;
       }
 
-      const { row, key } = entry;
-      const isSelected = selectedKeySet.has(key);
+      const isSelected = selectedKeySet.has(entry.key);
       const isStriped = getGridBodyBackground(striped, rowIndex);
       const resolvedBodyCells: ResolvedBodyCell<T>[] =
-        hasBodySpans && bodyCellsByKey.has(key)
-          ? (bodyCellsByKey.get(key) ?? defaultBodyCells)
+        hasBodySpans && bodyCellsByKey.has(entry.key)
+          ? (bodyCellsByKey.get(entry.key) ?? defaultBodyCells)
           : defaultBodyCells;
 
-      if (checkboxSelection) {
-        pushBodyCell(
-          rowIndex,
-          <BodyCellFrame
-            key={`${key}-${CHECKBOX_COLUMN_FIELD}`}
-            $sticky
-            $focused={activeCellKey === `${key}-${CHECKBOX_COLUMN_FIELD}`}
-            $textAlign="center"
-            $selected={isSelected}
-            $striped={isStriped}
-            $borderRight={Boolean(!lastLeftPinnedField && showCellBorders)}
-            {...getFocusableCellProps(
-              focusableCellMap.get(`${key}-${CHECKBOX_COLUMN_FIELD}`) ?? {
-                key: `${key}-${CHECKBOX_COLUMN_FIELD}`,
-                kind: "body-checkbox",
-                rowIndex: headerRowCount + rowIndex + 1,
-                colIndex: 1,
-                rowSpan: 1,
-                colSpan: 1,
-                rowKey: key,
-                selected: isSelected,
-              },
-            )}
-            style={{
-              gridColumn: toGridSpan(1),
-              gridRow: toGridSpan(gridRowStart),
-              position: "sticky",
-              left: 0,
-              zIndex: 3,
-              background: isSelected
-                ? Surface.Selected.Default
-                : isStriped
-                  ? Surface.Default.Muted
-                  : Surface.Default.Default,
-            }}
-          >
-            <Checkbox
-              checked={isSelected}
-              tabIndex={cellSelection ? -1 : undefined}
-              onChange={() => toggleRowSelection(key)}
-              aria-label={`Select row ${String(key)}`}
-            />
-          </BodyCellFrame>,
-        );
-      }
-
-      resolvedBodyCells.forEach(
-        ({ renderedColumn, columnStart, colSpan, rowSpan, rawValue }) => {
-          const { field, textAlign, stickyStyle, column } = renderedColumn;
-          const resolvedColumnStart = Number(columnStart);
-          const gridColumnStart =
-            resolvedColumnStart + (checkboxSelection ? 1 : 0);
-
-          if (isActionsColumn(column)) {
-            const actions = column
-              .getActions(row)
-              .filter((action) => !resolveActionFlag(action.hidden, row));
-
-            pushBodyCell(
-              rowIndex,
-              <BodyCellFrame
-                key={`${key}-${field}`}
-                $sticky={Boolean(stickyStyle)}
-                $focused={activeCellKey === `${key}-${field}`}
-                $textAlign={textAlign}
-                $fitContent={column.fitContent ?? true}
-                $allowOverflow
-                $selected={isSelected}
-                $striped={isStriped}
-                $spansRows={rowSpan > 1}
-                $borderRight={shouldRenderBorderRight(field, colSpan)}
-                {...getFocusableCellProps(
-                  focusableCellMap.get(`${key}-${field}`) ?? {
-                    key: `${key}-${field}`,
-                    kind: "body-actions",
-                    rowIndex: headerRowCount + rowIndex + 1,
-                    colIndex: gridColumnStart,
-                    rowSpan,
-                    colSpan,
-                    field,
-                    rowKey: key,
-                    selected: isSelected,
-                  },
-                )}
-                style={{
-                  gridColumn: toGridSpan(gridColumnStart, colSpan),
-                  gridRow: toGridSpan(gridRowStart, rowSpan),
-                  ...stickyStyle,
-                  background: isSelected
-                    ? Surface.Selected.Default
-                    : isStriped
-                      ? Surface.Default.Muted
-                      : Surface.Default.Default,
-                  zIndex: stickyStyle ? 3 : undefined,
-                }}
-              >
-                <GridActionsCell
-                  actions={actions}
-                  row={row}
-                  buttonTabIndex={cellSelection ? -1 : undefined}
-                  onTriggerRef={(node) => {
-                    actionTriggerRefs.current[`${key}-${field}`] = node;
-                  }}
-                />
-              </BodyCellFrame>,
-            );
-            return;
-          }
-
-          const resolvedValue = rawValue ?? getColumnRawValue(row, column);
-          const content = column.renderCell
-            ? column.renderCell(row, resolvedValue)
-            : resolvedValue;
-
-          pushBodyCell(
-            rowIndex,
-            <BodyCellFrame
-              key={`${key}-${field}`}
-              $sticky={Boolean(stickyStyle)}
-              $focused={activeCellKey === `${key}-${field}`}
-              $textAlign={textAlign}
-              $fitContent={column.fitContent}
-              $selected={isSelected}
-              $striped={isStriped}
-              $spansRows={rowSpan > 1}
-              $borderRight={shouldRenderBorderRight(field, colSpan)}
-              {...getFocusableCellProps(
-                focusableCellMap.get(`${key}-${field}`) ?? {
-                  key: `${key}-${field}`,
-                  kind: "body-cell",
-                  rowIndex: headerRowCount + rowIndex + 1,
-                  colIndex: gridColumnStart,
-                  rowSpan,
-                  colSpan,
-                  field,
-                  rowKey: key,
-                  selected: isSelected,
-                },
-              )}
-              style={{
-                gridColumn: toGridSpan(gridColumnStart, colSpan),
-                gridRow: toGridSpan(gridRowStart, rowSpan),
-                ...stickyStyle,
-                background: isSelected
-                  ? Surface.Selected.Default
-                  : isStriped
-                    ? Surface.Default.Muted
-                    : Surface.Default.Default,
-              }}
-            >
-              <CellContent
-                $textAlign={textAlign}
-                $fitContent={column.fitContent}
-                $overflow={column.overflow}
-              >
-                {content}
-              </CellContent>
-            </BodyCellFrame>,
-          );
-        },
+      return (
+        <DataGridDataRow
+          key={`body-data-row-${entry.key}`}
+          entry={entry}
+          rowIndex={rowIndex}
+          headerRowCount={headerRowCount}
+          checkboxSelection={checkboxSelection}
+          lastLeftPinnedField={lastLeftPinnedField}
+          showCellBorders={showCellBorders}
+          isSelected={isSelected}
+          isStriped={isStriped}
+          activeCellKey={activeCellKey}
+          resolvedBodyCells={resolvedBodyCells}
+          shouldRenderBorderRight={shouldRenderBorderRight}
+          getFocusableCellProps={getFocusableCellProps}
+          toggleRowSelection={toggleRowSelection}
+          getColumnRawValue={getColumnRawValue}
+          cellSelection={cellSelection}
+          actionTriggerRefs={actionTriggerRefs}
+        />
       );
     });
-
-    return rows.map((rowCells, rowIndex) => (
-      <GridRow key={`body-row-${rowIndex + 1}`} role="row">
-        {rowCells}
-      </GridRow>
-    ));
   }, [
     visibleRows.length,
     totalColumnCount,
@@ -1971,12 +2131,12 @@ export function DataGrid<T extends Record<string, unknown>>(
     checkboxSelection,
     lastLeftPinnedField,
     shouldRenderBorderRight,
-    focusableCellMap,
     getFocusableCellProps,
     getColumnRawValue,
     headerRowCount,
     toggleRowSelection,
     cellSelection,
+    actionTriggerRefs,
   ]);
 
   const bodyRowDividers = React.useMemo(() => {
@@ -2239,7 +2399,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               role="rowgroup"
             >
               {bodyRowDividers}
-              {bodyCells}
+              {bodyRows}
             </GridBody>
           </GridSurface>
         </GridBodyScroll>

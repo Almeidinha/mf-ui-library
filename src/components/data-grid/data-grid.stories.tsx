@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { IconMinor } from "components/icon";
 import { Box, Flex } from "components/layout";
 import { Label } from "components/typography";
+import { Gap } from "foundation/spacing";
 
 import { DataGrid } from "./data-grid";
 import type { DataGridColumn, DataGridGroupValue } from "./types";
@@ -84,6 +85,7 @@ function getForwardRunLength<T>(
 
 const Data = ["rows", "columns", "rowKey", "storageKey"];
 const Layout = [
+  "cellSelection",
   "layoutMode",
   "tableWidth",
   "minTableWidth",
@@ -1044,7 +1046,6 @@ export const RowSpanComplex: Story = {
     },
     controls: {
       exclude: [
-        ...Layout,
         ...Data,
         ...Pagination,
         ...Search,
@@ -1091,7 +1092,6 @@ export const ColumnSpanComplex: Story = {
     },
     controls: {
       exclude: [
-        ...Layout,
         ...Data,
         ...Pagination,
         ...Search,
@@ -1242,6 +1242,7 @@ export const RowGrouping: Story = {
   args: {
     striped: false,
     showCellBorders: true,
+    defaultPinnedColumns: undefined,
     rowGrouping: {
       fields: ["country", "state"],
       collapsible: true,
@@ -1252,7 +1253,7 @@ export const RowGrouping: Story = {
         depth: number,
         path: DataGridGroupValue[],
       ) => (
-        <Flex justify="space-between" align="center">
+        <Flex justify="space-between" align="center" gap={Gap.m}>
           <Label strong>{`${"  ".repeat(depth)}${value ?? "Ungrouped"}`}</Label>
           <Label muted>
             {collapsed
@@ -1301,6 +1302,7 @@ export const ColumnAndRowGrouping: Story = {
       company: false,
       birth: false,
     },
+    defaultPinnedColumns: undefined,
     columnGroups: [
       {
         key: "identity",

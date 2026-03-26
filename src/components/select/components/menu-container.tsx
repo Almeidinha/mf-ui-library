@@ -1,5 +1,4 @@
 import { Borders, Surface } from "foundation/colors";
-import { Padding } from "foundation/spacing";
 import { forwardRef } from "react";
 import styled from "styled-components";
 
@@ -39,7 +38,6 @@ const MenuWrapper = styled.div<IMenuWrapperProps>`
     border: 1px solid ${Borders.Default.Muted};
     background-color: ${Surface.Default.Default};
     border-radius: 6px;
-    padding: ${Padding.xxs};
 
     &:focus {
       outline: none;
