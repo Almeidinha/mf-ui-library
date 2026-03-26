@@ -170,8 +170,8 @@ const ClearButton = styled(Button).attrs<{ plain?: boolean; subtle?: boolean }>(
   }
 `;
 
-const ErrorMessage = styled.div<{ visible?: boolean }>`
-  display: ${({ visible }) => (is(visible) ? "flex" : "none")};
+const ErrorMessage = styled.div<{ $visible?: boolean }>`
+  display: ${({ $visible }) => (is($visible) ? "flex" : "none")};
   flex-direction: row;
   width: 100%;
   padding: ${Padding.xxs} ${Padding.none};
@@ -460,7 +460,7 @@ const ValueImpl = <T,>({
       </ValueContainer>
 
       {safeArray(errors).map((e) => (
-        <ErrorMessage visible={!open} key={e.message}>
+        <ErrorMessage $visible={!open} key={e.message}>
           <IconMinor.CircleExclamation />
           <Body>{e.message}</Body>
         </ErrorMessage>

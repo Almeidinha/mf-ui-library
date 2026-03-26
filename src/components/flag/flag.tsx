@@ -17,17 +17,22 @@ import { CountryCodes, IFlagProperties } from "./types";
 
 export type FlagIconProps = IFlagProperties & FlagProps;
 
-const FlagIcon = styled.i<{ size: FlagSize; code: CountryCodes }>`
-  width: ${({ size }) => getWidthBySize(size)}px;
-  height: ${({ size }) => getHeightBySize(size)}px;
+const FlagIcon = styled.i.attrs<{ $size: FlagSize; $code: CountryCodes }>(
+  ({ $size, $code }) => ({
+    style: {
+      width: `${getWidthBySize($size)}px`,
+      height: `${getHeightBySize($size)}px`,
+      backgroundImage: `url(${getFlagAssetByCode($size)})`,
+      backgroundSize: getSheetDimensionByCode($size),
+      backgroundPosition: getPositionByCode($size, $code),
+    },
+  }),
+)<{ $size: FlagSize; $code: CountryCodes }>`
   flex: none;
   order: 0;
   flex-grow: 0;
   position: relative;
-  background-image: ${({ size }) => `url(${getFlagAssetByCode(size)})`};
-  background-size: ${({ size }) => getSheetDimensionByCode(size)};
   background-repeat: no-repeat;
-  background-position: ${({ size, code }) => getPositionByCode(size, code)};
 `;
 
 export const Flag: FC<FlagIconProps> = ({
@@ -41,8 +46,8 @@ export const Flag: FC<FlagIconProps> = ({
       role="img"
       className={className}
       style={style}
-      size={getFlagSize(props)}
-      code={code}
+      $size={getFlagSize(props)}
+      $code={code}
     />
   );
 };

@@ -6,7 +6,14 @@ import {
   isNil,
   safeArray,
 } from "helpers/safe-navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { List } from "react-window";
 import styled from "styled-components";
 
@@ -78,9 +85,10 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
   );
 
   const listRef = useRef<MenuListRef | null>(null);
+  const listRowHeight = rowHeight + 4 * 2;
 
   const height = Math.min(
-    Math.max(options.length * rowHeight, rowHeight) + 10,
+    Math.max(options.length * listRowHeight, listRowHeight),
     menuHeight,
   );
 
@@ -88,21 +96,32 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     setOptions(safeArray(propOptions));
   }, [propOptions]);
 
-  useEffect(() => {
-    if (!is(open)) {
-      return;
-    }
-
-    if (!listRef.current) {
-      return;
-    }
-
-    if (selectedIndex === undefined || selectedIndex < 0) {
+  const scrollSelectedRow = useCallback(() => {
+    if (
+      !is(open) ||
+      !listRef.current ||
+      selectedIndex === undefined ||
+      selectedIndex < 0
+    ) {
       return;
     }
 
     listRef.current.scrollToRow({ index: selectedIndex, align: "center" });
   }, [open, selectedIndex]);
+
+  useLayoutEffect(() => {
+    if (!is(open)) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      scrollSelectedRow();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [open, options.length, height, scrollSelectedRow]);
 
   const handleSelect = useCallback(
     (nextValue: T, option: IOption<T>) => {
@@ -198,10 +217,12 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     return (
       <List<ItemData<T>>
         className="menu-list"
+        defaultHeight={height}
         listRef={listRef}
+        onResize={scrollSelectedRow}
         rowComponent={is(multiLevel) ? MenuRowWithMultiLevels : MenuRow}
         rowCount={itemCount}
-        rowHeight={rowHeight}
+        rowHeight={listRowHeight}
         rowProps={itemData}
         style={{ height, width: "100%" }}
       />
