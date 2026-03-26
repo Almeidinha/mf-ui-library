@@ -435,6 +435,10 @@ type FocusableGridCell = {
   rowKey?: React.Key;
 };
 
+const EMPTY_FOCUSABLE_CELLS: FocusableGridCell[] = [];
+const EMPTY_FOCUSABLE_CELL_MAP = new Map<string, FocusableGridCell>();
+const EMPTY_SLOT_OWNER_MAP = new Map<string, string>();
+
 function getGridSlotKey(rowIndex: number, colIndex: number) {
   return `${rowIndex}:${colIndex}`;
 }
@@ -877,6 +881,10 @@ export function DataGrid<T extends Record<string, unknown>>(
   );
 
   const focusableCells = React.useMemo<FocusableGridCell[]>(() => {
+    if (!cellSelection) {
+      return EMPTY_FOCUSABLE_CELLS;
+    }
+
     const cells: FocusableGridCell[] = [];
 
     if (checkboxSelection) {
@@ -1013,6 +1021,7 @@ export function DataGrid<T extends Record<string, unknown>>(
 
     return cells;
   }, [
+    cellSelection,
     checkboxSelection,
     headerRowCount,
     hasGroupedHeaders,
@@ -1028,11 +1037,18 @@ export function DataGrid<T extends Record<string, unknown>>(
   ]);
 
   const focusableCellMap = React.useMemo(
-    () => new Map(focusableCells.map((cell) => [cell.key, cell])),
-    [focusableCells],
+    () =>
+      cellSelection
+        ? new Map(focusableCells.map((cell) => [cell.key, cell]))
+        : EMPTY_FOCUSABLE_CELL_MAP,
+    [cellSelection, focusableCells],
   );
 
   const slotOwnerMap = React.useMemo(() => {
+    if (!cellSelection) {
+      return EMPTY_SLOT_OWNER_MAP;
+    }
+
     const map = new Map<string, string>();
 
     focusableCells.forEach((cell) => {
@@ -1052,7 +1068,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     });
 
     return map;
-  }, [focusableCells]);
+  }, [cellSelection, focusableCells]);
 
   const totalGridRows = headerRowCount + Math.max(groupedBodyEntries.length, 1);
   const [activeCellKey, setActiveCellKey] = React.useState<string | null>(() =>

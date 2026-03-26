@@ -16,7 +16,7 @@ interface IMenuWrapperProps {
 }
 
 const MenuWrapper = styled.div<IMenuWrapperProps>`
-  z-index: 1;
+  z-index: 999;
   position: relative;
   background: ${Surface.Default.Default};
   top: ${({ $disableInlinePosition, ...props }) =>
