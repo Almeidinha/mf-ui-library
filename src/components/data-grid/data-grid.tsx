@@ -680,10 +680,10 @@ export function DataGrid<T extends Record<string, unknown>>(
 
   const gridWidth = isResponsive
     ? "100%"
-    : (toCssSize(tableWidth) ?? "max-content");
+    : toCssSize(tableWidth, "max-content");
   const gridMinWidth = isResponsive
-    ? toCssSize(minTableWidth)
-    : (toCssSize(minTableWidth) ?? `${computedColumnWidth}px`);
+    ? toCssSize(minTableWidth, "100%")
+    : toCssSize(minTableWidth, `${computedColumnWidth}px`);
   const headerScrollbarSpacer = hasBodyVerticalScrollbar
     ? HEADER_SCROLLBAR_SPACER
     : 0;
@@ -2188,10 +2188,7 @@ export function DataGrid<T extends Record<string, unknown>>(
           ref={headerScrollRef}
           onScroll={() => syncScrollLeft("header")}
         >
-          <GridSurface
-            $width={headerGridWidth}
-            $minWidth={headerGridMinWidth}
-          >
+          <GridSurface $width={headerGridWidth} $minWidth={headerGridMinWidth}>
             <GridHeader
               $templateColumns={headerGridTemplateColumns}
               $rowCount={headerRowCount}

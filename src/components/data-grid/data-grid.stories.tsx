@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker/locale/pt_BR";
 import type { Meta, StoryObj } from "@storybook/react";
 import { IconMinor } from "components/icon";
-import { Flex } from "components/layout";
+import { Box, Flex } from "components/layout";
 import { Label } from "components/typography";
 
 import { DataGrid } from "./data-grid";
@@ -879,7 +879,7 @@ export const Primary: Story = {
   },
   render: (args) => {
     return (
-      <Flex>
+      <Box>
         <DataGrid
           {...args}
           key={args.layoutMode === "responsive" ? "responsive" : "fixed"}
@@ -887,7 +887,7 @@ export const Primary: Story = {
           columns={columns}
           rowKey="id"
         />
-      </Flex>
+      </Box>
     );
   },
 };
@@ -993,7 +993,7 @@ export const OverflowModes: Story = {
     docs: {
       description: {
         story:
-          "Columns default to `overflow: \"ellipsis\"`. Use `overflow: \"wrap\"` for multi-line content or `overflow: \"visible\"` for custom cells that should not clip.",
+          'Columns default to `overflow: "ellipsis"`. Use `overflow: "wrap"` for multi-line content or `overflow: "visible"` for custom cells that should not clip.',
       },
     },
     controls: {
