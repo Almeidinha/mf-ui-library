@@ -435,6 +435,12 @@ const HeaderSortButton = styled(Button).attrs({
   width: 100%;
   min-width: 0;
   cursor: pointer;
+  &:focus {
+    outline: none;
+  }
+  &:focus {
+    background: transparent;
+  }
 `;
 
 const CellContent = styled.span<{

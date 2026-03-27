@@ -54,7 +54,7 @@ const OptionComponentImpl = <T,>({
       className={composedClassName}
       data-role="option"
       align="center"
-      state={getOptionState(active, selected)}
+      $state={getOptionState(active, selected)}
       height={height}
       onClick={onClick}
     >

@@ -80,9 +80,6 @@ const PageSelectorContainer = styled(Select)`
     border-radius: 6px 0px 0px 6px;
     border-right: 0;
   }
-  & .menu-list {
-    height: auto !important;
-  }
 `;
 
 export const Pagination = ({

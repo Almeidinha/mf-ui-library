@@ -8,23 +8,24 @@ import styled from "styled-components";
 import { DEFAULT_ROW_HEIGHT, menuPositionType } from "../types";
 
 interface IOptionItemProps {
-  state?: "default" | "active" | "selected";
+  $state?: "default" | "active" | "selected";
   height?: number;
 }
 
 export const OptionItem = styled(Flex).attrs({
   justify: "space-between",
+  className: "option-item",
 })<IOptionItemProps>`
   height: ${({ height = DEFAULT_ROW_HEIGHT }) => height}px;
   min-width: 0;
   cursor: pointer;
   box-sizing: border-box;
-  margin: ${Margin.xxs};
-  border-radius: 4px;
+  padding: ${Padding.xxxs} ${Padding.xxs};
+  border-radius: 8px;
   background-clip: content-box;
 
-  background-color: ${({ state }) => {
-    switch (state) {
+  background-color: ${({ $state }) => {
+    switch ($state) {
       case "active":
         return Surface.Selected.Default;
       case "selected":
@@ -39,8 +40,8 @@ export const OptionItem = styled(Flex).attrs({
   }
 
   &:hover {
-    background-color: ${({ state }) => {
-      switch (state) {
+    background-color: ${({ $state }) => {
+      switch ($state) {
         case "active":
           return Surface.Selected.Hover;
         case "selected":
@@ -52,8 +53,8 @@ export const OptionItem = styled(Flex).attrs({
   }
 
   &:active {
-    background-color: ${({ state }) => {
-      switch (state) {
+    background-color: ${({ $state }) => {
+      switch ($state) {
         case "active":
           return Surface.Selected.Pressed;
         case "selected":

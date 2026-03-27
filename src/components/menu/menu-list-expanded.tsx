@@ -1,5 +1,6 @@
 import { Borders, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
+import { Padding } from "foundation/spacing";
 import { isNilOrEmpty, safeArray } from "helpers/safe-navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
@@ -12,6 +13,7 @@ export const MenuListFrame = styled.div<{ height?: number }>`
   border: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Default};
   height: ${({ height }) => height}px;
+  padding: ${Padding.xxs} ${Padding.none};
   max-height: ${({ height }) => height}px;
   width: -moz-available;
   width: -webkit-fill-available;
@@ -75,7 +77,7 @@ export const MenuListExpanded = <T,>({
   const baseOptions = useMemo(() => safeArray(options), [options]);
 
   const height = useMemo(() => {
-    const fallback = baseOptions.length * ROW_HEIGHT + 2;
+    const fallback = baseOptions.length * ROW_HEIGHT;
     return menuHeight ?? fallback;
   }, [menuHeight, baseOptions.length]);
 

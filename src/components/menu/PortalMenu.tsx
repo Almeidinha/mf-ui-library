@@ -1,13 +1,7 @@
 import { IOption } from "components/select";
 import { Slide } from "components/transitions";
 import { useRepositionOnScroll } from "hooks";
-import React, {
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
@@ -88,11 +82,6 @@ export const PortalMenu = ({
     top: viewportPadding,
     left: viewportPadding,
   }));
-
-  const computedMenuHeight = useMemo(() => {
-    const h = items.length * ROW_HEIGHT + 4;
-    return menuHeight ?? h;
-  }, [items.length, menuHeight]);
 
   const updatePosition = useCallback(() => {
     if (!open) {
@@ -187,7 +176,8 @@ export const PortalMenu = ({
           value={[]}
           emptyText={emptyText ?? ""}
           multi={multi ?? true}
-          menuHeight={computedMenuHeight}
+          rowHeight={ROW_HEIGHT}
+          menuHeight={menuHeight}
           invalid={invalid ?? false}
           open={open}
           search={search ?? ""}

@@ -74,7 +74,7 @@ const OptionMultiLevelComponentImp = <T,>({
       className={composeClassName}
       data-role="option"
       align="center"
-      state={getOptionState(active, selected)}
+      $state={getOptionState(active, selected)}
       height={height}
       onClick={onClick}
     >

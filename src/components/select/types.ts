@@ -234,7 +234,7 @@ export interface IMenuRowProps<T> {
 
 export type OptionItemState = "default" | "active" | "selected";
 
-export const DEFAULT_ROW_HEIGHT = 38;
+export const DEFAULT_ROW_HEIGHT = 42;
 export const DEFAULT_MENU_HEIGHT = 190;
 export const DEFAULT_EMPTY_TEXT = "No results found";
 export const DEFAULT_PLACEHOLDER = "Select Something";

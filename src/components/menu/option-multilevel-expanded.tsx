@@ -3,6 +3,7 @@ import { Flex } from "components/layout";
 import { Slide } from "components/transitions";
 import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
+import { Padding } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import { clamp } from "helpers/numbers";
 import { isNilOrEmpty, safeArray } from "helpers/safe-navigation";
@@ -52,6 +53,7 @@ const PortalMenuFrame = styled.div<{
 }>`
   border: 1px solid ${Borders.Default.Muted};
   border-radius: 5px;
+  padding: ${Padding.xxs} ${Padding.none};
   box-sizing: border-box;
   background-color: ${Surface.Default.Default};
   position: fixed;
@@ -178,7 +180,7 @@ const OptionMultiLevelExpandedComponentImpl = <T,>({
         ref={anchorRef}
         data-role="option"
         align="center"
-        state={getOptionState(active, selected)}
+        $state={getOptionState(active, selected)}
         height={height}
         onClick={onClick}
       >

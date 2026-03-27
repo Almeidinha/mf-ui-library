@@ -15,13 +15,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { List } from "react-window";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import styled from "styled-components";
 
 import {
   DEFAULT_EMPTY_TEXT,
   DEFAULT_MENU_HEIGHT,
   DEFAULT_ROW_HEIGHT,
+  IMenuRowProps,
   IOption,
   ItemData,
   labelPositionType,
@@ -39,15 +40,6 @@ const MenuPanel = styled.div`
   width: 100%;
   left: 0;
 `;
-
-type MenuListRef = {
-  readonly element: HTMLDivElement | null;
-  scrollToRow: (config: {
-    index: number;
-    align?: "auto" | "center" | "end" | "smart" | "start";
-    behavior?: "auto" | "instant" | "smooth";
-  }) => void;
-};
 
 // eslint-disable-next-line comma-spacing
 export const Menu = <T,>(props: MenuComponentProps<T>) => {
@@ -85,10 +77,24 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     safeArray(propOptions),
   );
 
-  const listRef = useRef<MenuListRef | null>(null);
-  const listRowHeight = rowHeight + 4 * 2;
-  const contentHeight = options.length * listRowHeight;
-  const height = clamp(contentHeight, listRowHeight, menuHeight);
+  const listRef = useRef<VirtuosoHandle | null>(null);
+
+  const contentHeight = options.length * rowHeight + 2;
+  const height = clamp(contentHeight, rowHeight, menuHeight);
+  const itemCount = options.length;
+  const initialItemCount = Math.min(
+    itemCount,
+    Math.max(Math.ceil(height / rowHeight) + 2, 1),
+  );
+
+  console.log("height", height, contentHeight, rowHeight);
+  const initialTopMostItemIndex = useMemo(() => {
+    if (!is(open) || selectedIndex === undefined || selectedIndex < 0) {
+      return 0;
+    }
+
+    return { index: selectedIndex, align: "center" as const };
+  }, [open, selectedIndex]);
 
   useEffect(() => {
     setOptions(safeArray(propOptions));
@@ -104,7 +110,11 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
       return;
     }
 
-    listRef.current.scrollToRow({ index: selectedIndex, align: "center" });
+    listRef.current.scrollToIndex({
+      index: selectedIndex,
+      align: "center",
+      behavior: "auto",
+    });
   }, [open, selectedIndex]);
 
   useLayoutEffect(() => {
@@ -195,9 +205,39 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     ],
   );
 
-  const renderList = () => {
-    const itemCount = options.length;
+  const getItemKey = useCallback(
+    (index: number, option?: IOption<T>) =>
+      option
+        ? `${is(option.isParent) ? "parent" : "option"}-${getOptionKey(option.value)}-${index}`
+        : index,
+    [getOptionKey],
+  );
 
+  const renderMenuRow = useCallback(
+    (index: number, option?: IOption<T>) => {
+      if (!option) {
+        return null;
+      }
+
+      const rowProps: IMenuRowProps<T> = {
+        index,
+        data: itemData,
+        style: {
+          height: rowHeight,
+          boxSizing: "border-box",
+        },
+      };
+
+      return is(multiLevel) ? (
+        <MenuRowWithMultiLevels {...rowProps} />
+      ) : (
+        <MenuRow {...rowProps} />
+      );
+    },
+    [itemData, rowHeight, multiLevel],
+  );
+
+  const renderList = () => {
     if (isDefined(MenuComponent)) {
       return <MenuComponent {...props} options={options} />;
     }
@@ -213,15 +253,15 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     }
 
     return (
-      <List<ItemData<T>>
+      <Virtuoso<IOption<T>>
         className="menu-list"
-        defaultHeight={height}
-        listRef={listRef}
-        onResize={scrollSelectedRow}
-        rowComponent={is(multiLevel) ? MenuRowWithMultiLevels : MenuRow}
-        rowCount={itemCount}
-        rowHeight={listRowHeight}
-        rowProps={itemData}
+        ref={listRef}
+        data={options}
+        fixedItemHeight={rowHeight}
+        initialItemCount={initialItemCount}
+        initialTopMostItemIndex={initialTopMostItemIndex}
+        computeItemKey={getItemKey}
+        itemContent={renderMenuRow}
         style={{ height, width: "100%" }}
       />
     );

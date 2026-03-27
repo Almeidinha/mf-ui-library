@@ -20,7 +20,7 @@ export const HTMLAnchor = styled.a<{
     color: var(--icon-color);
   }
 
-  ${({ $disabled, $interactionColor }) =>
+  ${({ $disabled, $interactionColor, $pressedColor }) =>
     !$disabled &&
     css`
       &:hover {
@@ -30,7 +30,7 @@ export const HTMLAnchor = styled.a<{
 
       &:active {
         text-decoration: underline;
-        color: ${({ $pressedColor }) => $pressedColor};
+        color: ${$pressedColor};
       }
     `}
 `;

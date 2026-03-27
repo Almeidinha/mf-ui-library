@@ -1,7 +1,6 @@
 import { JSX } from "react";
-import { RowComponentProps } from "react-window";
 
-import { ItemData } from "../types";
+import { IMenuRowProps } from "../types";
 import { OptionComponent } from "./option";
 import { OptionMultiLevelComponent } from "./option-multiLevel";
 
@@ -9,11 +8,10 @@ import { OptionMultiLevelComponent } from "./option-multiLevel";
 // but for now we will keep them for better readability and separation of concerns.
 // eslint-disable-next-line comma-spacing
 const MenuRowInner = <T,>({
-  ariaAttributes,
   index,
   style,
-  ...data
-}: RowComponentProps<ItemData<T>>) => {
+  data,
+}: IMenuRowProps<T>) => {
   const {
     options,
     labelComponent,
@@ -28,7 +26,7 @@ const MenuRowInner = <T,>({
   const option = options[index];
 
   return (
-    <div style={style} {...ariaAttributes}>
+    <div style={style}>
       <OptionComponent<T>
         option={option}
         labelComponent={labelComponent}
@@ -45,16 +43,15 @@ const MenuRowInner = <T,>({
 };
 
 export const MenuRow = MenuRowInner as <T>(
-  props: RowComponentProps<ItemData<T>>,
+  props: IMenuRowProps<T>,
 ) => JSX.Element;
 
 // eslint-disable-next-line comma-spacing
 const MenuRowWithMultiLevelsInner = <T,>({
-  ariaAttributes,
   index,
   style,
-  ...data
-}: RowComponentProps<ItemData<T>>) => {
+  data,
+}: IMenuRowProps<T>) => {
   const {
     value,
     options,
@@ -71,7 +68,7 @@ const MenuRowWithMultiLevelsInner = <T,>({
   const option = options[index];
 
   return (
-    <div style={style} {...ariaAttributes}>
+    <div style={style}>
       <OptionMultiLevelComponent<T>
         option={option}
         labelComponent={labelComponent}
@@ -90,5 +87,5 @@ const MenuRowWithMultiLevelsInner = <T,>({
 };
 
 export const MenuRowWithMultiLevels = MenuRowWithMultiLevelsInner as <T>(
-  props: RowComponentProps<ItemData<T>>,
+  props: IMenuRowProps<T>,
 ) => JSX.Element;
