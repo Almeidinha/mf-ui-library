@@ -554,6 +554,61 @@ describe("DataGrid accessibility", () => {
     );
   });
 
+  it("sorts when clicking anywhere on a sortable header cell", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+      />,
+    );
+
+    await user.click(screen.getByRole("columnheader", { name: "Name" }));
+
+    expect(screen.getAllByRole("gridcell")[0]).toHaveTextContent("Alice");
+    expect(screen.getByRole("columnheader", { name: "Name" })).toHaveAttribute(
+      "aria-sort",
+      "ascending",
+    );
+  });
+
+  it("sorts grouped leaf headers when clicking the full header cell", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={groupedColumns}
+        rowKey="id"
+        paginated={false}
+        searchable={false}
+        columnGroups={[
+          {
+            key: "identity",
+            headerName: "Identity",
+            fields: ["name"],
+          },
+          {
+            key: "geography",
+            headerName: "Geography",
+            fields: ["country", "state", "city"],
+          },
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("columnheader", { name: "Country" }));
+
+    expect(screen.getAllByRole("gridcell")[1]).toHaveTextContent("Brazil");
+    expect(
+      screen.getByRole("columnheader", { name: "Country" }),
+    ).toHaveAttribute("aria-sort", "ascending");
+  });
+
   it("supports keyboard opening row actions", async () => {
     const user = userEvent.setup();
 

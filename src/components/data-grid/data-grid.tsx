@@ -434,7 +434,11 @@ const HeaderSortButton = styled(Button).attrs({
   gap: ${Padding.xs};
   width: 100%;
   min-width: 0;
-  cursor: pointer;
+  cursor: inherit;
+  &,
+  & * {
+    cursor: inherit;
+  }
   &:focus {
     outline: none;
   }
@@ -2129,7 +2133,11 @@ export function DataGrid<T extends Record<string, unknown>>(
               gridRow: toGridSpan(1),
               ...stickyStyle,
               background: Surface.Default.Muted,
+              cursor: sortable ? "pointer" : undefined,
             }}
+            onClick={
+              sortable ? () => toggleSort(field, sortable) : undefined
+            }
             aria-sort={
               sortable
                 ? currentSort === "ASC"
@@ -2141,7 +2149,7 @@ export function DataGrid<T extends Record<string, unknown>>(
             }
           >
             {sortable ? (
-              <HeaderSortButton onClick={() => toggleSort(field, sortable)}>
+              <HeaderSortButton>
                 <HeaderSortContent $textAlign={textAlign}>
                   <CellContent $textAlign={textAlign}>
                     {typeof column.headerName === "string" ? (
@@ -2218,7 +2226,11 @@ export function DataGrid<T extends Record<string, unknown>>(
                 gridRow: toGridSpan(rowIndex + 1, cell.rowSpan),
                 ...stickyStyle,
                 background: Surface.Default.Muted,
+                cursor: sortable ? "pointer" : undefined,
               }}
+              onClick={
+                sortable ? () => toggleSort(field, sortable) : undefined
+              }
               aria-sort={
                 sortable
                   ? currentSort === "ASC"
@@ -2230,7 +2242,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               }
             >
               {sortable ? (
-                <HeaderSortButton onClick={() => toggleSort(field, sortable)}>
+                <HeaderSortButton>
                   <HeaderSortContent $textAlign={textAlign}>
                     <CellContent $textAlign={textAlign}>
                       {typeof column.headerName === "string" ? (
