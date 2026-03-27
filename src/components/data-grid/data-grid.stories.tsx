@@ -186,7 +186,7 @@ const columns: DataGridColumn<PersonRow>[] = [
   {
     field: "age",
     headerName: "Age",
-    width: 70,
+    width: 80,
     sortable: true,
     align: "right",
   },

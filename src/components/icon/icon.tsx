@@ -40,10 +40,6 @@ const Svg = styled.svg`
   height: 100%;
   display: block;
   fill: none;
-
-  path {
-    fill: currentColor;
-  }
 `;
 
 const MfUIIcon = forwardRef<HTMLElement, IconProperties>(
@@ -250,4 +246,8 @@ export const IconMinor = {
   Xmark: makeIconComponent(IconListMinor["xmark"], true),
   Youtube: makeIconComponent(IconListMinor["youtube"], true),
   VirusCovid: makeIconComponent(IconListMinor["virus-covid"], true),
+  Sort: makeIconComponent(IconListMinor["sort"], true),
+  SortAlt: makeIconComponent(IconListMinor["sort-alt"], true),
+  SortDown: makeIconComponent(IconListMinor["sort-down"], true),
+  SortUp: makeIconComponent(IconListMinor["sort-up"], true),
 };

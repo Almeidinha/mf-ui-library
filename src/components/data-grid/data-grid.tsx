@@ -51,7 +51,10 @@ import {
   isActionsColumn,
 } from "../data-table/dataTable.shared";
 import { DataTableColumnManager } from "../data-table/DataTableColumnManager";
-import type { DataTableRegularColumn } from "../data-table/types";
+import type {
+  DataTableRegularColumn,
+  SortDirection,
+} from "../data-table/types";
 import { useDataTable } from "../data-table/useDataTable";
 import {
   type ResolvedBodyCell,
@@ -586,6 +589,12 @@ function addScrollbarSpacerToSize(size: string, spacer: number) {
 
   return `calc(${size} + ${spacer}px)`;
 }
+
+const HEADER_ICON: Record<SortDirection, ComponentType> = {
+  ASC: IconMinor.SortDown,
+  DESC: IconMinor.SortUp,
+  NONE: IconMinor.Sort,
+};
 
 function getGridSlotKey(rowIndex: number, colIndex: number) {
   return `${rowIndex}:${colIndex}`;
@@ -2135,9 +2144,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               background: Surface.Default.Muted,
               cursor: sortable ? "pointer" : undefined,
             }}
-            onClick={
-              sortable ? () => toggleSort(field, sortable) : undefined
-            }
+            onClick={sortable ? () => toggleSort(field, sortable) : undefined}
             aria-sort={
               sortable
                 ? currentSort === "ASC"
@@ -2149,9 +2156,10 @@ export function DataGrid<T extends Record<string, unknown>>(
             }
           >
             {sortable ? (
-              <HeaderSortButton>
+              <HeaderSortButton IconSuffix={HEADER_ICON[currentSort!]}>
                 <HeaderSortContent $textAlign={textAlign}>
                   <CellContent $textAlign={textAlign}>
+                    ß
                     {typeof column.headerName === "string" ? (
                       <Label strong muted>
                         {column.headerName}
@@ -2160,14 +2168,6 @@ export function DataGrid<T extends Record<string, unknown>>(
                       (column.headerName ?? "")
                     )}
                   </CellContent>
-                  <If is={isDefined(currentSort) && currentSort !== "NONE"}>
-                    <TransformIconWrapper
-                      $rotate={currentSort === "DESC"}
-                      aria-hidden="true"
-                    >
-                      <IconMinor.ChevronDownSolid />
-                    </TransformIconWrapper>
-                  </If>
                 </HeaderSortContent>
               </HeaderSortButton>
             ) : typeof column.headerName === "string" ? (
@@ -2228,9 +2228,7 @@ export function DataGrid<T extends Record<string, unknown>>(
                 background: Surface.Default.Muted,
                 cursor: sortable ? "pointer" : undefined,
               }}
-              onClick={
-                sortable ? () => toggleSort(field, sortable) : undefined
-              }
+              onClick={sortable ? () => toggleSort(field, sortable) : undefined}
               aria-sort={
                 sortable
                   ? currentSort === "ASC"
@@ -2242,7 +2240,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               }
             >
               {sortable ? (
-                <HeaderSortButton>
+                <HeaderSortButton IconSuffix={HEADER_ICON[currentSort!]}>
                   <HeaderSortContent $textAlign={textAlign}>
                     <CellContent $textAlign={textAlign}>
                       {typeof column.headerName === "string" ? (
@@ -2253,14 +2251,6 @@ export function DataGrid<T extends Record<string, unknown>>(
                         (column.headerName ?? "")
                       )}
                     </CellContent>
-                    <If is={isDefined(currentSort) && currentSort !== "NONE"}>
-                      <TransformIconWrapper
-                        $rotate={currentSort === "DESC"}
-                        aria-hidden="true"
-                      >
-                        <IconMinor.ChevronDownSolid />
-                      </TransformIconWrapper>
-                    </If>
                   </HeaderSortContent>
                 </HeaderSortButton>
               ) : typeof column.headerName === "string" ? (
