@@ -8,6 +8,13 @@ import React, { useCallback, useMemo, useState } from "react";
 
 import { getColumnId, isActionsColumn } from "./dataTable.shared";
 import {
+  isAdvancedFilterComplete,
+  isAdvancedFilterValueRequired,
+  matchesAdvancedFilterValue,
+  normalizeAdvancedFilterValue,
+} from "./dataTableAdvancedFilters.shared";
+import {
+  DataTableAdvancedFilter,
   DataTableColumn,
   DataTableColumnVisibility,
   DataTablePin,
@@ -76,16 +83,7 @@ function getColumnRawValue<T extends Record<string, unknown>>(
 }
 
 function normalizeSearchValue(value: unknown) {
-  if (value == null) {
-    return "";
-  }
-  if (typeof value === "string") {
-    return value.toLowerCase();
-  }
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value).toLowerCase();
-  }
-  return "";
+  return normalizeAdvancedFilterValue(value);
 }
 
 function buildDefaultVisibility<T extends Record<string, unknown>>(
@@ -255,6 +253,9 @@ export function useDataTable<T extends Record<string, unknown>>(
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, searchDebounce);
+  const [advancedFilters, setAdvancedFilters] = useState<
+    DataTableAdvancedFilter[]
+  >([]);
 
   const [internalSortField, setInternalSortField] = useState<string | null>(
     null,
@@ -537,25 +538,112 @@ export function useDataTable<T extends Record<string, unknown>>(
     }));
   }, [rows, searchable, searchableColumns]);
 
+  const searchableColumnById = useMemo(
+    () =>
+      new Map(searchableColumns.map((column) => [getColumnId(column), column])),
+    [searchableColumns],
+  );
+
+  const searchableRowMap = useMemo(
+    () =>
+      searchableRows
+        ? new Map(searchableRows.map(({ row, searchText }) => [row, searchText]))
+        : null,
+    [searchableRows],
+  );
+
+  const searchableFieldSet = useMemo(
+    () => new Set(searchableColumns.map(getColumnId)),
+    [searchableColumns],
+  );
+
+  const activeAdvancedFilters = useMemo(
+    () =>
+      advancedFilters.filter((filter) =>
+        isAdvancedFilterComplete(filter, searchableFieldSet),
+      ),
+    [advancedFilters, searchableFieldSet],
+  );
+
+  const compiledAdvancedFilters = useMemo(
+    () =>
+      activeAdvancedFilters
+        .map((filter) => {
+          const column = searchableColumnById.get(filter.field);
+
+          if (!column) {
+            return null;
+          }
+
+          return {
+            ...filter,
+            column,
+            normalizedQuery: isAdvancedFilterValueRequired(filter.operator)
+              ? normalizeAdvancedFilterValue(filter.value)
+              : "",
+          };
+        })
+        .filter(Boolean) as Array<
+        DataTableAdvancedFilter & {
+          column: DataTableRegularColumn<T>;
+          normalizedQuery: string;
+        }
+      >,
+    [activeAdvancedFilters, searchableColumnById],
+  );
+
   const filteredRows = useMemo(() => {
-    if (!searchable) {
+    const hasQuery = searchable && debouncedSearch.trim().length > 0;
+    const hasAdvancedFilters = compiledAdvancedFilters.length > 0;
+
+    if (!hasQuery && !hasAdvancedFilters) {
       return rows;
+    }
+
+    if (hasQuery && !searchableRowMap) {
+      return [];
     }
 
     const query = debouncedSearch.trim().toLowerCase();
 
-    if (!query) {
-      return rows;
-    }
+    return rows.filter((row) => {
+      if (hasQuery) {
+        const searchText = searchableRowMap?.get(row);
 
-    if (!searchableRows) {
-      return [];
-    }
+        if (!searchText?.includes(query)) {
+          return false;
+        }
+      }
 
-    return searchableRows
-      .filter(({ searchText }) => searchText.includes(query))
-      .map(({ row }) => row);
-  }, [rows, searchable, debouncedSearch, searchableRows]);
+      if (!hasAdvancedFilters) {
+        return true;
+      }
+
+      return compiledAdvancedFilters.reduce<boolean>((matches, filter, index) => {
+        const rawValue = getColumnRawValue(row, filter.column);
+        const normalizedValue = normalizeAdvancedFilterValue(rawValue);
+        const nextMatch = matchesAdvancedFilterValue(
+          normalizedValue,
+          filter.operator,
+          filter.normalizedQuery,
+        );
+
+        if (index === 0) {
+          return nextMatch;
+        }
+
+        return filter.connector === "or"
+          ? matches || nextMatch
+          : matches && nextMatch;
+      }, true);
+    });
+  }, [
+    rows,
+    searchable,
+    debouncedSearch,
+    searchableRowMap,
+    compiledAdvancedFilters,
+  ]);
 
   const sortedRows = useMemo(() => {
     if (!sortField || sortDirection === "NONE") {
@@ -675,6 +763,9 @@ export function useDataTable<T extends Record<string, unknown>>(
   return {
     search,
     setSearch,
+    advancedFilters,
+    setAdvancedFilters,
+    searchableColumns,
 
     sortField,
     sortDirection,

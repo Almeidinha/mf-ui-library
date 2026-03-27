@@ -18,6 +18,7 @@ import { Gap, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
 import { If } from "helpers/nothing";
+import { is } from "helpers/safe-navigation";
 import { SortDirection } from "helpers/table-helpers";
 import { useMergedRefs, useOnClickOutside } from "hooks";
 import {
@@ -51,6 +52,7 @@ import {
   getTextAlign,
   isActionsColumn,
 } from "../data-table/dataTable.shared";
+import { DataTableAdvancedFilters } from "../data-table/DataTableAdvancedFilters";
 import { DataTableColumnManager } from "../data-table/DataTableColumnManager";
 import {
   getDataTableCellPadding,
@@ -612,6 +614,16 @@ const HEADER_ICON: Record<SortDirection, ComponentType> = {
   DESC: IconMinor.SortUp,
   NONE: IconMinor.Sort,
 };
+
+function renderHeaderSortIcon(direction: SortDirection) {
+  const SortIcon = HEADER_ICON[direction];
+
+  return (
+    <TransformIconWrapper aria-hidden="true">
+      <SortIcon />
+    </TransformIconWrapper>
+  );
+}
 
 function GridActionsCell<T extends Record<string, unknown>>({
   actions,
@@ -1271,6 +1283,9 @@ export function DataGrid<T extends Record<string, unknown>>(
   const {
     search,
     setSearch,
+    advancedFilters,
+    setAdvancedFilters,
+    searchableColumns,
     sortField,
     sortDirection,
     toggleSort,
@@ -2174,7 +2189,7 @@ export function DataGrid<T extends Record<string, unknown>>(
             }
           >
             {sortable ? (
-              <HeaderSortButton IconSuffix={HEADER_ICON[currentSort!]}>
+              <HeaderSortButton>
                 <HeaderSortContent $textAlign={textAlign}>
                   <CellContent $textAlign={textAlign}>
                     {typeof column.headerName === "string" ? (
@@ -2185,6 +2200,7 @@ export function DataGrid<T extends Record<string, unknown>>(
                       (column.headerName ?? "")
                     )}
                   </CellContent>
+                  {renderHeaderSortIcon(currentSort ?? "NONE")}
                 </HeaderSortContent>
               </HeaderSortButton>
             ) : typeof column.headerName === "string" ? (
@@ -2257,7 +2273,7 @@ export function DataGrid<T extends Record<string, unknown>>(
               }
             >
               {sortable ? (
-                <HeaderSortButton IconSuffix={HEADER_ICON[currentSort!]}>
+                <HeaderSortButton>
                   <HeaderSortContent $textAlign={textAlign}>
                     <CellContent $textAlign={textAlign}>
                       {typeof column.headerName === "string" ? (
@@ -2268,6 +2284,7 @@ export function DataGrid<T extends Record<string, unknown>>(
                         (column.headerName ?? "")
                       )}
                     </CellContent>
+                    {renderHeaderSortIcon(currentSort ?? "NONE")}
                   </HeaderSortContent>
                 </HeaderSortButton>
               ) : typeof column.headerName === "string" ? (
@@ -2665,31 +2682,42 @@ export function DataGrid<T extends Record<string, unknown>>(
     <GridContainer ref={mergedContainerRef} style={gridCssVariables}>
       <If is={searchable || manageColumns}>
         <GridSibling gap={Gap.m}>
-          {searchable ? (
-            <InputText
-              value={search}
-              onChange={setSearch}
-              placeholder={searchPlaceholder}
-            />
-          ) : null}
+          <Flex align="center" gap={Gap.xs}>
+            <If is={searchable}>
+              <InputText
+                value={search}
+                onChange={setSearch}
+                placeholder={searchPlaceholder}
+              />
+            </If>
+          </Flex>
 
-          <If is={manageColumns}>
-            <DataTableColumnManager
-              columns={columns}
-              columnVisibility={columnVisibility}
-              toggleColumnVisibility={toggleColumnVisibility}
-              resetColumnVisibility={resetColumnVisibility}
-              pinnedColumns={pinnedColumns}
-              pinColumn={pinColumn}
-              resetPinnedColumns={resetPinnedColumns}
-              columnOrder={columnOrder}
-              setColumnOrder={setColumnOrder}
-              resetColumnOrder={resetColumnOrder}
-              mode={mode}
-              showBackdrop={showBackdrop}
-              inlineContainerRef={tableAreaRef}
-            />
-          </If>
+          <Flex align="center" gap={Gap.xs}>
+            <If is={is(searchable && searchableColumns?.length > 0)}>
+              <DataTableAdvancedFilters
+                searchableColumns={searchableColumns}
+                filters={advancedFilters}
+                onChange={setAdvancedFilters}
+              />
+            </If>
+            <If is={manageColumns}>
+              <DataTableColumnManager
+                columns={columns}
+                columnVisibility={columnVisibility}
+                toggleColumnVisibility={toggleColumnVisibility}
+                resetColumnVisibility={resetColumnVisibility}
+                pinnedColumns={pinnedColumns}
+                pinColumn={pinColumn}
+                resetPinnedColumns={resetPinnedColumns}
+                columnOrder={columnOrder}
+                setColumnOrder={setColumnOrder}
+                resetColumnOrder={resetColumnOrder}
+                mode={mode}
+                showBackdrop={showBackdrop}
+                inlineContainerRef={tableAreaRef}
+              />
+            </If>
+          </Flex>
         </GridSibling>
       </If>
 

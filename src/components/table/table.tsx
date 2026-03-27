@@ -20,6 +20,7 @@ import { Typography } from "foundation/typography";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { If, Nothing } from "helpers/nothing";
 import { is, isDefined, isString } from "helpers/safe-navigation";
+import { SortDirection } from "helpers/table-helpers";
 import {
   Children,
   cloneElement,
@@ -38,6 +39,7 @@ import {
   getDataTableHeaderDividerInset,
 } from "../data-table/dataTableSizing";
 import type { DataTableSize } from "../data-table/types";
+import { TransformIconWrapper } from "../shared-styled-components";
 
 type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate"> & {
   dividerRight?: boolean;
@@ -299,6 +301,22 @@ const SortButton = styled(Button).attrs({
   cursor: pointer;
 `;
 
+const HEADER_ICON: Record<SortDirection, ComponentType> = {
+  ASC: IconMinor.SortDown,
+  DESC: IconMinor.SortUp,
+  NONE: IconMinor.Sort,
+};
+
+function renderHeaderSortIcon(direction: SortDirection) {
+  const SortIcon = HEADER_ICON[direction];
+
+  return (
+    <TransformIconWrapper aria-hidden="true">
+      <SortIcon />
+    </TransformIconWrapper>
+  );
+}
+
 function isTDActionElement(
   child: unknown,
 ): child is ReactElement<TableBodyActionProps> {
@@ -314,8 +332,6 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
   children,
   ...htmlProps
 }) {
-  const isSorted = isDefined(sort) && sort !== "NONE";
-  const isSortedDesc = sort === "DESC";
   const cssVariables: TableCssVariables = {
     "--data-table-cell-padding": getDataTableCellPadding(size),
     "--data-table-header-divider-inset": getDataTableHeaderDividerInset(size),
@@ -330,15 +346,7 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
       ) : (
         children
       )}
-      {isSorted ? (
-        isSortedDesc ? (
-          <IconMinor.ChevronDownSolid />
-        ) : (
-          <IconMinor.ChevronUpSolid />
-        )
-      ) : (
-        <Nothing />
-      )}
+      {isDefined(sort) ? renderHeaderSortIcon(sort) : <Nothing />}
     </Flex>
   );
 

@@ -324,6 +324,59 @@ describe("DataGrid accessibility", () => {
     expect(styles.whiteSpace).toBe("normal");
   });
 
+  it("supports advanced filters with add, connector, and remove actions", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DataGrid
+        rows={rows}
+        columns={groupedColumns}
+        rowKey="id"
+        paginated={false}
+        searchable
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Advanced filters" }),
+    );
+
+    await user.selectOptions(
+      screen.getByLabelText("Filter 1 column"),
+      "name",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Filter 1 operator"),
+      "contains",
+    );
+    await user.type(screen.getByLabelText("Filter 1 value"), "ali");
+
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.queryByText("Bruno")).not.toBeInTheDocument();
+    expect(screen.queryByText("Carla")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Add filter" }));
+    await user.selectOptions(screen.getByLabelText("Filter 2 connector"), "or");
+    await user.selectOptions(
+      screen.getByLabelText("Filter 2 column"),
+      "country",
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Filter 2 operator"),
+      "contains",
+    );
+    await user.type(screen.getByLabelText("Filter 2 value"), "united");
+
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Carla")).toBeInTheDocument();
+    expect(screen.queryByText("Bruno")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Remove filter 1" }));
+
+    expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+    expect(screen.getByText("Carla")).toBeInTheDocument();
+  });
+
   it("does not have accessibility violations in an interactive grouped state", async () => {
     const { container } = render(
       <DataGrid

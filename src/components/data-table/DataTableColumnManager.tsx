@@ -8,6 +8,7 @@ import { Label } from "components/typography";
 import { Background, Borders, Surface } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
 import { toCssSize } from "helpers/css-helpers";
+import { If } from "helpers/nothing";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
 import { useWindowEvent } from "hooks/useWindowEvent";
 import React, {
@@ -160,7 +161,7 @@ const InlineDrawer = styled.aside<{
 `;
 
 const Header = styled.div`
-  padding: ${Padding.s};
+  padding: ${Padding.xs};
   border-bottom: 1px solid ${Borders.Default.Default};
   position: sticky;
   top: 0;
@@ -883,12 +884,12 @@ export function DataTableColumnManager<T extends Record<string, unknown>>({
       </Overlay>
     ) : (
       <>
-        {resolvedShowBackdrop ? (
+        <If is={resolvedShowBackdrop}>
           <InlineBackdrop
             aria-label="Close column manager"
             onClick={closeManager}
           />
-        ) : null}
+        </If>
 
         <InlineDrawer
           ref={drawerRef}

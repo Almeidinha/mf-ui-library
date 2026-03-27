@@ -32,6 +32,7 @@ import {
   getTextAlign,
   isActionsColumn,
 } from "./dataTable.shared";
+import { DataTableAdvancedFilters } from "./DataTableAdvancedFilters";
 import { DataTableColumnManager } from "./DataTableColumnManager";
 import {
   getDataTableCellPadding,
@@ -168,6 +169,9 @@ export function DataTable<T extends Record<string, unknown>>(
   const {
     search,
     setSearch,
+    advancedFilters,
+    setAdvancedFilters,
+    searchableColumns,
 
     sortField,
     sortDirection,
@@ -482,31 +486,43 @@ export function DataTable<T extends Record<string, unknown>>(
     <TableContainer ref={tableAreaRef} style={tableCssVariables}>
       <If is={searchable || manageColumns}>
         <TableSibling gap={Gap.m}>
-          <If is={searchable}>
-            <InputText
-              value={search}
-              onChange={setSearch}
-              placeholder={searchPlaceholder}
-            />
-          </If>
+          <Flex align="center" gap={Gap.xs}>
+            <If is={searchable}>
+              <InputText
+                value={search}
+                onChange={setSearch}
+                placeholder={searchPlaceholder}
+              />
+            </If>
 
-          <If is={manageColumns}>
-            <DataTableColumnManager
-              columns={columns}
-              columnVisibility={columnVisibility}
-              toggleColumnVisibility={toggleColumnVisibility}
-              resetColumnVisibility={resetColumnVisibility}
-              pinnedColumns={pinnedColumns}
-              pinColumn={pinColumn}
-              resetPinnedColumns={resetPinnedColumns}
-              columnOrder={columnOrder}
-              setColumnOrder={setColumnOrder}
-              resetColumnOrder={resetColumnOrder}
-              mode={mode}
-              showBackdrop={showBackdrop}
-              inlineContainerRef={tableAreaRef}
-            />
-          </If>
+            <If is={Boolean(searchable && searchableColumns.length > 0)}>
+              <DataTableAdvancedFilters
+                searchableColumns={searchableColumns}
+                filters={advancedFilters}
+                onChange={setAdvancedFilters}
+              />
+            </If>
+          </Flex>
+
+          <Flex align="center" gap={Gap.xs}>
+            <If is={manageColumns}>
+              <DataTableColumnManager
+                columns={columns}
+                columnVisibility={columnVisibility}
+                toggleColumnVisibility={toggleColumnVisibility}
+                resetColumnVisibility={resetColumnVisibility}
+                pinnedColumns={pinnedColumns}
+                pinColumn={pinColumn}
+                resetPinnedColumns={resetPinnedColumns}
+                columnOrder={columnOrder}
+                setColumnOrder={setColumnOrder}
+                resetColumnOrder={resetColumnOrder}
+                mode={mode}
+                showBackdrop={showBackdrop}
+                inlineContainerRef={tableAreaRef}
+              />
+            </If>
+          </Flex>
         </TableSibling>
       </If>
 

@@ -121,6 +121,26 @@ export type DataTablePinnedColumns = {
   right: string[];
 };
 
+export type DataTableAdvancedFilterOperator =
+  | "contains"
+  | "notContains"
+  | "equals"
+  | "notEquals"
+  | "startsWith"
+  | "endsWith"
+  | "isEmpty"
+  | "isNotEmpty";
+
+export type DataTableAdvancedFilterConnector = "and" | "or";
+
+export type DataTableAdvancedFilter = {
+  id: string;
+  field: string;
+  operator: DataTableAdvancedFilterOperator;
+  value: string;
+  connector: DataTableAdvancedFilterConnector;
+};
+
 export type DataTableProps<T extends Record<string, unknown>> = {
   rows: T[];
   columns: DataTableColumn<T>[];
@@ -180,6 +200,9 @@ export type UseDataTableProps<T extends Record<string, unknown>> =
 export type UseDataTableResult<T extends Record<string, unknown>> = {
   search: string;
   setSearch: (value: string) => void;
+  advancedFilters: DataTableAdvancedFilter[];
+  setAdvancedFilters: (filters: DataTableAdvancedFilter[]) => void;
+  searchableColumns: DataTableRegularColumn<T>[];
 
   sortField: string | null;
   sortDirection: SortDirection;

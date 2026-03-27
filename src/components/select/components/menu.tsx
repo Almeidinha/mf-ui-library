@@ -87,7 +87,6 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     Math.max(Math.ceil(height / rowHeight) + 2, 1),
   );
 
-  console.log("height", height, contentHeight, rowHeight);
   const initialTopMostItemIndex = useMemo(() => {
     if (!is(open) || selectedIndex === undefined || selectedIndex < 0) {
       return 0;

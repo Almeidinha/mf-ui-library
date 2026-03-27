@@ -1,7 +1,8 @@
 import { IconMinor } from "components/icon";
 import { Button } from "components/molecules/button";
+import { CloseButton } from "components/shared-styled-components";
 import { Heading2 } from "components/typography";
-import { Borders, Focus, Surface } from "foundation/colors";
+import { Borders } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
@@ -18,30 +19,6 @@ const ModalHeader = styled.header`
   padding: ${Padding.m};
   border-bottom: 1px solid ${Borders.Default.Muted};
   flex-shrink: 0;
-`;
-
-const CloseButton = styled.button.attrs({ type: "button" })`
-  appearance: none;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  padding: 4px;
-
-  &:hover {
-    background-color: ${Surface.Default.Hover};
-  }
-
-  &:active {
-    background-color: ${Surface.Default.Pressed};
-  }
-
-  &:focus-visible {
-    outline: 2px solid ${Focus.Default};
-  }
 `;
 
 const ModalContent = styled.div`
