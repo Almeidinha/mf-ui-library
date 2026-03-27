@@ -18,10 +18,11 @@ import { Gap, Padding } from "foundation/spacing";
 import { Typography } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
 import { If } from "helpers/nothing";
-import { isDefined } from "helpers/safe-navigation";
+import { SortDirection } from "helpers/table-helpers";
 import { useMergedRefs, useOnClickOutside } from "hooks";
 import {
   ComponentType,
+  CSSProperties,
   HTMLAttributes,
   JSX,
   Key,
@@ -51,10 +52,12 @@ import {
   isActionsColumn,
 } from "../data-table/dataTable.shared";
 import { DataTableColumnManager } from "../data-table/DataTableColumnManager";
-import type {
-  DataTableRegularColumn,
-  SortDirection,
-} from "../data-table/types";
+import {
+  getDataTableCellPadding,
+  getDataTableHeaderDividerInset,
+  getDataTableShellPadding,
+} from "../data-table/dataTableSizing";
+import type { DataTableRegularColumn } from "../data-table/types";
 import { useDataTable } from "../data-table/useDataTable";
 import {
   type ResolvedBodyCell,
@@ -80,6 +83,12 @@ type GridCellStyleProps = {
   $borderBottom?: boolean;
   $focused?: boolean;
   $showCellBorders?: boolean;
+};
+
+type DataGridCssVariables = CSSProperties & {
+  "--data-table-cell-padding"?: string;
+  "--data-table-header-divider-inset"?: string;
+  "--data-table-shell-padding"?: string;
 };
 
 type ActionDescriptor<T extends Record<string, unknown>> = {
@@ -255,7 +264,7 @@ const GridContainer = styled(Flex)`
 const GridSibling = styled(Flex)`
   justify-content: space-between;
   align-items: center;
-  padding: ${Padding.m};
+  padding: var(--data-table-shell-padding, ${Padding.m});
 `;
 
 const GridSurface = styled.div<{
@@ -318,7 +327,7 @@ const cellStyles = css<GridCellStyleProps>`
   min-width: 0;
   display: flex;
   align-items: center;
-  padding: ${Padding.m};
+  padding: var(--data-table-cell-padding, ${Padding.m});
   position: relative;
   overflow: ${({ $allowOverflow }) => ($allowOverflow ? "visible" : "hidden")};
   border-right: ${({ $borderRight }) =>
@@ -376,9 +385,9 @@ const HeaderCellFrame = styled.div<
       &::after {
         content: "";
         position: absolute;
-        top: ${Padding.s};
+        top: var(--data-table-header-divider-inset, ${Padding.s});
         right: 0;
-        bottom: ${Padding.s};
+        bottom: var(--data-table-header-divider-inset, ${Padding.s});
         width: 1px;
         background: ${Borders.Default.Muted};
       }
@@ -590,12 +599,6 @@ function addScrollbarSpacerToSize(size: string, spacer: number) {
   return `calc(${size} + ${spacer}px)`;
 }
 
-const HEADER_ICON: Record<SortDirection, ComponentType> = {
-  ASC: IconMinor.SortDown,
-  DESC: IconMinor.SortUp,
-  NONE: IconMinor.Sort,
-};
-
 function getGridSlotKey(rowIndex: number, colIndex: number) {
   return `${rowIndex}:${colIndex}`;
 }
@@ -603,6 +606,12 @@ function getGridSlotKey(rowIndex: number, colIndex: number) {
 function getGridCellDomId(key: string) {
   return `data-grid-cell-${key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
+
+const HEADER_ICON: Record<SortDirection, ComponentType> = {
+  ASC: IconMinor.SortDown,
+  DESC: IconMinor.SortUp,
+  NONE: IconMinor.Sort,
+};
 
 function GridActionsCell<T extends Record<string, unknown>>({
   actions,
@@ -1224,6 +1233,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     showBackdrop,
     mode,
     layoutMode = "responsive",
+    size = "medium",
     tableWidth,
     minTableWidth,
     maxTableHeight = "max-content",
@@ -1243,6 +1253,14 @@ export function DataGrid<T extends Record<string, unknown>>(
     {},
   );
   const isResponsive = layoutMode === "responsive";
+  const gridCssVariables: DataGridCssVariables = useMemo(
+    () => ({
+      "--data-table-cell-padding": getDataTableCellPadding(size),
+      "--data-table-header-divider-inset": getDataTableHeaderDividerInset(size),
+      "--data-table-shell-padding": getDataTableShellPadding(size),
+    }),
+    [size],
+  );
   const [hasBodyVerticalScrollbar, setHasBodyVerticalScrollbar] =
     useState(false);
   const [hasBodyHorizontalScrollbar, setHasBodyHorizontalScrollbar] =
@@ -2159,7 +2177,6 @@ export function DataGrid<T extends Record<string, unknown>>(
               <HeaderSortButton IconSuffix={HEADER_ICON[currentSort!]}>
                 <HeaderSortContent $textAlign={textAlign}>
                   <CellContent $textAlign={textAlign}>
-                    ß
                     {typeof column.headerName === "string" ? (
                       <Label strong muted>
                         {column.headerName}
@@ -2645,7 +2662,7 @@ export function DataGrid<T extends Record<string, unknown>>(
   ]);
 
   return (
-    <GridContainer ref={mergedContainerRef}>
+    <GridContainer ref={mergedContainerRef} style={gridCssVariables}>
       <If is={searchable || manageColumns}>
         <GridSibling gap={Gap.m}>
           {searchable ? (
@@ -2690,7 +2707,11 @@ export function DataGrid<T extends Record<string, unknown>>(
           ref={headerScrollRef}
           onScroll={() => syncScrollLeft("header")}
         >
-          <GridSurface $width={headerGridWidth} $minWidth={headerGridMinWidth}>
+          <GridSurface
+            $width={headerGridWidth}
+            $minWidth={headerGridMinWidth}
+            style={gridCssVariables}
+          >
             <GridHeader
               $templateColumns={headerGridTemplateColumns}
               $rowCount={headerRowCount}
@@ -2718,7 +2739,11 @@ export function DataGrid<T extends Record<string, unknown>>(
           $maxHeight={toCssSize(maxTableHeight)}
           onScroll={() => syncScrollLeft("body")}
         >
-          <GridSurface $width={gridWidth} $minWidth={gridMinWidth}>
+          <GridSurface
+            $width={gridWidth}
+            $minWidth={gridMinWidth}
+            style={gridCssVariables}
+          >
             {virtualizedBodyContent ? (
               virtualizedBodyContent
             ) : (

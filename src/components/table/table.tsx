@@ -24,6 +24,7 @@ import {
   Children,
   cloneElement,
   ComponentType,
+  CSSProperties,
   isValidElement,
   ReactElement,
   TdHTMLAttributes,
@@ -32,10 +33,20 @@ import {
 } from "react";
 import styled, { css } from "styled-components";
 
+import {
+  getDataTableCellPadding,
+  getDataTableHeaderDividerInset,
+} from "../data-table/dataTableSizing";
+import type { DataTableSize } from "../data-table/types";
+
 type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate"> & {
   dividerRight?: boolean;
+  size?: DataTableSize;
 };
-type TableBodySelectProps = CheckboxProps & { selected?: boolean };
+type TableBodySelectProps = CheckboxProps & {
+  selected?: boolean;
+  size?: DataTableSize;
+};
 type TableBodyActionProps = PropsWithChildren<{
   onClick?: () => void;
   disabled?: boolean;
@@ -59,13 +70,20 @@ export interface ITableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> 
   sort?: "ASC" | "DESC" | "NONE";
   onSortClick?: () => void;
   dividerRight?: boolean;
+  size?: DataTableSize;
 }
 
 export interface ITableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
   fitContent?: boolean;
   allowOverflow?: boolean;
   overflow?: DataTableCellOverflow;
+  size?: DataTableSize;
 }
+
+type TableCssVariables = CSSProperties & {
+  "--data-table-cell-padding"?: string;
+  "--data-table-header-divider-inset"?: string;
+};
 
 function getCellOverflowStyles(overflow: DataTableCellOverflow) {
   if (overflow === "wrap") {
@@ -185,7 +203,7 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
   $dividerRight?: boolean;
 }>`
   text-align: left;
-  padding: ${Padding.m};
+  padding: var(--data-table-cell-padding, ${Padding.m});
   position: relative;
   border-top: ${({ $bordered = true }) =>
     $bordered ? "none" : `1px solid ${Borders.Default.Muted}`};
@@ -198,9 +216,9 @@ export const TableHeaderFrame = styled.th.attrs({ scope: "col" })<{
       &::after {
         content: "";
         position: absolute;
-        top: ${Padding.s};
+        top: var(--data-table-header-divider-inset, ${Padding.s});
         right: 0;
-        bottom: ${Padding.s};
+        bottom: var(--data-table-header-divider-inset, ${Padding.s});
         width: 1px;
         background: ${Borders.Default.Muted};
       }
@@ -212,7 +230,7 @@ const TableBodyCellFrame = styled.td<{
   $allowOverflow?: boolean;
   $overflow?: DataTableCellOverflow;
 }>`
-  padding: ${Padding.m};
+  padding: var(--data-table-cell-padding, ${Padding.m});
   ${Typography.Body}
   position: relative;
 
@@ -247,7 +265,7 @@ export const TableRow = styled.tr.attrs<{ selected?: boolean }>(
 export const TableHead = styled.thead``;
 
 const TableCellSelectSelectFrame = styled.td`
-  padding: ${Padding.m};
+  padding: var(--data-table-cell-padding, ${Padding.m});
 `;
 
 const Controls = styled(IconMinor.EllipsisVertical)`
@@ -292,11 +310,16 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
   isPlaceholder,
   onSortClick,
   dividerRight,
+  size = "medium",
   children,
   ...htmlProps
 }) {
   const isSorted = isDefined(sort) && sort !== "NONE";
   const isSortedDesc = sort === "DESC";
+  const cssVariables: TableCssVariables = {
+    "--data-table-cell-padding": getDataTableCellPadding(size),
+    "--data-table-header-divider-inset": getDataTableHeaderDividerInset(size),
+  };
 
   const content = (
     <Flex>
@@ -323,6 +346,7 @@ export const TableHeaderCell: TableHeaderCellProps = function TableHeaderCell({
     <TableHeaderFrame
       {...htmlProps}
       $dividerRight={dividerRight}
+      style={{ ...cssVariables, ...htmlProps.style }}
       aria-sort={
         sort === "ASC" ? "ascending" : sort === "DESC" ? "descending" : "none"
       }
@@ -342,14 +366,22 @@ export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
   fitContent,
   allowOverflow,
   overflow,
+  size = "medium",
+  style,
   ...props
 }) {
+  const cssVariables: TableCssVariables = {
+    "--data-table-cell-padding": getDataTableCellPadding(size),
+    "--data-table-header-divider-inset": getDataTableHeaderDividerInset(size),
+  };
+
   return (
     <TableBodyCellFrame
       {...props}
       $fitContent={fitContent}
       $allowOverflow={allowOverflow}
       $overflow={overflow}
+      style={{ ...cssVariables, ...style }}
     />
   );
 };
@@ -357,21 +389,41 @@ export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
 const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
   style,
   dividerRight,
+  size = "medium",
   ...rest
 }: TableHeadSelectProps) {
+  const cssVariables: TableCssVariables = {
+    "--data-table-cell-padding": getDataTableCellPadding(size),
+    "--data-table-header-divider-inset": getDataTableHeaderDividerInset(size),
+  };
+
   return (
-    <TableHeaderFrame style={style} $dividerRight={dividerRight}>
+    <TableHeaderFrame
+      style={{ ...cssVariables, ...style }}
+      $dividerRight={dividerRight}
+    >
       <Checkbox {...rest} indeterminate />
     </TableHeaderFrame>
   );
 };
 
 const TableCellSelect: FC<CheckboxProps & { selected?: boolean }> =
-  function TableCellSelect({ style, selected, checked: checkedProp, ...rest }) {
+  function TableCellSelect({
+    style,
+    selected,
+    checked: checkedProp,
+    size = "medium",
+    ...rest
+  }) {
     const checked = is(checkedProp) || is(selected);
+    const cssVariables: TableCssVariables = {
+      "--data-table-cell-padding": getDataTableCellPadding(size),
+      "--data-table-header-divider-inset":
+        getDataTableHeaderDividerInset(size),
+    };
 
     return (
-      <TableCellSelectSelectFrame style={style}>
+      <TableCellSelectSelectFrame style={{ ...cssVariables, ...style }}>
         <Checkbox {...rest} checked={checked} />
       </TableCellSelectSelectFrame>
     );

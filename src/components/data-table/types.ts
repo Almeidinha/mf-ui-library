@@ -22,6 +22,7 @@ export type DataTableRowKey<T> = keyof T | ((row: T) => React.Key);
 export type DataTableColumnManagerMode = "portal" | "inline";
 
 export type DataTableLayoutMode = "responsive" | "fixed";
+export type DataTableSize = "small" | "medium" | "large";
 
 export type DataTableAction<T extends Record<string, unknown>> = {
   key: string;
@@ -129,6 +130,7 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   rowKey: DataTableRowKey<T>;
 
   layoutMode?: DataTableLayoutMode;
+  size?: DataTableSize;
   tableWidth?: number | string;
   minTableWidth?: number | string;
   maxTableHeight?: number | string;

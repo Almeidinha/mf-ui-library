@@ -33,6 +33,11 @@ import {
   isActionsColumn,
 } from "./dataTable.shared";
 import { DataTableColumnManager } from "./DataTableColumnManager";
+import {
+  getDataTableCellPadding,
+  getDataTableHeaderDividerInset,
+  getDataTableShellPadding,
+} from "./dataTableSizing";
 import type { DataTableProps } from "./types";
 import { useDataTable } from "./useDataTable";
 import {
@@ -87,7 +92,7 @@ const TableContainer = styled(Flex)`
 export const TableSibling = styled(Flex)`
   justify-content: space-between;
   align-items: center;
-  padding: ${Padding.m};
+  padding: var(--data-table-shell-padding, ${Padding.m});
 `;
 
 const checkboxStickyStyle: React.CSSProperties = {
@@ -107,6 +112,12 @@ const GroupToggleButton = styled.button`
   cursor: pointer;
   text-align: left;
 `;
+
+type DataTableCssVariables = React.CSSProperties & {
+  "--data-table-cell-padding"?: string;
+  "--data-table-header-divider-inset"?: string;
+  "--data-table-shell-padding"?: string;
+};
 
 function resolveActionFlag<T extends Record<string, unknown>>(
   value: boolean | ((row: T) => boolean) | undefined,
@@ -132,6 +143,7 @@ export function DataTable<T extends Record<string, unknown>>(
     showBackdrop,
     mode,
     layoutMode = "responsive",
+    size = "medium",
     tableWidth,
     minTableWidth,
     maxTableHeight = "max-content",
@@ -143,6 +155,15 @@ export function DataTable<T extends Record<string, unknown>>(
 
   const tableAreaRef = React.useRef<HTMLDivElement | null>(null);
   const isResponsive = layoutMode === "responsive";
+  const tableCssVariables: DataTableCssVariables = React.useMemo(
+    () => ({
+      "--data-table-cell-padding": getDataTableCellPadding(size),
+      "--data-table-header-divider-inset":
+        getDataTableHeaderDividerInset(size),
+      "--data-table-shell-padding": getDataTableShellPadding(size),
+    }),
+    [size],
+  );
 
   const {
     search,
@@ -458,7 +479,7 @@ export function DataTable<T extends Record<string, unknown>>(
   );
 
   return (
-    <TableContainer ref={tableAreaRef}>
+    <TableContainer ref={tableAreaRef} style={tableCssVariables}>
       <If is={searchable || manageColumns}>
         <TableSibling gap={Gap.m}>
           <If is={searchable}>
@@ -489,11 +510,12 @@ export function DataTable<T extends Record<string, unknown>>(
         </TableSibling>
       </If>
 
-      <TableFrame
-        $responsive={isResponsive}
-        $borderTop={searchable || manageColumns}
-        $borderBottom={paginated}
-      >
+        <TableFrame
+          $responsive={isResponsive}
+          $borderTop={searchable || manageColumns}
+          $borderBottom={paginated}
+          style={tableCssVariables}
+        >
         <TableScroll $maxTableHeight={toCssSize(maxTableHeight)}>
           <Table
             $cellBorders={cellBorderMode}

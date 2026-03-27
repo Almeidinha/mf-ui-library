@@ -591,6 +591,7 @@ const meta = {
     rowGrouping: undefined,
     rowKey: "id",
     layoutMode: "responsive",
+    size: "medium",
     tableWidth: undefined,
     minTableWidth: undefined,
     maxTableHeight: 400,
@@ -698,6 +699,15 @@ const meta = {
       table: {
         category: "Layout",
         defaultValue: { summary: "false" },
+      },
+    },
+    size: {
+      description: "Adjusts overall density of the grid.",
+      control: { type: "radio" },
+      options: ["small", "medium", "large"],
+      table: {
+        category: "Layout",
+        defaultValue: { summary: "medium" },
       },
     },
     cellSelection: {

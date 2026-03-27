@@ -16,6 +16,7 @@ export type {
   DataTableRegularColumn as DataGridRegularColumn,
   DataTableRowGrouping as DataGridRowGrouping,
   DataTableRowKey as DataGridRowKey,
+  DataTableSize as DataGridSize,
   SortDirection as DataGridSortDirection,
   DataTableSpanArgs as DataGridSpanArgs,
   DataTableSpanValue as DataGridSpanValue,
