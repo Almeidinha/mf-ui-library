@@ -8,7 +8,8 @@ import {
   safeArray,
 } from "@helpers";
 import { useMergedRefs, useOnClickOutside } from "hooks";
-import React, { useCallback, useMemo, useState } from "react";
+import useDebounce from "hooks/useDebounce";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { Menu } from "./components/menu";
@@ -58,6 +59,7 @@ const SelectImpl = <T,>(
     multiLevel,
     ariaLabel,
     searchable,
+    searchDebounce = 250,
     iconPosition,
     ariaLabelledBy,
     ariaDescribedBy,
@@ -84,6 +86,8 @@ const SelectImpl = <T,>(
   );
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [focused, setFocused] = useState<boolean>(false);
+  const debouncedSearch = useDebounce(search, searchDebounce);
+  const lastEmittedSearchRef = useRef<string | undefined>(undefined);
 
   const value = is(multi) ? defaultTo(selectValue, []) : selectValue;
 
@@ -280,8 +284,25 @@ const SelectImpl = <T,>(
     setSearch(searchValue);
     setOpen(true);
     setSelectedIndex(0);
-    onSearch?.(searchValue);
   }
+
+  useEffect(() => {
+    if (!isDefined(debouncedSearch)) {
+      lastEmittedSearchRef.current = undefined;
+      return;
+    }
+
+    if (lastEmittedSearchRef.current === debouncedSearch) {
+      return;
+    }
+
+    lastEmittedSearchRef.current = debouncedSearch;
+    onInputChange?.(debouncedSearch);
+
+    if (is(searchable)) {
+      onSearch?.(debouncedSearch);
+    }
+  }, [debouncedSearch, onInputChange, onSearch, searchable]);
 
   function onSearchFocus() {
     setFocused(true);
@@ -346,7 +367,6 @@ const SelectImpl = <T,>(
         onSearchFocus={onSearchFocus}
         onSearchBlur={onSearchBlur}
         onOptionRemove={onOptionRemove}
-        onInputChange={onInputChange}
         maxLength={maxLength}
         customIcon={customIcon}
         multiLevel={multiLevel}

@@ -228,12 +228,6 @@ const GridFrame = styled.div<{
   border-bottom: ${({ $borderBottom }) =>
     $borderBottom ? `1px solid ${Borders.Default.Default}` : "none"};
   overflow: hidden;
-  border-top-left-radius: ${({ $borderTop }) => ($borderTop ? 0 : "6px")};
-  border-top-right-radius: ${({ $borderTop }) => ($borderTop ? 0 : "6px")};
-  border-bottom-left-radius: ${({ $borderBottom }) =>
-    $borderBottom ? 0 : "6px"};
-  border-bottom-right-radius: ${({ $borderBottom }) =>
-    $borderBottom ? 0 : "6px"};
 `;
 
 const GridHeaderScroll = styled.div`
@@ -248,9 +242,13 @@ const GridHeaderScroll = styled.div`
   }
 `;
 
-const GridBodyScroll = styled.div<{ $maxHeight?: string }>`
+const GridBodyScroll = styled.div<{
+  $minHeight?: string;
+  $maxHeight?: string;
+}>`
   width: 100%;
   min-width: 0;
+  min-height: ${({ $minHeight }) => $minHeight};
   max-height: ${({ $maxHeight }) => $maxHeight};
   overflow: auto;
 `;
@@ -259,6 +257,8 @@ const GridContainer = styled(Flex)`
   position: relative;
   flex-direction: column;
   border: 1px solid ${Borders.Default.Default};
+  border-radius: 6px;
+  overflow: hidden;
   ${shadowMd};
   background: ${Surface.Default.Default};
 `;
@@ -1240,6 +1240,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     columns,
     columnGroups: rawColumnGroups,
     searchPlaceholder = "Search...",
+    searchDebounce = 250,
     checkboxSelection = false,
     emptyMessage = "No rows found.",
     showBackdrop,
@@ -1248,6 +1249,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     size = "medium",
     tableWidth,
     minTableWidth,
+    minTableHeight = "",
     maxTableHeight = "max-content",
     striped = true,
     showCellBorders = false,
@@ -2698,6 +2700,7 @@ export function DataGrid<T extends Record<string, unknown>>(
                 searchableColumns={searchableColumns}
                 filters={advancedFilters}
                 onChange={setAdvancedFilters}
+                searchDebounce={searchDebounce}
               />
             </If>
             <If is={manageColumns}>
@@ -2764,6 +2767,7 @@ export function DataGrid<T extends Record<string, unknown>>(
 
         <GridBodyScroll
           ref={handleBodyScrollRef}
+          $minHeight={toCssSize(minTableHeight)}
           $maxHeight={toCssSize(maxTableHeight)}
           onScroll={() => syncScrollLeft("body")}
         >

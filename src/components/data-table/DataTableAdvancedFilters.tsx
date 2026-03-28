@@ -2,7 +2,8 @@ import { IconMinor } from "components/icon";
 import { InputText } from "components/input-field";
 import { Box, Flex } from "components/layout";
 import { Button } from "components/molecules/button";
-import { CloseButton, NativeSelect } from "components/shared-styled-components";
+import { type IOption, Select } from "components/select";
+import { CloseButton } from "components/shared-styled-components";
 import { Slide } from "components/transitions";
 import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
@@ -10,8 +11,9 @@ import { shadowMd } from "foundation/shadows";
 import { Gap, Padding } from "foundation/spacing";
 import { If } from "helpers/nothing";
 import { uniqueId } from "helpers/safe-navigation";
+import useDebounce from "hooks/useDebounce";
 import { useOnClickOutside } from "hooks/useOnClickOutside";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
 import { getColumnId } from "./dataTable.shared";
@@ -33,6 +35,7 @@ type DataTableAdvancedFiltersProps<T extends Record<string, unknown>> = {
   searchableColumns: DataTableRegularColumn<T>[];
   filters: DataTableAdvancedFilter[];
   onChange: (filters: DataTableAdvancedFilter[]) => void;
+  searchDebounce?: number;
 };
 
 const Root = styled.div`
@@ -105,19 +108,72 @@ export function DataTableAdvancedFilters<T extends Record<string, unknown>>({
   searchableColumns,
   filters,
   onChange,
+  searchDebounce = 250,
 }: DataTableAdvancedFiltersProps<T>) {
   const [open, setOpen] = useState(false);
-  const rootRef = useOnClickOutside(() => {
+  const [draftValues, setDraftValues] = useState<Record<string, string>>(() =>
+    filters.reduce<Record<string, string>>((acc, filter) => {
+      acc[filter.id] = filter.value;
+      return acc;
+    }, {}),
+  );
+  const debouncedDraftValues = useDebounce(draftValues, searchDebounce);
+  const rootRef = useOnClickOutside((event) => {
+    const target = event.target as HTMLElement | null;
+
+    if (target?.closest?.(".select-menu")) {
+      return;
+    }
+
     setOpen(false);
   });
+
+  useEffect(() => {
+    const nextFilters = filters.map((filter) => {
+      const nextValue = debouncedDraftValues[filter.id];
+
+      if (nextValue === undefined || nextValue === filter.value) {
+        return filter;
+      }
+
+      return {
+        ...filter,
+        value: nextValue,
+      };
+    });
+
+    const changed = nextFilters.some((filter, index) => filter !== filters[index]);
+
+    if (changed) {
+      onChange(nextFilters);
+    }
+  }, [debouncedDraftValues, filters, onChange]);
 
   const columnOptions = useMemo(
     () =>
       searchableColumns.map((column) => ({
         value: getColumnId(column),
         label: getAdvancedFilterColumnLabel(column),
-      })),
+      })) satisfies IOption<string>[],
     [searchableColumns],
+  );
+
+  const connectorOptions = useMemo(
+    () =>
+      DATA_TABLE_ADVANCED_FILTER_CONNECTOR_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+      })) satisfies IOption<DataTableAdvancedFilterConnector>[],
+    [],
+  );
+
+  const operatorOptions = useMemo(
+    () =>
+      DATA_TABLE_ADVANCED_FILTER_OPERATOR_OPTIONS.map((option) => ({
+        value: option.value,
+        label: option.label,
+      })) satisfies IOption<DataTableAdvancedFilterOperator>[],
+    [],
   );
 
   const availableFields = useMemo(
@@ -151,7 +207,12 @@ export function DataTableAdvancedFilters<T extends Record<string, unknown>>({
 
   const openPanel = () => {
     if (!open && filters.length === 0) {
-      onChange([createFilter()]);
+      const nextFilter = createFilter();
+      setDraftValues((current) => ({
+        ...current,
+        [nextFilter.id]: nextFilter.value,
+      }));
+      onChange([nextFilter]);
     }
 
     setOpen((current) => !current);
@@ -169,11 +230,21 @@ export function DataTableAdvancedFilters<T extends Record<string, unknown>>({
   };
 
   const removeFilter = (id: string) => {
+    setDraftValues((current) => {
+      const nextValues = { ...current };
+      delete nextValues[id];
+      return nextValues;
+    });
     onChange(filters.filter((filter) => filter.id !== id));
   };
 
   const addFilter = () => {
-    onChange([...filters, createFilter("and")]);
+    const nextFilter = createFilter("and");
+    setDraftValues((current) => ({
+      ...current,
+      [nextFilter.id]: nextFilter.value,
+    }));
+    onChange([...filters, nextFilter]);
   };
 
   return (
@@ -221,78 +292,61 @@ export function DataTableAdvancedFilters<T extends Record<string, unknown>>({
                   <If is={index > 0}>
                     <Box>
                       <FieldLabel muted>Connector</FieldLabel>
-                      <NativeSelect
-                        aria-label={`Filter ${index + 1} connector`}
+                      <Select
+                        ariaLabel={`Filter ${index + 1} connector`}
                         value={filter.connector}
-                        onChange={(event) =>
+                        options={connectorOptions}
+                        disablePortal={false}
+                        onChange={(value) => {
                           updateFilter(filter.id, {
-                            connector: event.target
-                              .value as DataTableAdvancedFilterConnector,
-                          })
-                        }
-                      >
-                        {DATA_TABLE_ADVANCED_FILTER_CONNECTOR_OPTIONS.map(
-                          (option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ),
-                        )}
-                      </NativeSelect>
+                            connector: value,
+                          });
+                        }}
+                      />
                     </Box>
                   </If>
 
                   <FieldGrid>
                     <div>
                       <FieldLabel muted>Column</FieldLabel>
-                      <NativeSelect
-                        aria-label={`Filter ${index + 1} column`}
+                      <Select
+                        ariaLabel={`Filter ${index + 1} column`}
                         value={filter.field}
-                        onChange={(event) =>
+                        options={columnOptions}
+                        disablePortal={false}
+                        onChange={(value) => {
                           updateFilter(filter.id, {
-                            field: event.target.value,
-                          })
-                        }
-                      >
-                        {columnOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </NativeSelect>
+                            field: value,
+                          });
+                        }}
+                      />
                     </div>
 
                     <div>
                       <FieldLabel muted>Operator</FieldLabel>
-                      <NativeSelect
-                        aria-label={`Filter ${index + 1} operator`}
+                      <Select
+                        ariaLabel={`Filter ${index + 1} operator`}
                         value={filter.operator}
-                        onChange={(event) =>
+                        options={operatorOptions}
+                        disablePortal={false}
+                        onChange={(value) => {
                           updateFilter(filter.id, {
-                            operator: event.target
-                              .value as DataTableAdvancedFilterOperator,
-                          })
-                        }
-                      >
-                        {DATA_TABLE_ADVANCED_FILTER_OPERATOR_OPTIONS.map(
-                          (option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ),
-                        )}
-                      </NativeSelect>
+                            operator: value,
+                          });
+                        }}
+                      />
                     </div>
                     <div>
                       <If is={valueRequired}>
                         <FieldLabel muted>Value</FieldLabel>
                         <InputText
                           aria-label={`Filter ${index + 1} value`}
-                          value={filter.value}
+                          value={draftValues[filter.id] ?? filter.value}
                           onChange={(value) =>
-                            updateFilter(filter.id, {
-                              value,
-                            })
+                            setDraftValues((current) => ({
+                              ...current,
+                              [filter.id]: value,
+                            }))
                           }
                           placeholder="Enter a value"
                         />
@@ -317,7 +371,10 @@ export function DataTableAdvancedFilters<T extends Record<string, unknown>>({
                 small
                 primary
                 disabled={filters.length === 0}
-                onClick={() => onChange([])}
+                onClick={() => {
+                  setDraftValues({});
+                  onChange([]);
+                }}
               >
                 Clear all
               </Button>

@@ -61,12 +61,6 @@ const TableFrame = styled.div<{
   border-bottom: ${({ $borderBottom }) =>
     $borderBottom ? `1px solid ${Borders.Default.Default}` : "none"};
   overflow: hidden;
-  border-top-left-radius: ${({ $borderTop }) => ($borderTop ? 0 : "6px")};
-  border-top-right-radius: ${({ $borderTop }) => ($borderTop ? 0 : "6px")};
-  border-bottom-left-radius: ${({ $borderBottom }) =>
-    $borderBottom ? 0 : "6px"};
-  border-bottom-right-radius: ${({ $borderBottom }) =>
-    $borderBottom ? 0 : "6px"};
 
   & table {
     display: ${(props) => (props.$responsive ? "table" : "block")};
@@ -75,9 +69,13 @@ const TableFrame = styled.div<{
   }
 `;
 
-const TableScroll = styled.div<{ $maxTableHeight?: string }>`
+const TableScroll = styled.div<{
+  $minTableHeight?: string;
+  $maxTableHeight?: string;
+}>`
   width: 100%;
   min-width: 0;
+  min-height: ${({ $minTableHeight }) => $minTableHeight};
   max-height: ${({ $maxTableHeight }) => $maxTableHeight};
   overflow: auto;
 `;
@@ -86,6 +84,8 @@ const TableContainer = styled(Flex)`
   position: relative;
   flex-direction: column;
   border: 1px solid ${Borders.Default.Default};
+  border-radius: 6px;
+  overflow: hidden;
   ${shadowMd};
   background: ${Surface.Default.Default};
 `;
@@ -139,6 +139,7 @@ export function DataTable<T extends Record<string, unknown>>(
     columns,
     columnGroups: rawColumnGroups,
     searchPlaceholder = "Search...",
+    searchDebounce = 250,
     checkboxSelection = false,
     emptyMessage = "No rows found.",
     showBackdrop,
@@ -147,6 +148,7 @@ export function DataTable<T extends Record<string, unknown>>(
     size = "medium",
     tableWidth,
     minTableWidth,
+    minTableHeight,
     maxTableHeight = "max-content",
     striped = true,
     showCellBorders = false,
@@ -500,6 +502,7 @@ export function DataTable<T extends Record<string, unknown>>(
                 searchableColumns={searchableColumns}
                 filters={advancedFilters}
                 onChange={setAdvancedFilters}
+                searchDebounce={searchDebounce}
               />
             </If>
           </Flex>
@@ -532,7 +535,10 @@ export function DataTable<T extends Record<string, unknown>>(
           $borderBottom={paginated}
           style={tableCssVariables}
         >
-        <TableScroll $maxTableHeight={toCssSize(maxTableHeight)}>
+        <TableScroll
+          $minTableHeight={toCssSize(minTableHeight)}
+          $maxTableHeight={toCssSize(maxTableHeight)}
+        >
           <Table
             $cellBorders={cellBorderMode}
             $width={isResponsive ? "100%" : tableWidth || "auto"}

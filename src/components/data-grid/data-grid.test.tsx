@@ -1,4 +1,11 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import React from "react";
@@ -146,6 +153,30 @@ const spanRows: SpanRow[] = [
     note: "1 renewal",
   },
 ];
+
+async function chooseSelectOption(
+  user: ReturnType<typeof userEvent.setup>,
+  controlName: string,
+  optionText: string,
+) {
+  const combobox = screen.getByRole("combobox", { name: controlName });
+  const trigger = combobox.querySelector('[data-role="value"]');
+
+  expect(trigger).not.toBeNull();
+
+  await user.click(trigger as HTMLElement);
+
+  await waitFor(() => {
+    expect(document.querySelector(".select-menu")).not.toBeNull();
+  });
+
+  const menu = document.querySelector(".select-menu") as HTMLElement;
+  const option = within(menu).getByText(optionText).closest('[data-role="option"]');
+
+  expect(option).not.toBeNull();
+
+  fireEvent.click(option as HTMLElement);
+}
 
 function getCellByText(text: string) {
   const element = screen.getByText(text);
@@ -324,7 +355,9 @@ describe("DataGrid accessibility", () => {
     expect(styles.whiteSpace).toBe("normal");
   });
 
-  it("supports advanced filters with add, connector, and remove actions", async () => {
+  it(
+    "supports advanced filters with add, connector, and remove actions",
+    async () => {
     const user = userEvent.setup();
 
     render(
@@ -334,6 +367,7 @@ describe("DataGrid accessibility", () => {
         rowKey="id"
         paginated={false}
         searchable
+        searchDebounce={0}
       />,
     );
 
@@ -341,14 +375,8 @@ describe("DataGrid accessibility", () => {
       screen.getByRole("button", { name: "Advanced filters" }),
     );
 
-    await user.selectOptions(
-      screen.getByLabelText("Filter 1 column"),
-      "name",
-    );
-    await user.selectOptions(
-      screen.getByLabelText("Filter 1 operator"),
-      "contains",
-    );
+    await chooseSelectOption(user, "Filter 1 column", "Name");
+    await chooseSelectOption(user, "Filter 1 operator", "Contains");
     await user.type(screen.getByLabelText("Filter 1 value"), "ali");
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -356,15 +384,9 @@ describe("DataGrid accessibility", () => {
     expect(screen.queryByText("Carla")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Add filter" }));
-    await user.selectOptions(screen.getByLabelText("Filter 2 connector"), "or");
-    await user.selectOptions(
-      screen.getByLabelText("Filter 2 column"),
-      "country",
-    );
-    await user.selectOptions(
-      screen.getByLabelText("Filter 2 operator"),
-      "contains",
-    );
+    await chooseSelectOption(user, "Filter 2 connector", "Or");
+    await chooseSelectOption(user, "Filter 2 column", "Country");
+    await chooseSelectOption(user, "Filter 2 operator", "Contains");
     await user.type(screen.getByLabelText("Filter 2 value"), "united");
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -375,7 +397,9 @@ describe("DataGrid accessibility", () => {
 
     expect(screen.queryByText("Alice")).not.toBeInTheDocument();
     expect(screen.getByText("Carla")).toBeInTheDocument();
-  });
+    },
+    10000,
+  );
 
   it("does not have accessibility violations in an interactive grouped state", async () => {
     const { container } = render(

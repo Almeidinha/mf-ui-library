@@ -39,6 +39,7 @@ interface SelectCommonProps<T> {
   emptyText?: string;
   clearable?: boolean;
   searchable?: boolean;
+  searchDebounce?: number;
   iconPosition?: "left" | "right";
   disabled?: boolean;
   invalid?: boolean;

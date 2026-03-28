@@ -4,7 +4,7 @@ import {
   paginateRows,
 } from "helpers/table-helpers";
 import useDebounce from "hooks/useDebounce";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useMemo, useState } from "react";
 
 import { getColumnId, isActionsColumn } from "./dataTable.shared";
 import {
@@ -82,7 +82,7 @@ function getColumnRawValue<T extends Record<string, unknown>>(
   return fieldValue as React.ReactNode;
 }
 
-function normalizeSearchValue(value: unknown) {
+function normalizeSearchValue(value: ReactNode) {
   return normalizeAdvancedFilterValue(value);
 }
 
@@ -547,7 +547,9 @@ export function useDataTable<T extends Record<string, unknown>>(
   const searchableRowMap = useMemo(
     () =>
       searchableRows
-        ? new Map(searchableRows.map(({ row, searchText }) => [row, searchText]))
+        ? new Map(
+            searchableRows.map(({ row, searchText }) => [row, searchText]),
+          )
         : null,
     [searchableRows],
   );
@@ -619,23 +621,26 @@ export function useDataTable<T extends Record<string, unknown>>(
         return true;
       }
 
-      return compiledAdvancedFilters.reduce<boolean>((matches, filter, index) => {
-        const rawValue = getColumnRawValue(row, filter.column);
-        const normalizedValue = normalizeAdvancedFilterValue(rawValue);
-        const nextMatch = matchesAdvancedFilterValue(
-          normalizedValue,
-          filter.operator,
-          filter.normalizedQuery,
-        );
+      return compiledAdvancedFilters.reduce<boolean>(
+        (matches, filter, index) => {
+          const rawValue = getColumnRawValue(row, filter.column);
+          const normalizedValue = normalizeAdvancedFilterValue(rawValue);
+          const nextMatch = matchesAdvancedFilterValue(
+            normalizedValue,
+            filter.operator,
+            filter.normalizedQuery,
+          );
 
-        if (index === 0) {
-          return nextMatch;
-        }
+          if (index === 0) {
+            return nextMatch;
+          }
 
-        return filter.connector === "or"
-          ? matches || nextMatch
-          : matches && nextMatch;
-      }, true);
+          return filter.connector === "or"
+            ? matches || nextMatch
+            : matches && nextMatch;
+        },
+        true,
+      );
     });
   }, [
     rows,

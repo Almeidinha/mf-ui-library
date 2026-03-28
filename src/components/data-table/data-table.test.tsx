@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { vi } from "vitest";
@@ -117,6 +117,30 @@ const spanRows: SpanRow[] = [
   },
 ];
 
+async function chooseSelectOption(
+  user: ReturnType<typeof userEvent.setup>,
+  controlName: string,
+  optionText: string,
+) {
+  const combobox = screen.getByRole("combobox", { name: controlName });
+  const trigger = combobox.querySelector('[data-role="value"]');
+
+  expect(trigger).not.toBeNull();
+
+  await user.click(trigger as HTMLElement);
+
+  await waitFor(() => {
+    expect(document.querySelector(".select-menu")).not.toBeNull();
+  });
+
+  const menu = document.querySelector(".select-menu") as HTMLElement;
+  const option = within(menu).getByText(optionText).closest('[data-role="option"]');
+
+  expect(option).not.toBeNull();
+
+  fireEvent.click(option as HTMLElement);
+}
+
 describe("DataTable grouping", () => {
   it("supports visible cell overflow when configured at column level", () => {
     render(
@@ -214,6 +238,7 @@ describe("DataTable grouping", () => {
         rowKey="id"
         paginated={false}
         searchable
+        searchDebounce={0}
       />,
     );
 
@@ -221,14 +246,8 @@ describe("DataTable grouping", () => {
       screen.getByRole("button", { name: "Advanced filters" }),
     );
 
-    await user.selectOptions(
-      screen.getByLabelText("Filter 1 column"),
-      "name",
-    );
-    await user.selectOptions(
-      screen.getByLabelText("Filter 1 operator"),
-      "contains",
-    );
+    await chooseSelectOption(user, "Filter 1 column", "Name");
+    await chooseSelectOption(user, "Filter 1 operator", "Contains");
     await user.type(screen.getByLabelText("Filter 1 value"), "ali");
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -236,15 +255,9 @@ describe("DataTable grouping", () => {
     expect(screen.queryByText("Carla")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Add filter" }));
-    await user.selectOptions(screen.getByLabelText("Filter 2 connector"), "or");
-    await user.selectOptions(
-      screen.getByLabelText("Filter 2 column"),
-      "country",
-    );
-    await user.selectOptions(
-      screen.getByLabelText("Filter 2 operator"),
-      "contains",
-    );
+    await chooseSelectOption(user, "Filter 2 connector", "Or");
+    await chooseSelectOption(user, "Filter 2 column", "Country");
+    await chooseSelectOption(user, "Filter 2 operator", "Contains");
     await user.type(screen.getByLabelText("Filter 2 value"), "united");
 
     expect(screen.getByText("Alice")).toBeInTheDocument();

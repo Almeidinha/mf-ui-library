@@ -752,6 +752,10 @@ const meta = {
         defaultValue: { summary: "max-content" },
       },
     },
+    minTableHeight: {
+      control: "text",
+      table: { category: "Layout", defaultValue: { summary: "undefined" } },
+    },
     paginated: {
       table: { category: "Pagination", defaultValue: { summary: "true" } },
     },

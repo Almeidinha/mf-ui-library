@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IconMinor } from "components/icon";
 import { vi } from "vitest";
@@ -127,6 +127,7 @@ describe("Select Tests", () => {
       <Select
         label="Test Select"
         searchable
+        searchDebounce={0}
         iconPosition="left"
         onInputChange={handleInputChange}
         options={options}
@@ -140,7 +141,9 @@ describe("Select Tests", () => {
     search.innerText = "mexico";
     fireEvent.input(search);
 
-    expect(handleInputChange).toHaveBeenCalledWith("mexico");
+    await waitFor(() => {
+      expect(handleInputChange).toHaveBeenCalledWith("mexico");
+    });
   });
 
   it("should render the custom menu", () => {
@@ -218,6 +221,7 @@ describe("Select Tests", () => {
       <Select
         label="Test Select"
         searchable
+        searchDebounce={0}
         iconPosition="left"
         onInputChange={handleInputChange}
         options={options}
