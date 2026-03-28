@@ -3,6 +3,7 @@ import { IconMinor } from "components/icon";
 import { InputText } from "components/input-field";
 import { Flex } from "components/layout";
 import { Pagination } from "components/pagination";
+import { Spinner } from "components/spinner";
 import {
   Table,
   TableBody,
@@ -188,6 +189,7 @@ export function DataTable<T extends Record<string, unknown>>(
     paginated,
     totalRows,
     totalPages,
+    loading,
 
     visibleRows,
     visibleColumns,
@@ -642,7 +644,15 @@ export function DataTable<T extends Record<string, unknown>>(
             </TableHead>
 
             <TableBody $striped={striped}>
-              {visibleRows.length === 0 ? (
+              {loading && visibleRows.length === 0 ? (
+                <TableRow>
+                  <TableBodyCell colSpan={colSpan}>
+                    <Flex align="center" justify="center">
+                      <Spinner small />
+                    </Flex>
+                  </TableBodyCell>
+                </TableRow>
+              ) : visibleRows.length === 0 ? (
                 <TableRow>
                   <TableBodyCell colSpan={colSpan}>
                     <Label muted>{emptyMessage}</Label>

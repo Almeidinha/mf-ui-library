@@ -4,9 +4,17 @@ import { IconMinor } from "components/icon";
 import { Box, Flex } from "components/layout";
 import { Label } from "components/typography";
 import { Gap } from "foundation/spacing";
+import { useMemo, useState } from "react";
 
+import { createDataTableDataSourceCache } from "../data-table/dataTableDataSource";
 import { DataGrid } from "./data-grid";
-import type { DataGridColumn, DataGridGroupValue } from "./types";
+import type {
+  DataGridColumn,
+  DataGridDataSource,
+  DataGridGetRowsParams,
+  DataGridGroupValue,
+  DataGridProps,
+} from "./types";
 
 type PersonRow = {
   id: number;
@@ -63,6 +71,8 @@ type OverflowStoryRow = {
   visible: string;
 };
 
+const SERVER_DATA_LATENCY_MS = 450;
+
 function getForwardRunLength<T>(
   rows: T[],
   rowIndex: number,
@@ -81,6 +91,221 @@ function getForwardRunLength<T>(
 
     return span + 1;
   }, 1);
+}
+
+function delay(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function normalizeServerValue(value: unknown) {
+  if (typeof value === "string") {
+    return value.toLowerCase();
+  }
+
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean" ||
+    value instanceof Date
+  ) {
+    return String(value).toLowerCase();
+  }
+
+  return "";
+}
+
+function getServerColumnValue<T extends Record<string, unknown>>(
+  row: T,
+  column: DataGridColumn<T>,
+) {
+  if (column.type === "actions") {
+    return "";
+  }
+
+  const fieldValue = row[column.field as keyof T];
+
+  if (column.valueGetter) {
+    return column.valueGetter(fieldValue, row);
+  }
+
+  return fieldValue;
+}
+
+function matchesServerFilter(value: string, params: DataGridGetRowsParams["filters"][number]) {
+  const query = params.value.trim().toLowerCase();
+
+  switch (params.operator) {
+    case "contains":
+      return value.includes(query);
+    case "notContains":
+      return !value.includes(query);
+    case "equals":
+      return value === query;
+    case "notEquals":
+      return value !== query;
+    case "startsWith":
+      return value.startsWith(query);
+    case "endsWith":
+      return value.endsWith(query);
+    case "isEmpty":
+      return value.length === 0;
+    case "isNotEmpty":
+      return value.length > 0;
+    default:
+      return true;
+  }
+}
+
+function buildServerQueryLabel(params: DataGridGetRowsParams) {
+  const searchLabel = params.search ? `search="${params.search}"` : "search=none";
+  const sortLabel = params.sortField
+    ? `sort=${params.sortField}:${params.sortDirection.toLowerCase()}`
+    : "sort=none";
+  const filterLabel = params.filters.length
+    ? `filters=${params.filters.length}`
+    : "filters=none";
+
+  return `page=${params.page + 1}, size=${params.pageSize}, ${searchLabel}, ${sortLabel}, ${filterLabel}`;
+}
+
+function createPersonServerRows(
+  params: DataGridGetRowsParams,
+  rows: PersonRow[],
+  columns: DataGridColumn<PersonRow>[],
+) {
+  const searchableColumns = columns.filter(
+    (column): column is Exclude<DataGridColumn<PersonRow>, { type: "actions" }> =>
+      column.type !== "actions" && column.searchable !== false,
+  );
+
+  const query = params.search.trim().toLowerCase();
+
+  const filteredRows = rows.filter((row) => {
+    if (query) {
+      const matchesQuery = searchableColumns.some((column) =>
+        normalizeServerValue(getServerColumnValue(row, column)).includes(query),
+      );
+
+      if (!matchesQuery) {
+        return false;
+      }
+    }
+
+    return params.filters.reduce<boolean>((matches, filter, index) => {
+      const column = searchableColumns.find(({ field }) => field === filter.field);
+
+      if (!column) {
+        return matches;
+      }
+
+      const nextMatch = matchesServerFilter(
+        normalizeServerValue(getServerColumnValue(row, column)),
+        filter,
+      );
+
+      if (index === 0) {
+        return nextMatch;
+      }
+
+      return filter.connector === "or" ? matches || nextMatch : matches && nextMatch;
+    }, true);
+  });
+
+  const sortedRows = [...filteredRows];
+
+  if (params.sortField && params.sortDirection !== "NONE") {
+    const sortColumn = columns.find(
+      (column) => column.type !== "actions" && String(column.field) === params.sortField,
+    );
+
+    if (sortColumn && sortColumn.type !== "actions") {
+      sortedRows.sort((rowA, rowB) => {
+        const a = sortColumn.sortValueGetter
+          ? sortColumn.sortValueGetter(rowA)
+          : getServerColumnValue(rowA, sortColumn);
+        const b = sortColumn.sortValueGetter
+          ? sortColumn.sortValueGetter(rowB)
+          : getServerColumnValue(rowB, sortColumn);
+
+        return normalizeServerValue(a).localeCompare(normalizeServerValue(b), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+      });
+
+      if (params.sortDirection === "DESC") {
+        sortedRows.reverse();
+      }
+    }
+  }
+
+  if (!params.paginated) {
+    return {
+      rows: sortedRows,
+      totalRows: sortedRows.length,
+    };
+  }
+
+  const start = params.page * params.pageSize;
+
+  return {
+    rows: sortedRows.slice(start, start + params.pageSize),
+    totalRows: sortedRows.length,
+  };
+}
+
+type ServerDataGridPreviewProps = {
+  args: Partial<DataGridProps<PersonRow>>;
+  useCustomCache?: boolean;
+  helperText: string;
+};
+
+function ServerDataGridPreview({
+  args,
+  useCustomCache = false,
+  helperText,
+}: ServerDataGridPreviewProps) {
+  const [requestCount, setRequestCount] = useState(0);
+  const [lastQuery, setLastQuery] = useState("Waiting for first request...");
+  const customCache = useMemo(
+    () =>
+      useCustomCache
+        ? createDataTableDataSourceCache<PersonRow>({ ttl: 60_000 })
+        : undefined,
+    [useCustomCache],
+  );
+  const dataSource = useMemo<DataGridDataSource<PersonRow>>(
+    () => ({
+      getRows: async (params) => {
+        await delay(SERVER_DATA_LATENCY_MS);
+        setRequestCount((current) => current + 1);
+        setLastQuery(buildServerQueryLabel(params));
+        return createPersonServerRows(params, personRows, columns);
+      },
+    }),
+    [],
+  );
+
+  return (
+    <Flex style={{ flexDirection: "column", gap: 8 }}>
+      <Flex align="center" style={{ gap: 16 }}>
+        <Label strong>{`Network requests: ${requestCount}`}</Label>
+        <Label muted>{lastQuery}</Label>
+      </Flex>
+
+      <Label muted>{helperText}</Label>
+
+      <DataGrid
+        {...args}
+        rows={[]}
+        columns={columns}
+        rowKey="id"
+        dataSource={dataSource}
+        dataSourceCache={customCache}
+      />
+    </Flex>
+  );
 }
 
 const Data = ["rows", "columns", "rowKey", "storageKey"];
@@ -768,6 +993,33 @@ const meta = {
         defaultValue: { summary: "[5, 10, 25]" },
       },
     },
+    dataSource: {
+      description:
+        "Optional server-side data source. When provided, searching, advanced filters, sorting, and pagination are delegated to `getRows`.",
+      control: false,
+      table: {
+        category: "Pagination",
+        defaultValue: { summary: "undefined" },
+      },
+    },
+    dataSourceCache: {
+      description:
+        "Optional cache implementation used to store server responses by query.",
+      control: false,
+      table: {
+        category: "Pagination",
+        defaultValue: { summary: "default in-memory cache" },
+      },
+    },
+    dataSourceCacheTtl: {
+      description:
+        "TTL in milliseconds for the built-in in-memory server-data cache.",
+      control: "number",
+      table: {
+        category: "Pagination",
+        defaultValue: { summary: "300000" },
+      },
+    },
     searchable: {
       table: { category: "Search", defaultValue: { summary: "true" } },
     },
@@ -1385,6 +1637,85 @@ export const ColumnAndRowGrouping: Story = {
       <Flex>
         <DataGrid {...args} rows={personRows} columns={columns} rowKey="id" />
       </Flex>
+    );
+  },
+};
+
+export const ServerData: Story = {
+  name: "Remote Data / Built-in Cache",
+  args: {
+    paginated: true,
+    searchable: true,
+    searchDebounce: 300,
+    maxTableHeight: 500,
+    defaultPageSize: 5,
+    pageSizeOptions: [5, 10, 25],
+    showActionColumns: false,
+    defaultPinnedColumns: undefined,
+    defaultColumnVisibility: undefined,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Uses `dataSource` with the built-in in-memory cache. The request counter stays stable when you revisit the same query.",
+      },
+    },
+    controls: {
+      exclude: [
+        "rows",
+        "dataSource",
+        "dataSourceCache",
+        ...Sorting,
+      ],
+    },
+  },
+  render: (args) => {
+    return (
+      <ServerDataGridPreview
+        args={args as Partial<DataGridProps<PersonRow>>}
+        helperText="Server mode uses the grid query state plus the built-in cache. Revisit a page or sort/search combination to verify the request count does not grow."
+      />
+    );
+  },
+};
+
+export const ServerDataWithCustomCache: Story = {
+  name: "Remote Data / Custom Cache",
+  args: {
+    paginated: true,
+    searchable: true,
+    searchDebounce: 300,
+    maxTableHeight: 500,
+    defaultPageSize: 5,
+    pageSizeOptions: [5, 10, 25],
+    showActionColumns: false,
+    defaultPinnedColumns: undefined,
+    defaultColumnVisibility: undefined,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Uses `dataSource` with an explicitly injected cache instance so consumers can control TTL and cache lifecycle.",
+      },
+    },
+    controls: {
+      exclude: [
+        "rows",
+        "dataSource",
+        "dataSourceCache",
+        ...Sorting,
+      ],
+    },
+  },
+  render: (args) => {
+    return (
+      <ServerDataGridPreview
+        args={args as Partial<DataGridProps<PersonRow>>}
+        useCustomCache
+        helperText="This variant injects a custom cache instance explicitly so the app can own cache TTL and lifecycle."
+      />
     );
   },
 };

@@ -1,7 +1,7 @@
 import {
   Checkbox,
-  CheckboxProps,
   CheckboxPropsThreeState,
+  CheckboxPropsTwoState,
 } from "components/checkbox";
 import { DataTableCellOverflow } from "components/data-table/types";
 import { IconMinor } from "components/icon";
@@ -41,13 +41,13 @@ import {
 import type { DataTableSize } from "../data-table/types";
 import { TransformIconWrapper } from "../shared-styled-components";
 
-type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate"> & {
+type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate" | "size"> & {
   dividerRight?: boolean;
-  size?: DataTableSize;
+  tableSize?: DataTableSize;
 };
-type TableBodySelectProps = CheckboxProps & {
+type TableBodySelectProps = Omit<CheckboxPropsTwoState, "size"> & {
   selected?: boolean;
-  size?: DataTableSize;
+  tableSize?: DataTableSize;
 };
 type TableBodyActionProps = PropsWithChildren<{
   onClick?: () => void;
@@ -397,12 +397,13 @@ export const TableBodyCell: TableBodyCellProps = function TableBodyCell({
 const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
   style,
   dividerRight,
-  size = "medium",
+  tableSize = "medium",
   ...rest
 }: TableHeadSelectProps) {
   const cssVariables: TableCssVariables = {
-    "--data-table-cell-padding": getDataTableCellPadding(size),
-    "--data-table-header-divider-inset": getDataTableHeaderDividerInset(size),
+    "--data-table-cell-padding": getDataTableCellPadding(tableSize),
+    "--data-table-header-divider-inset":
+      getDataTableHeaderDividerInset(tableSize),
   };
 
   return (
@@ -415,19 +416,19 @@ const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
   );
 };
 
-const TableCellSelect: FC<CheckboxProps & { selected?: boolean }> =
+const TableCellSelect: FC<TableBodySelectProps> =
   function TableCellSelect({
     style,
     selected,
     checked: checkedProp,
-    size = "medium",
+    tableSize = "medium",
     ...rest
   }) {
     const checked = is(checkedProp) || is(selected);
     const cssVariables: TableCssVariables = {
-      "--data-table-cell-padding": getDataTableCellPadding(size),
+      "--data-table-cell-padding": getDataTableCellPadding(tableSize),
       "--data-table-header-divider-inset":
-        getDataTableHeaderDividerInset(size),
+        getDataTableHeaderDividerInset(tableSize),
     };
 
     return (

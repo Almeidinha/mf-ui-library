@@ -141,8 +141,43 @@ export type DataTableAdvancedFilter = {
   connector: DataTableAdvancedFilterConnector;
 };
 
-export type DataTableProps<T extends Record<string, unknown>> = {
+export type DataTableServerFilter = Omit<DataTableAdvancedFilter, "id">;
+
+export type DataTableGetRowsParams = {
+  paginated: boolean;
+  page: number;
+  pageSize: number;
+  sortField: string | null;
+  sortDirection: SortDirection;
+  search: string;
+  filters: DataTableServerFilter[];
+  signal?: AbortSignal;
+};
+
+export type DataTableGetRowsResponse<T extends Record<string, unknown>> = {
   rows: T[];
+  totalRows: number;
+};
+
+export type DataTableDataSource<T extends Record<string, unknown>> = {
+  getRows: (
+    params: DataTableGetRowsParams,
+  ) => Promise<DataTableGetRowsResponse<T>>;
+};
+
+export type DataTableDataSourceCache<T extends Record<string, unknown>> = {
+  get: (
+    params: DataTableGetRowsParams,
+  ) => DataTableGetRowsResponse<T> | undefined;
+  set: (
+    params: DataTableGetRowsParams,
+    value: DataTableGetRowsResponse<T>,
+  ) => void;
+  clear?: () => void;
+};
+
+export type DataTableProps<T extends Record<string, unknown>> = {
+  rows?: T[];
   columns: DataTableColumn<T>[];
   columnGroups?: DataTableColumnGroup<T>[];
   rowGrouping?: DataTableRowGrouping<T>;
@@ -164,6 +199,9 @@ export type DataTableProps<T extends Record<string, unknown>> = {
   paginated?: boolean;
   defaultPageSize?: number;
   pageSizeOptions?: number[];
+  dataSource?: DataTableDataSource<T>;
+  dataSourceCache?: DataTableDataSourceCache<T>;
+  dataSourceCacheTtl?: number;
 
   searchable?: boolean;
   searchPlaceholder?: string;
@@ -217,6 +255,8 @@ export type UseDataTableResult<T extends Record<string, unknown>> = {
   paginated: boolean;
   totalRows: number;
   totalPages: number;
+  loading: boolean;
+  isServerData: boolean;
 
   visibleRows: T[];
   visibleColumns: DataTableColumn<T>[];

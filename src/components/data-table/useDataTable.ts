@@ -4,7 +4,14 @@ import {
   paginateRows,
 } from "helpers/table-helpers";
 import useDebounce from "hooks/useDebounce";
-import React, { ReactNode, useCallback, useMemo, useState } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { getColumnId, isActionsColumn } from "./dataTable.shared";
 import {
@@ -14,12 +21,19 @@ import {
   normalizeAdvancedFilterValue,
 } from "./dataTableAdvancedFilters.shared";
 import {
+  createDataTableDataSourceCache,
+  serializeDataTableGetRowsParams,
+} from "./dataTableDataSource";
+import {
   DataTableAdvancedFilter,
   DataTableColumn,
   DataTableColumnVisibility,
+  DataTableGetRowsParams,
+  DataTableGetRowsResponse,
   DataTablePin,
   DataTablePinnedColumns,
   DataTableRegularColumn,
+  DataTableServerFilter,
   SortDirection,
   UseDataTableProps,
   UseDataTableResult,
@@ -84,6 +98,17 @@ function getColumnRawValue<T extends Record<string, unknown>>(
 
 function normalizeSearchValue(value: ReactNode) {
   return normalizeAdvancedFilterValue(value);
+}
+
+function normalizeServerFilters(filters: DataTableAdvancedFilter[]) {
+  return filters.map<DataTableServerFilter>(
+    ({ field, operator, value, connector }) => ({
+      field,
+      operator,
+      value,
+      connector,
+    }),
+  );
 }
 
 function buildDefaultVisibility<T extends Record<string, unknown>>(
@@ -155,13 +180,16 @@ export function useDataTable<T extends Record<string, unknown>>(
   props: UseDataTableProps<T>,
 ): UseDataTableResult<T> {
   const {
-    rows,
+    rows = [],
     columns,
     showActionColumns = true,
     rowKey,
     paginated = false,
     defaultPageSize = 10,
     pageSizeOptions = [5, 10, 25, 50],
+    dataSource,
+    dataSourceCache: providedDataSourceCache,
+    dataSourceCacheTtl,
     searchable = false,
     searchDebounce = 250,
     checkboxSelection = false,
@@ -183,6 +211,7 @@ export function useDataTable<T extends Record<string, unknown>>(
     defaultPinnedColumns,
     onPinnedColumnsChange,
   } = props;
+  const isServerData = Boolean(dataSource);
 
   const enabledColumns = useMemo(
     () =>
@@ -256,6 +285,25 @@ export function useDataTable<T extends Record<string, unknown>>(
   const [advancedFilters, setAdvancedFilters] = useState<
     DataTableAdvancedFilter[]
   >([]);
+  const [serverRows, setServerRows] = useState<T[]>(rows);
+  const [serverTotalRows, setServerTotalRows] = useState(rows.length);
+  const [loading, setLoading] = useState(() => Boolean(dataSource));
+  const requestVersionRef = useRef(0);
+  const pendingRequestsRef = useRef<
+    Map<string, Promise<DataTableGetRowsResponse<T>>>
+  >(new Map());
+
+  const defaultDataSourceCache = useMemo(
+    () =>
+      isServerData
+        ? createDataTableDataSourceCache<T>({
+            ttl: dataSourceCacheTtl,
+          })
+        : null,
+    [dataSourceCacheTtl, isServerData],
+  );
+  const dataSourceCache = providedDataSourceCache ?? defaultDataSourceCache;
+  const isSearchPending = isServerData && search !== debouncedSearch;
 
   const [internalSortField, setInternalSortField] = useState<string | null>(
     null,
@@ -341,10 +389,36 @@ export function useDataTable<T extends Record<string, unknown>>(
   };
 
   const setPage = (nextPage: number) => {
+    if (isServerData) {
+      setLoading(true);
+    }
+
     setPageState(Math.max(0, nextPage));
   };
 
+  const setSearchValue = (value: string) => {
+    if (isServerData) {
+      setLoading(true);
+    }
+
+    setSearch(value);
+    setPageState(0);
+  };
+
+  const setAdvancedFiltersValue = (filters: DataTableAdvancedFilter[]) => {
+    if (isServerData) {
+      setLoading(true);
+    }
+
+    setAdvancedFilters(filters);
+    setPageState(0);
+  };
+
   const setPageSize = (nextPageSize: number) => {
+    if (isServerData) {
+      setLoading(true);
+    }
+
     setPageSizeState(nextPageSize);
     setPageState(0);
   };
@@ -358,7 +432,7 @@ export function useDataTable<T extends Record<string, unknown>>(
 
     onSelectedRowsChange?.(
       keys,
-      rows.filter((row) => nextKeySet.has(getRowKeyValue(row, rowKey))),
+      sourceRows.filter((row) => nextKeySet.has(getRowKeyValue(row, rowKey))),
     );
   };
 
@@ -524,8 +598,26 @@ export function useDataTable<T extends Record<string, unknown>>(
     [visibleColumns, searchable],
   );
 
+  const searchableFieldSet = useMemo(
+    () => new Set(searchableColumns.map(getColumnId)),
+    [searchableColumns],
+  );
+
+  const activeAdvancedFilters = useMemo(
+    () =>
+      advancedFilters.filter((filter) =>
+        isAdvancedFilterComplete(filter, searchableFieldSet),
+      ),
+    [advancedFilters, searchableFieldSet],
+  );
+
+  const serverFilters = useMemo(
+    () => normalizeServerFilters(activeAdvancedFilters),
+    [activeAdvancedFilters],
+  );
+
   const searchableRows = useMemo(() => {
-    if (!searchable || searchableColumns.length === 0) {
+    if (isServerData || !searchable || searchableColumns.length === 0) {
       return null;
     }
 
@@ -534,9 +626,9 @@ export function useDataTable<T extends Record<string, unknown>>(
       searchText: searchableColumns
         .map((column) => normalizeSearchValue(getColumnRawValue(row, column)))
         .filter(Boolean)
-        .join(" "),
+      .join(" "),
     }));
-  }, [rows, searchable, searchableColumns]);
+  }, [isServerData, rows, searchable, searchableColumns]);
 
   const searchableColumnById = useMemo(
     () =>
@@ -552,19 +644,6 @@ export function useDataTable<T extends Record<string, unknown>>(
           )
         : null,
     [searchableRows],
-  );
-
-  const searchableFieldSet = useMemo(
-    () => new Set(searchableColumns.map(getColumnId)),
-    [searchableColumns],
-  );
-
-  const activeAdvancedFilters = useMemo(
-    () =>
-      advancedFilters.filter((filter) =>
-        isAdvancedFilterComplete(filter, searchableFieldSet),
-      ),
-    [advancedFilters, searchableFieldSet],
   );
 
   const compiledAdvancedFilters = useMemo(
@@ -594,7 +673,107 @@ export function useDataTable<T extends Record<string, unknown>>(
     [activeAdvancedFilters, searchableColumnById],
   );
 
+  const serverQuery = useMemo<DataTableGetRowsParams>(
+    () => ({
+      paginated,
+      page,
+      pageSize,
+      sortField,
+      sortDirection,
+      search: debouncedSearch.trim(),
+      filters: serverFilters,
+    }),
+    [
+      paginated,
+      page,
+      pageSize,
+      sortField,
+      sortDirection,
+      debouncedSearch,
+      serverFilters,
+    ],
+  );
+
+  const cachedServerResponse = useMemo(
+    () => (dataSource ? dataSourceCache?.get(serverQuery) : undefined),
+    [dataSource, dataSourceCache, serverQuery],
+  );
+  const sourceRows = isServerData
+    ? (cachedServerResponse?.rows ?? serverRows)
+    : rows;
+  const resolvedLoading = isServerData ? loading && !cachedServerResponse : false;
+
+  useEffect(() => {
+    if (!dataSource) {
+      return;
+    }
+
+    requestVersionRef.current += 1;
+  }, [dataSource, serverQuery]);
+
+  useEffect(() => {
+    if (!dataSource || isSearchPending || cachedServerResponse) {
+      return;
+    }
+
+    const requestKey = serializeDataTableGetRowsParams(serverQuery);
+    const requestVersion = requestVersionRef.current;
+    const abortController =
+      typeof AbortController === "undefined"
+        ? null
+        : new AbortController();
+    const params: DataTableGetRowsParams = abortController
+      ? {
+          ...serverQuery,
+          signal: abortController.signal,
+        }
+      : serverQuery;
+
+    const existingRequest = pendingRequestsRef.current.get(requestKey);
+    const request =
+      existingRequest ??
+      dataSource
+        .getRows(params)
+        .then((response) => ({
+          rows: response.rows,
+          totalRows: response.totalRows,
+        }))
+        .finally(() => {
+          pendingRequestsRef.current.delete(requestKey);
+        });
+
+    pendingRequestsRef.current.set(requestKey, request);
+
+    request
+      .then((response) => {
+        dataSourceCache?.set(serverQuery, response);
+
+        if (requestVersionRef.current !== requestVersion) {
+          return;
+        }
+
+        setServerRows(response.rows);
+        setServerTotalRows(response.totalRows);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (requestVersionRef.current !== requestVersion) {
+          return;
+        }
+
+        setLoading(false);
+      });
+
+    return () => {
+      abortController?.abort();
+    };
+  }, [cachedServerResponse, dataSource, dataSourceCache, isSearchPending, serverQuery]);
+
   const filteredRows = useMemo(() => {
+    if (isServerData) {
+      return sourceRows;
+    }
+
     const hasQuery = searchable && debouncedSearch.trim().length > 0;
     const hasAdvancedFilters = compiledAdvancedFilters.length > 0;
 
@@ -643,6 +822,8 @@ export function useDataTable<T extends Record<string, unknown>>(
       );
     });
   }, [
+    isServerData,
+    sourceRows,
     rows,
     searchable,
     debouncedSearch,
@@ -651,6 +832,10 @@ export function useDataTable<T extends Record<string, unknown>>(
   ]);
 
   const sortedRows = useMemo(() => {
+    if (isServerData) {
+      return filteredRows;
+    }
+
     if (!sortField || sortDirection === "NONE") {
       return filteredRows;
     }
@@ -674,9 +859,20 @@ export function useDataTable<T extends Record<string, unknown>>(
     });
 
     return sortDirection === "DESC" ? nextRows.reverse() : nextRows;
-  }, [filteredRows, columnById, sortField, sortDirection]);
+  }, [filteredRows, columnById, isServerData, sortField, sortDirection]);
 
   const pagination = useMemo(() => {
+    if (isServerData) {
+      return {
+        rows: sortedRows,
+        pageIndex: page,
+        pageCount:
+          paginated && pageSize > 0
+            ? Math.max(1, Math.ceil(serverTotalRows / pageSize))
+            : 1,
+      };
+    }
+
     if (!paginated) {
       return {
         rows: sortedRows,
@@ -686,11 +882,13 @@ export function useDataTable<T extends Record<string, unknown>>(
     }
 
     return paginateRows(sortedRows, page, pageSize);
-  }, [sortedRows, paginated, page, pageSize]);
+  }, [isServerData, sortedRows, paginated, page, pageSize, serverTotalRows]);
 
   const visibleRows = pagination.rows;
   const safePage = pagination.pageIndex;
-  const totalRows = sortedRows.length;
+  const totalRows = isServerData
+    ? (cachedServerResponse?.totalRows ?? serverTotalRows)
+    : sortedRows.length;
   const totalPages = pagination.pageCount;
 
   const visibleKeys = useMemo(
@@ -715,12 +913,20 @@ export function useDataTable<T extends Record<string, unknown>>(
     }
 
     if (sortField !== field) {
+      if (isServerData) {
+        setLoading(true);
+        setPageState(0);
+      }
       setSort(field, "ASC");
       return;
     }
 
     const nextDirection = getNextSortDirection(sortDirection);
 
+    if (isServerData) {
+      setLoading(true);
+      setPageState(0);
+    }
     setSort(nextDirection === "NONE" ? null : field, nextDirection);
   };
 
@@ -767,9 +973,9 @@ export function useDataTable<T extends Record<string, unknown>>(
 
   return {
     search,
-    setSearch,
+    setSearch: setSearchValue,
     advancedFilters,
-    setAdvancedFilters,
+    setAdvancedFilters: setAdvancedFiltersValue,
     searchableColumns,
 
     sortField,
@@ -784,6 +990,8 @@ export function useDataTable<T extends Record<string, unknown>>(
     paginated,
     totalRows,
     totalPages,
+    loading: resolvedLoading,
+    isServerData,
 
     visibleRows,
     visibleColumns,

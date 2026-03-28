@@ -7,7 +7,7 @@ export const breakpointValues = {
 } as const;
 
 export type Breakpoint = keyof typeof breakpointValues;
-export type BreakpointValues = typeof breakpointValues;
+export type BreakpointValues = Record<Breakpoint, number>;
 const breakpointStep = 5;
 
 function getBreakpointValue(

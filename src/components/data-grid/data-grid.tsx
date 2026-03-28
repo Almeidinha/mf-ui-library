@@ -11,6 +11,7 @@ import {
 import { Button } from "components/molecules/button";
 import { Pagination } from "components/pagination";
 import { TransformIconWrapper } from "components/shared-styled-components";
+import { Spinner } from "components/spinner";
 import { Label } from "components/typography";
 import { Borders, Focus, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
@@ -23,14 +24,11 @@ import { SortDirection } from "helpers/table-helpers";
 import { useMergedRefs, useOnClickOutside } from "hooks";
 import {
   ComponentType,
-  CSSProperties,
-  HTMLAttributes,
   JSX,
   Key,
   KeyboardEvent,
   memo,
   ReactNode,
-  RefObject,
   useCallback,
   useLayoutEffect,
   useMemo,
@@ -59,7 +57,6 @@ import {
   getDataTableHeaderDividerInset,
   getDataTableShellPadding,
 } from "../data-table/dataTableSizing";
-import type { DataTableRegularColumn } from "../data-table/types";
 import { useDataTable } from "../data-table/useDataTable";
 import {
   type ResolvedBodyCell,
@@ -68,7 +65,19 @@ import {
 import { useDataTableColumnGrouping } from "../data-table/useDataTableColumnGrouping";
 import { useDataTablePinnedStyles } from "../data-table/useDataTablePinnedStyles";
 import { useDataTableRowGrouping } from "../data-table/useDataTableRowGrouping";
-import type { DataGridProps } from "./types";
+import type {
+  ActionDescriptor,
+  DataGridCssVariables,
+  DataGridDataRowProps,
+  DataGridEmptyRowProps,
+  DataGridGroupRowProps,
+  DataGridProps,
+  FocusableCellDomProps,
+  FocusableGridCell,
+  GridCellStyleProps,
+  VirtualizedDataGridGroupRowProps,
+  VirtualizedDataGridRowProps,
+} from "./types";
 
 const CHECKBOX_COLUMN_FIELD = "__checkbox__";
 const HEADER_SCROLLBAR_SPACER = 15;
@@ -76,146 +85,6 @@ const HEADER_SCROLLBAR_SPACER = 15;
 const EMPTY_FOCUSABLE_CELLS: FocusableGridCell[] = [];
 const EMPTY_FOCUSABLE_CELL_MAP = new Map<string, FocusableGridCell>();
 const EMPTY_SLOT_OWNER_MAP = new Map<string, string>();
-
-type GridCellStyleProps = {
-  $sticky?: boolean;
-  $fitContent?: boolean;
-  $allowOverflow?: boolean;
-  $borderRight?: boolean;
-  $borderBottom?: boolean;
-  $focused?: boolean;
-  $showCellBorders?: boolean;
-};
-
-type DataGridCssVariables = CSSProperties & {
-  "--data-table-cell-padding"?: string;
-  "--data-table-header-divider-inset"?: string;
-  "--data-table-shell-padding"?: string;
-};
-
-type ActionDescriptor<T extends Record<string, unknown>> = {
-  key: string;
-  label: ReactNode;
-  onClick: (row: T) => void;
-  disabled?: boolean | ((row: T) => boolean);
-  destructive?: boolean;
-  icon?: ComponentType;
-};
-
-type FocusableGridCellKind =
-  | "body-checkbox"
-  | "body-cell"
-  | "body-actions"
-  | "group-row"
-  | "empty";
-
-type FocusableGridCell = {
-  key: string;
-  kind: FocusableGridCellKind;
-  itemIndex?: number;
-  rowIndex: number;
-  colIndex: number;
-  rowSpan: number;
-  colSpan: number;
-  groupKey?: string;
-  collapsed?: boolean;
-  collapsible?: boolean;
-  selected?: boolean;
-  rowKey?: Key;
-};
-
-type FocusableCellDomProps = HTMLAttributes<HTMLDivElement> & {
-  id: string;
-  role: "gridcell";
-  tabIndex?: number;
-  "aria-colindex": number;
-  "aria-rowindex": number;
-  "aria-colspan"?: number;
-  "aria-rowspan"?: number;
-  "aria-selected"?: true;
-  "aria-expanded"?: boolean;
-  ref?: (node: HTMLDivElement | null) => void;
-};
-
-type DataGridEmptyRowProps = {
-  emptyMessage: ReactNode;
-  headerRowCount: number;
-  totalColumnCount: number;
-  showCellBorders: boolean;
-  hasBorderBottom: boolean;
-  isFocused: boolean;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-};
-
-type DataGridGroupRowProps<T extends Record<string, unknown>> = {
-  entry: Extract<GroupedBodyEntry<T>, { type: "group" }>;
-  rowIndex: number;
-  headerRowCount: number;
-  totalColumnCount: number;
-  showCellBorders: boolean;
-  hasBorderBottom: boolean;
-  isFocused: boolean;
-  renderGroupHeaderContent: (
-    entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
-  ) => ReactNode;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-};
-
-type DataGridDataRowProps<T extends Record<string, unknown>> = {
-  entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
-  rowIndex: number;
-  headerRowCount: number;
-  checkboxSelection: boolean;
-  lastLeftPinnedField: string | null;
-  showCellBorders: boolean;
-  isSelected: boolean;
-  isStriped: boolean;
-  activeCellKey: string | null;
-  resolvedBodyCells: ResolvedBodyCell<T>[];
-  shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
-  shouldRenderBorderBottom: (rowIndex: number, rowSpan?: number) => boolean;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-  toggleRowSelection: (rowKey: Key) => void;
-  getColumnRawValue: (row: T, column: DataTableRegularColumn<T>) => ReactNode;
-  cellSelection: boolean;
-  actionTriggerRefs: RefObject<Record<string, HTMLButtonElement | null>>;
-};
-
-type VirtualizedDataGridGroupRowProps<T extends Record<string, unknown>> = {
-  entry: Extract<GroupedBodyEntry<T>, { type: "group" }>;
-  itemIndex: number;
-  headerRowCount: number;
-  totalColumnCount: number;
-  gridTemplateColumns: string;
-  showCellBorders: boolean;
-  hasBorderBottom: boolean;
-  isFocused: boolean;
-  renderGroupHeaderContent: (
-    entry: Extract<GroupedBodyEntry<T>, { type: "group" }>,
-  ) => ReactNode;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-};
-
-type VirtualizedDataGridRowProps<T extends Record<string, unknown>> = {
-  entry: Extract<GroupedBodyEntry<T>, { type: "row" }>;
-  itemIndex: number;
-  headerRowCount: number;
-  gridTemplateColumns: string;
-  checkboxSelection: boolean;
-  lastLeftPinnedField: string | null;
-  showCellBorders: boolean;
-  isSelected: boolean;
-  isStriped: boolean;
-  activeCellKey: string | null;
-  resolvedBodyCells: ResolvedBodyCell<T>[];
-  shouldRenderBorderRight: (field: string, colSpan?: number) => boolean;
-  shouldRenderBorderBottom: (rowIndex: number, rowSpan?: number) => boolean;
-  getFocusableCellProps: (cell: FocusableGridCell) => FocusableCellDomProps;
-  toggleRowSelection: (rowKey: Key) => void;
-  getColumnRawValue: (row: T, column: DataTableRegularColumn<T>) => ReactNode;
-  cellSelection: boolean;
-  actionTriggerRefs: RefObject<Record<string, HTMLButtonElement | null>>;
-};
 
 const GridFrame = styled.div<{
   $borderTop?: boolean;
@@ -700,6 +569,7 @@ function GridActionsCell<T extends Record<string, unknown>>({
 
 const DataGridEmptyRow = memo(function DataGridEmptyRow({
   emptyMessage,
+  loading,
   headerRowCount,
   totalColumnCount,
   showCellBorders,
@@ -727,7 +597,7 @@ const DataGridEmptyRow = memo(function DataGridEmptyRow({
           gridRow: toGridSpan(1),
         }}
       >
-        <Label muted>{emptyMessage}</Label>
+        {loading ? <Spinner small /> : <Label muted>{emptyMessage}</Label>}
       </EmptyCellFrame>
     </GridRow>
   );
@@ -1300,6 +1170,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     paginated,
     totalRows,
     totalPages,
+    loading,
     visibleRows,
     visibleColumns,
     selectedKeys,
@@ -2386,6 +2257,7 @@ export function DataGrid<T extends Record<string, unknown>>(
         <DataGridEmptyRow
           key="body-row-empty"
           emptyMessage={emptyMessage}
+          loading={loading}
           headerRowCount={headerRowCount}
           totalColumnCount={totalColumnCount}
           showCellBorders={showCellBorders}
@@ -2449,6 +2321,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     visibleRows.length,
     totalColumnCount,
     emptyMessage,
+    loading,
     groupedBodyEntries,
     showCellBorders,
     activeCellKey,
