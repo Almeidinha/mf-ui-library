@@ -97,6 +97,38 @@ const rows: TypographyRow[] = [
     spacing: "0px",
   },
   {
+    id: "body-neutral",
+    preview: "Body/Neutral",
+    weight: "Regular 400",
+    size: "14px (0.875 rem)",
+    lineHeight: "20px",
+    spacing: "0px",
+  },
+  {
+    id: "body-highlight",
+    preview: "Body/Highlight",
+    weight: "Regular 400",
+    size: "14px (0.875 rem)",
+    lineHeight: "20px",
+    spacing: "0px",
+  },
+  {
+    id: "body-critical",
+    preview: "Body/Critical",
+    weight: "Regular 400",
+    size: "14px (0.875 rem)",
+    lineHeight: "20px",
+    spacing: "0px",
+  },
+  {
+    id: "body-success",
+    preview: "Body/Success",
+    weight: "Regular 400",
+    size: "14px (0.875 rem)",
+    lineHeight: "20px",
+    spacing: "0px",
+  },
+  {
     id: "body-link",
     preview: "Body/Link",
     weight: "Regular 400",
@@ -158,6 +190,14 @@ function renderTypographyPreview(row: TypographyRow) {
       return <Body strong>{row.preview}</Body>;
     case "body-default":
       return <Body>{row.preview}</Body>;
+    case "body-neutral":
+      return <Body neutral>{row.preview}</Body>;
+    case "body-highlight":
+      return <Body highlight>{row.preview}</Body>;
+    case "body-critical":
+      return <Body critical>{row.preview}</Body>;
+    case "body-success":
+      return <Body success>{row.preview}</Body>;
     case "body-link":
       return <Link>{row.preview}</Link>;
     case "caption":
@@ -215,6 +255,8 @@ const meta = {
 ## Typography System
 The Typography System is a collection of ready-made text styles that keep our products looking consistent.
 Each style is created for a specific purpose, like headings, body text, captions, and more.
+
+The table also includes semantic text examples such as neutral, highlight, success, and critical so the typography and color systems can be reviewed together.
         `,
       },
     },

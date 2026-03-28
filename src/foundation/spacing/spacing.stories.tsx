@@ -1,54 +1,32 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Badge } from "components/badge";
 import { Card } from "components/card";
-import {
-  Table,
-  TableBody,
-  TableBodyCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "components/table";
-import { Label } from "components/typography/typography";
+import { Flex } from "components/layout";
+import { Body, Heading2, Label } from "components/typography";
+import { Borders, Surface, Text } from "foundation/colors";
+import { Gap, Margin, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
-const ScaleList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+import { SPACING } from "./spacing";
+
+const docsDescription = `
+Spacing tokens are built around an 8px rhythm and are reused across padding,
+margin, gap, width, and height decisions.
+
+\`\`\`ts
+import { Gap, Padding } from "foundation/spacing";
+
+const Stack = styled.div\`
+  gap: \${Gap.m};
+  padding: \${Padding.l};
+\`;
+\`\`\`
+
+Prefer semantic aliases like \`Padding.m\` or \`Gap.l\` in components instead of
+reaching for raw pixel strings directly.
 `;
-
-const ScaleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 24px;
-`;
-
-const Multiplier = styled.span`
-  color: #9ca3af;
-`;
-
-const Bar = styled.div<{ width: number }>`
-  height: 20px;
-  width: ${({ width }) => width}px;
-  background: #3b82f6;
-  border-radius: 2px;
-`;
-
-const Description = styled.p`
-  margin: 0 0 32px;
-  color: #6b7280;
-  max-width: 720px;
-`;
-
-const BASE = 8;
-
-const spacingScale = [
-  2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 640, 768,
-];
 
 const meta = {
-  title: "Foundations/Spacing",
+  title: "Foundations/Layout/Spacing",
   tags: ["autodocs"],
   parameters: {
     viewMode: "docs",
@@ -57,26 +35,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: `
-## How to use
-
-\`\`\`ts
-import SPACING from './spacing'
-
-//get the token value
-SPACING.['YOUR-VALUE-HERE']
-\`\`\`
-
-## When to use
-
-You can set this values from this props:
-
-- width
-- heigth
-- margin
-- padding
-
-        `,
+        component: docsDescription,
       },
     },
   },
@@ -86,137 +45,210 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Docs: Story = {
-  render: () => (
-    <div style={{ padding: 24 }}>
-      <h1>Spacing System</h1>
+const scaleEntries = Object.entries(SPACING);
 
-      <Card heading="8 pixel base unit">
-        <Description>
-          All spacing for components and typography is built around a base unit
-          of 8 pixels. This base unit determines the spacing scale and ensures
-          visual consistency across products.
-        </Description>
+const semanticGroups = [
+  { title: "Padding", tokens: Padding },
+  { title: "Margin", tokens: Margin },
+  { title: "Gap", tokens: Gap },
+] as const;
+
+const DocsContent = () => {
+  return (
+    <Page column>
+      <Body>
+        The spacing scale is grounded on an 8px rhythm, with a few smaller steps
+        for tighter UI density.
+      </Body>
+
+      <Section>
+        <Heading2>Scale</Heading2>
+        <Body>
+          Raw spacing tokens are useful for reference. In most components, prefer
+          semantic aliases like <code>Padding.m</code> and <code>Gap.s</code>.
+        </Body>
         <ScaleList>
-          {spacingScale.map((value) => (
-            <ScaleRow key={value}>
-              <Label style={{ minWidth: "100px" }}>
-                {value}px <Multiplier>(8 × {value / BASE})</Multiplier>
-              </Label>
-              <Bar width={value} />
+          {scaleEntries.map(([name, value]) => (
+            <ScaleRow key={name}>
+              <TokenLabel>
+                <Label strong>{name}</Label>
+                <Body>{value}</Body>
+              </TokenLabel>
+              <BarFrame>
+                <ScaleBar $width={parseInt(value, 10)} />
+              </BarFrame>
             </ScaleRow>
           ))}
         </ScaleList>
-      </Card>
+      </Section>
 
-      <h2>List of Values</h2>
+      <Section>
+        <Heading2>Semantic Aliases</Heading2>
+        <Body>
+          These aliases keep spacing intent readable in component code.
+        </Body>
+        <AliasGrid>
+          {semanticGroups.map((group) => (
+            <Card key={group.title}>
+              <Card.Section>
+                <Flex column style={{ gap: 12 }}>
+                  <Label strong>{group.title}</Label>
+                  {Object.entries(group.tokens).map(([token, value]) => (
+                    <AliasRow key={`${group.title}-${token}`}>
+                      <code>{token}</code>
+                      <span>{String(value)}px</span>
+                    </AliasRow>
+                  ))}
+                </Flex>
+              </Card.Section>
+            </Card>
+          ))}
+        </AliasGrid>
+      </Section>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableHeaderCell>Name</TableHeaderCell>
-            <TableHeaderCell>Value</TableHeaderCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size2</Badge>
-            </TableBodyCell>
-            <TableBodyCell>2px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size4</Badge>
-            </TableBodyCell>
-            <TableBodyCell>4px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size8</Badge>
-            </TableBodyCell>
-            <TableBodyCell>8px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size12</Badge>
-            </TableBodyCell>
-            <TableBodyCell>12px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size16</Badge>
-            </TableBodyCell>
-            <TableBodyCell>16px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size24</Badge>
-            </TableBodyCell>
-            <TableBodyCell>24px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size32</Badge>
-            </TableBodyCell>
-            <TableBodyCell>32px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size64</Badge>
-            </TableBodyCell>
-            <TableBodyCell>64px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size96</Badge>
-            </TableBodyCell>
-            <TableBodyCell>96px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size128</Badge>
-            </TableBodyCell>
-            <TableBodyCell>128px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size192</Badge>
-            </TableBodyCell>
-            <TableBodyCell>192px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size256</Badge>
-            </TableBodyCell>
-            <TableBodyCell>256px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size384</Badge>
-            </TableBodyCell>
-            <TableBodyCell>384px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size512</Badge>
-            </TableBodyCell>
-            <TableBodyCell>512px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size640</Badge>
-            </TableBodyCell>
-            <TableBodyCell>640px</TableBodyCell>
-          </TableRow>
-          <TableRow>
-            <TableBodyCell>
-              <Badge neutral>Size768</Badge>
-            </TableBodyCell>
-            <TableBodyCell>768px</TableBodyCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
-  ),
+      <Section>
+        <Heading2>Usage Examples</Heading2>
+        <ExampleGrid>
+          <Card>
+            <Card.Section>
+              <Flex column style={{ gap: 16 }}>
+                <Label strong>Stack With Gap</Label>
+                <Body>
+                  Good for vertical groups where the relationship between items
+                  matters more than container padding.
+                </Body>
+                <StackExample>
+                  <ExampleTile>First</ExampleTile>
+                  <ExampleTile>Second</ExampleTile>
+                  <ExampleTile>Third</ExampleTile>
+                </StackExample>
+              </Flex>
+            </Card.Section>
+          </Card>
+
+          <Card>
+            <Card.Section>
+              <Flex column style={{ gap: 16 }}>
+                <Label strong>Padded Surface</Label>
+                <Body>
+                  Use padding to create interior breathing room for content inside
+                  a card or panel.
+                </Body>
+                <PaddedExample>
+                  <Label strong>Card content</Label>
+                  <Body>Padding uses the same shared spacing scale.</Body>
+                </PaddedExample>
+              </Flex>
+            </Card.Section>
+          </Card>
+        </ExampleGrid>
+      </Section>
+    </Page>
+  );
+};
+
+const Page = styled(Flex)`
+  max-width: 1100px;
+  gap: ${Margin.xl};
+  padding: ${Padding.l};
+  color: ${Text.Default};
+`;
+
+const Section = styled.section`
+  display: grid;
+  gap: ${Margin.m};
+`;
+
+const ScaleList = styled.div`
+  display: grid;
+  gap: ${Margin.s};
+`;
+
+const ScaleRow = styled.div`
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: ${Margin.m};
+  align-items: center;
+
+  ${({ theme }) => theme.breakpoints.down("sm")} {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const TokenLabel = styled.div`
+  display: grid;
+  gap: 4px;
+`;
+
+const BarFrame = styled.div`
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 ${Padding.s};
+  border-radius: 999px;
+  background: ${Surface.Default.Muted};
+  border: 1px solid ${Borders.Default.Muted};
+`;
+
+const ScaleBar = styled.div<{ $width: number }>`
+  height: 14px;
+  width: ${({ $width }) => `${$width}px`};
+  min-width: 2px;
+  border-radius: 999px;
+  background: ${Surface.Highlight.Active};
+`;
+
+const AliasGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: ${Margin.m};
+`;
+
+const AliasRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: ${Margin.s};
+  padding: ${Padding.s} 0;
+  border-bottom: 1px solid ${Borders.Default.Muted};
+  color: ${Text.Default};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  span {
+    color: ${Text.Muted};
+  }
+`;
+
+const ExampleGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: ${Margin.l};
+`;
+
+const StackExample = styled.div`
+  display: grid;
+  gap: ${Gap.m};
+`;
+
+const ExampleTile = styled.div`
+  padding: ${Padding.m};
+  border-radius: 12px;
+  border: 1px solid ${Borders.Default.Muted};
+  background: ${Surface.Default.Muted};
+  color: ${Text.Default};
+`;
+
+const PaddedExample = styled.div`
+  display: grid;
+  gap: ${Gap.s};
+  padding: ${Padding.l};
+  border-radius: 16px;
+  border: 1px solid ${Borders.Default.Default};
+  background: ${Surface.Default.Muted};
+`;
+
+export const Docs: Story = {
+  render: () => <DocsContent />,
 };

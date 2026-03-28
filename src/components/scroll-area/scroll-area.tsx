@@ -1,3 +1,4 @@
+import { Borders, Text } from "foundation/colors";
 import { clamp } from "helpers/numbers";
 import React, {
   type ComponentPropsWithoutRef,
@@ -168,7 +169,7 @@ const Thumb = styled.div.attrs<{
 }))`
   position: absolute;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
+  background: ${Borders.Default.Active};
   pointer-events: auto;
   cursor: pointer;
   user-select: none;
@@ -176,13 +177,13 @@ const Thumb = styled.div.attrs<{
   transition: background 160ms ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.5);
+    background: ${Text.Muted};
   }
 
   ${({ $dragging }) =>
     $dragging &&
     css`
-      background: rgba(0, 0, 0, 0.6);
+      background: ${Text.Default};
     `}
 `;
 

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Divider } from "components/divider";
 import { Label } from "components/typography";
+import { Background, Borders, Text } from "foundation/colors";
 import type { ComponentProps } from "react";
 import styled from "styled-components";
 
@@ -30,10 +31,10 @@ const Page = styled.div`
   width: min(1100px, 100%);
 `;
 
-const Surface = styled.div`
-  border: 1px dashed #d0d7de;
+const Surface = styled(Container)`
+  border: 1px dashed ${Borders.Default.Default};
   padding: 24px;
-  background: #f8fafc;
+  background: ${Background.Muted};
 `;
 
 const DemoBlock = styled.div`
@@ -45,9 +46,11 @@ const DemoBlock = styled.div`
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border: 1px solid ${Borders.Default.Default};
+  background: ${Background.Default};
+  color: ${Text.Active};
   font-weight: 600;
+  margin: auto;
 `;
 
 const StackPlaygroundItem = styled(DemoBlock)<{ $isHorizontal: boolean }>`
@@ -58,19 +61,12 @@ const StackPlaygroundItem = styled(DemoBlock)<{ $isHorizontal: boolean }>`
 
 const ContainerFrame = styled.div`
   width: 100%;
-  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
-  border: 1px solid #dbeafe;
-`;
-
-const StackStoryDivider = styled.div<{ $direction: StackDirection }>`
-  flex: 0 0 auto;
-  align-self: stretch;
-  width: ${({ $direction }) => ($direction.startsWith("row") ? "1px" : "100%")};
-  min-width: ${({ $direction }) =>
-    $direction.startsWith("row") ? "1px" : "auto"};
-  height: ${({ $direction }) =>
-    $direction.startsWith("row") ? "auto" : "1px"};
-  background: #d0d7de;
+  background: linear-gradient(
+    90deg,
+    ${Background.Muted} 0%,
+    ${Background.Default} 100%
+  );
+  border: 1px solid ${Borders.Default.Default};
 `;
 
 function StackPlaygroundPreview({
@@ -88,7 +84,9 @@ function StackPlaygroundPreview({
         direction={direction}
         spacing={spacing}
         divider={
-          showDivider ? <StackStoryDivider $direction={direction} /> : undefined
+          showDivider ? (
+            <Divider direction={isHorizontal ? "vertical" : "horizontal"} />
+          ) : undefined
         }
         sx={{
           justifyContent: isHorizontal ? "center" : "flex-start",
@@ -182,7 +180,7 @@ export const Docs: Story = {
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={{ xs: 1, sm: 2, md: 3 }}
-            divider={<Divider />}
+            divider={<Divider direction="vertical" />}
             sx={{ alignItems: "stretch" }}
           >
             <DemoBlock>Item 1</DemoBlock>

@@ -1,198 +1,233 @@
-import { clamp, concatHex, Hex, toHex } from "@helpers";
-
-import { BLUE, GRAY, GREEN, ORANGE, RED, WHITE } from "../base-palette";
-
-function addOpacity(hex: Hex, opacity: number): Hex {
-  const opacityHex = toHex(clamp(Math.floor(0xff * opacity), 0, 0xff), 2);
-  return concatHex(hex, opacityHex);
+function colorVar(...path: string[]): string {
+  return `var(--mfui-color-${path.join("-").toLowerCase()})`;
 }
 
 export const Background = {
-  Default: GRAY[100],
-  Overlay: addOpacity(GRAY[800], 0.6),
+  Default: colorVar("Background", "Default"),
+  White: colorVar("Background", "White"),
+  Muted: colorVar("Background", "Muted"),
+  Inverse: colorVar("Background", "Inverse"),
+  Overlay: colorVar("Background", "Overlay"),
 } as const;
 
 export const Surface = {
   Default: {
-    Default: WHITE,
-    Muted: GRAY[50],
-    Hover: GRAY[100],
-    Pressed: GRAY[200],
-    Active: GRAY[200],
-    Inverse: GRAY[800],
+    Default: colorVar("Surface", "Default", "Default"),
+    Muted: colorVar("Surface", "Default", "Muted"),
+    Hover: colorVar("Surface", "Default", "Hover"),
+    Pressed: colorVar("Surface", "Default", "Pressed"),
+    Active: colorVar("Surface", "Default", "Active"),
+    Inverse: colorVar("Surface", "Default", "Inverse"),
   },
 
   Selected: {
-    Soft: BLUE[50],
-    Muted: BLUE[50],
-    Default: BLUE[50],
-    Hover: BLUE[100],
-    Pressed: BLUE[200],
-    Active: BLUE[500],
+    Soft: colorVar("Surface", "Selected", "Soft"),
+    Muted: colorVar("Surface", "Selected", "Muted"),
+    Default: colorVar("Surface", "Selected", "Default"),
+    Hover: colorVar("Surface", "Selected", "Hover"),
+    Pressed: colorVar("Surface", "Selected", "Pressed"),
+    Active: colorVar("Surface", "Selected", "Active"),
   },
 
   Critical: {
-    Soft: RED[50],
-    Default: RED[200],
-    Muted: RED[50],
-    Hover: RED[50],
-    Pressed: RED[100],
-    Active: RED[300],
+    Soft: colorVar("Surface", "Critical", "Soft"),
+    Default: colorVar("Surface", "Critical", "Default"),
+    Muted: colorVar("Surface", "Critical", "Muted"),
+    Hover: colorVar("Surface", "Critical", "Hover"),
+    Pressed: colorVar("Surface", "Critical", "Pressed"),
+    Active: colorVar("Surface", "Critical", "Active"),
   },
 
   Warning: {
-    Soft: ORANGE[50],
-    Hover: ORANGE[100],
-    Default: ORANGE[200],
-    Pressed: ORANGE[300],
-    Muted: ORANGE[50],
-    Active: ORANGE[500],
+    Soft: colorVar("Surface", "Warning", "Soft"),
+    Hover: colorVar("Surface", "Warning", "Hover"),
+    Default: colorVar("Surface", "Warning", "Default"),
+    Pressed: colorVar("Surface", "Warning", "Pressed"),
+    Muted: colorVar("Surface", "Warning", "Muted"),
+    Active: colorVar("Surface", "Warning", "Active"),
   },
 
   Success: {
-    Soft: GREEN[50],
-    Hover: GREEN[100],
-    Default: GREEN[200],
-    Pressed: GREEN[300],
-    Muted: GREEN[50],
-    Active: GREEN[500],
+    Soft: colorVar("Surface", "Success", "Soft"),
+    Hover: colorVar("Surface", "Success", "Hover"),
+    Default: colorVar("Surface", "Success", "Default"),
+    Pressed: colorVar("Surface", "Success", "Pressed"),
+    Muted: colorVar("Surface", "Success", "Muted"),
+    Active: colorVar("Surface", "Success", "Active"),
   },
 
   Highlight: {
-    Soft: BLUE[50],
-    Hover: BLUE[100],
-    Default: BLUE[200],
-    Pressed: BLUE[300],
-    Muted: BLUE[50],
-    Active: BLUE[500],
+    Soft: colorVar("Surface", "Highlight", "Soft"),
+    Hover: colorVar("Surface", "Highlight", "Hover"),
+    Default: colorVar("Surface", "Highlight", "Default"),
+    Pressed: colorVar("Surface", "Highlight", "Pressed"),
+    Muted: colorVar("Surface", "Highlight", "Muted"),
+    Active: colorVar("Surface", "Highlight", "Active"),
   },
 
   Neutral: {
-    Soft: GRAY[50],
-    Default: GRAY[200],
-    Muted: GRAY[100],
-    Hover: GRAY[300],
-    Pressed: GRAY[400],
-    Active: GRAY[500],
+    Soft: colorVar("Surface", "Neutral", "Soft"),
+    Default: colorVar("Surface", "Neutral", "Default"),
+    Muted: colorVar("Surface", "Neutral", "Muted"),
+    Hover: colorVar("Surface", "Neutral", "Hover"),
+    Pressed: colorVar("Surface", "Neutral", "Pressed"),
+    Active: colorVar("Surface", "Neutral", "Active"),
   },
-};
+
+  Violet: {
+    Soft: colorVar("Surface", "Violet", "Soft"),
+    Hover: colorVar("Surface", "Violet", "Hover"),
+    Default: colorVar("Surface", "Violet", "Default"),
+    Pressed: colorVar("Surface", "Violet", "Pressed"),
+    Muted: colorVar("Surface", "Violet", "Muted"),
+    Active: colorVar("Surface", "Violet", "Active"),
+  },
+
+  Cyan: {
+    Soft: colorVar("Surface", "Cyan", "Soft"),
+    Hover: colorVar("Surface", "Cyan", "Hover"),
+    Default: colorVar("Surface", "Cyan", "Default"),
+    Pressed: colorVar("Surface", "Cyan", "Pressed"),
+    Muted: colorVar("Surface", "Cyan", "Muted"),
+    Active: colorVar("Surface", "Cyan", "Active"),
+  },
+} as const;
 
 export const Borders = {
   Default: {
-    Default: GRAY[300],
-    Muted: GRAY[200],
-    Soft: WHITE,
-    Dark: GRAY[400],
-    Active: GRAY[500],
+    Default: colorVar("Borders", "Default", "Default"),
+    Muted: colorVar("Borders", "Default", "Muted"),
+    Soft: colorVar("Borders", "Default", "Soft"),
+    Dark: colorVar("Borders", "Default", "Dark"),
+    Active: colorVar("Borders", "Default", "Active"),
   },
   Critical: {
-    Soft: RED[50],
-    Default: RED[600],
-    Muted: RED[300],
-    Active: RED[700],
+    Soft: colorVar("Borders", "Critical", "Soft"),
+    Default: colorVar("Borders", "Critical", "Default"),
+    Muted: colorVar("Borders", "Critical", "Muted"),
+    Active: colorVar("Borders", "Critical", "Active"),
   },
   Warning: {
-    Soft: ORANGE[50],
-    Default: ORANGE[300],
-    Muted: ORANGE[300],
-    Active: ORANGE[500],
+    Soft: colorVar("Borders", "Warning", "Soft"),
+    Default: colorVar("Borders", "Warning", "Default"),
+    Muted: colorVar("Borders", "Warning", "Muted"),
+    Active: colorVar("Borders", "Warning", "Active"),
   },
   Success: {
-    Soft: GREEN[50],
-    Default: GREEN[200],
-    Dark: GREEN[300],
-    Muted: GREEN[50],
-    Active: GREEN[500],
+    Soft: colorVar("Borders", "Success", "Soft"),
+    Default: colorVar("Borders", "Success", "Default"),
+    Dark: colorVar("Borders", "Success", "Dark"),
+    Muted: colorVar("Borders", "Success", "Muted"),
+    Active: colorVar("Borders", "Success", "Active"),
   },
   Highlight: {
-    Soft: BLUE[50],
-    Default: BLUE[200],
-    Muted: BLUE[50],
-    Active: BLUE[500],
+    Soft: colorVar("Borders", "Highlight", "Soft"),
+    Default: colorVar("Borders", "Highlight", "Default"),
+    Muted: colorVar("Borders", "Highlight", "Muted"),
+    Active: colorVar("Borders", "Highlight", "Active"),
   },
-};
+  Neutral: {
+    Soft: colorVar("Borders", "Neutral", "Soft"),
+    Default: colorVar("Borders", "Neutral", "Default"),
+    Muted: colorVar("Borders", "Neutral", "Muted"),
+    Active: colorVar("Borders", "Neutral", "Active"),
+  },
+  Violet: {
+    Soft: colorVar("Borders", "Violet", "Soft"),
+    Default: colorVar("Borders", "Violet", "Default"),
+    Muted: colorVar("Borders", "Violet", "Muted"),
+    Active: colorVar("Borders", "Violet", "Active"),
+  },
+  Cyan: {
+    Soft: colorVar("Borders", "Cyan", "Soft"),
+    Default: colorVar("Borders", "Cyan", "Default"),
+    Muted: colorVar("Borders", "Cyan", "Muted"),
+    Active: colorVar("Borders", "Cyan", "Active"),
+  },
+} as const;
 
 export const Focus = {
-  Default: BLUE[400],
-  Critical: RED[400],
-};
+  Default: colorVar("Focus", "Default"),
+  Critical: colorVar("Focus", "Critical"),
+} as const;
 
 export const Text = {
-  Default: GRAY[800],
-  Muted: GRAY[500],
-  Soft: GRAY[400],
-  Disabled: GRAY[500],
-  Critical: RED[600],
-  Warning: ORANGE[700],
-  Success: GREEN[600],
-  Active: BLUE[600],
-  OnPrimary: WHITE,
-  OnCritical: WHITE,
-  OnInverse: WHITE,
-};
+  Default: colorVar("Text", "Default"),
+  Neutral: colorVar("Text", "Neutral"),
+  Muted: colorVar("Text", "Muted"),
+  Soft: colorVar("Text", "Soft"),
+  Disabled: colorVar("Text", "Disabled"),
+  Critical: colorVar("Text", "Critical"),
+  Warning: colorVar("Text", "Warning"),
+  Success: colorVar("Text", "Success"),
+  Active: colorVar("Text", "Active"),
+  Highlight: colorVar("Text", "Highlight"),
+  Violet: colorVar("Text", "Violet"),
+  Cyan: colorVar("Text", "Cyan"),
+  OnPrimary: colorVar("Text", "OnPrimary"),
+  OnCritical: colorVar("Text", "OnCritical"),
+  OnInverse: colorVar("Text", "OnInverse"),
+} as const;
 
 export const Icons = {
-  Default: GRAY[500],
-  Muted: GRAY[400],
-  Hover: GRAY[800],
-  Pressed: GRAY[600],
-  Disabled: GRAY[400],
-  Critical: RED[600],
-  Warning: ORANGE[500],
-  Success: GREEN[600],
-  Highlight: BLUE[600],
-  OnPrimary: WHITE,
-  OnCritical: WHITE,
-  OnInverse: WHITE,
-};
+  Default: colorVar("Icons", "Default"),
+  Muted: colorVar("Icons", "Muted"),
+  Hover: colorVar("Icons", "Hover"),
+  Pressed: colorVar("Icons", "Pressed"),
+  Disabled: colorVar("Icons", "Disabled"),
+  Critical: colorVar("Icons", "Critical"),
+  Warning: colorVar("Icons", "Warning"),
+  Success: colorVar("Icons", "Success"),
+  Highlight: colorVar("Icons", "Highlight"),
+  OnPrimary: colorVar("Icons", "OnPrimary"),
+  OnCritical: colorVar("Icons", "OnCritical"),
+  OnInverse: colorVar("Icons", "OnInverse"),
+} as const;
 
 export const Interactive = {
   Default: {
-    Default: BLUE[600],
-    Hover: BLUE[800],
-    Pressed: BLUE[800],
-    Active: BLUE[900],
-    Disabled: GRAY[400],
+    Default: colorVar("Interactive", "Default", "Default"),
+    Hover: colorVar("Interactive", "Default", "Hover"),
+    Pressed: colorVar("Interactive", "Default", "Pressed"),
+    Active: colorVar("Interactive", "Default", "Active"),
+    Disabled: colorVar("Interactive", "Default", "Disabled"),
   },
   Subtle: {
-    Default: GRAY[800],
-    Hover: GRAY[800],
-    Pressed: GRAY[800],
-    Active: GRAY[900],
-    Disabled: GRAY[400],
+    Default: colorVar("Interactive", "Subtle", "Default"),
+    Hover: colorVar("Interactive", "Subtle", "Hover"),
+    Pressed: colorVar("Interactive", "Subtle", "Pressed"),
+    Active: colorVar("Interactive", "Subtle", "Active"),
+    Disabled: colorVar("Interactive", "Subtle", "Disabled"),
   },
-};
-
-const DisabledGray = addOpacity(GRAY[800], 0.06);
-const PressedGray = addOpacity(GRAY[800], 0.12);
+} as const;
 
 export const Actions = {
   Primary: {
-    Default: BLUE[600],
-    Hover: BLUE[700],
-    Pressed: BLUE[800],
-    Active: BLUE[900],
-    Disabled: DisabledGray,
+    Default: colorVar("Actions", "Primary", "Default"),
+    Hover: colorVar("Actions", "Primary", "Hover"),
+    Pressed: colorVar("Actions", "Primary", "Pressed"),
+    Active: colorVar("Actions", "Primary", "Active"),
+    Disabled: colorVar("Actions", "Primary", "Disabled"),
   },
   Secondary: {
-    Default: WHITE,
-    Hover: DisabledGray,
-    Pressed: PressedGray,
-    Active: GRAY[500],
-    Disabled: DisabledGray,
+    Default: colorVar("Actions", "Secondary", "Default"),
+    Hover: colorVar("Actions", "Secondary", "Hover"),
+    Pressed: colorVar("Actions", "Secondary", "Pressed"),
+    Active: colorVar("Actions", "Secondary", "Active"),
+    Disabled: colorVar("Actions", "Secondary", "Disabled"),
   },
   Critical: {
-    Default: RED[600],
-    Hover: RED[700],
-    Pressed: RED[800],
-    Active: RED[900],
-    Disabled: DisabledGray,
+    Default: colorVar("Actions", "Critical", "Default"),
+    Hover: colorVar("Actions", "Critical", "Hover"),
+    Pressed: colorVar("Actions", "Critical", "Pressed"),
+    Active: colorVar("Actions", "Critical", "Active"),
+    Disabled: colorVar("Actions", "Critical", "Disabled"),
   },
   SecondaryCritical: {
-    Default: WHITE,
-    Hover: RED[700],
-    Pressed: RED[800],
-    Active: RED[900],
-    Disabled: DisabledGray,
+    Default: colorVar("Actions", "SecondaryCritical", "Default"),
+    Hover: colorVar("Actions", "SecondaryCritical", "Hover"),
+    Pressed: colorVar("Actions", "SecondaryCritical", "Pressed"),
+    Active: colorVar("Actions", "SecondaryCritical", "Active"),
+    Disabled: colorVar("Actions", "SecondaryCritical", "Disabled"),
   },
-};
+} as const;

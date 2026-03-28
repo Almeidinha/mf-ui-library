@@ -1,6 +1,5 @@
 import { Surface } from "foundation/colors";
 import { PropsWithChildren } from "helpers/generic-types";
-import { Hex } from "helpers/numbers";
 
 const enum BadgeType {
   Neutral = 1,
@@ -58,6 +57,6 @@ function getColorFromProps(props: BadgeTypeProps): BadgeType {
   return BadgeType.Neutral;
 }
 
-export function getColor(props: BadgeTypeProps): Hex {
+export function getColor(props: BadgeTypeProps): string {
   return BadgeTypeColors[getColorFromProps(props)];
 }

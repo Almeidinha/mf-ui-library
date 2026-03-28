@@ -6,7 +6,6 @@ import { Focus } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { If, Nothing } from "helpers/nothing";
-import { Hex } from "helpers/numbers";
 import { is, isNilOrEmpty, safeCallback } from "helpers/safe-navigation";
 import styled from "styled-components";
 
@@ -30,8 +29,8 @@ export type AlertBannerProps = AlertLevelProps &
   }>;
 
 const InCardFrame = styled(CardFrame).attrs({ as: "div" })<{
-  background: Hex;
-  border: Hex;
+  background: string;
+  border: string;
 }>`
   display: flex;
   padding: ${Padding.m};
@@ -41,7 +40,7 @@ const InCardFrame = styled(CardFrame).attrs({ as: "div" })<{
   border: 1px solid ${({ border }) => border};
 `;
 
-const IconContainer = styled.div<{ $iconColor: Hex }>`
+const IconContainer = styled.div<{ $iconColor: string }>`
   width: fit-content;
   display: flex;
   svg {

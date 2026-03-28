@@ -1,43 +1,37 @@
 import { css } from "styled-components";
 
 const shadowSm = css`
-  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--mfui-shadow-shadowsm);
   border-radius: 6px;
 `;
 
 const shadow = css`
-  box-shadow:
-    0px 1px 3px rgba(0, 0, 0, 0.1),
-    0px 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--mfui-shadow-shadow);
   border-radius: 6px;
 `;
 
 const shadowMd = css`
-  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--mfui-shadow-shadowmd);
   border-radius: 6px;
 `;
 
 const shadowLg = css`
-  box-shadow:
-    0px 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0px 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--mfui-shadow-shadowlg);
   border-radius: 6px;
 `;
 
 const shadowXl = css`
-  box-shadow:
-    0px 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0px 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--mfui-shadow-shadowxl);
   border-radius: 6px;
 `;
 
 const shadow2Xl = css`
-  box-shadow: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--mfui-shadow-shadow2xl);
   border-radius: 6px;
 `;
 
 const shadowInner = css`
-  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--mfui-shadow-shadowinner);
   border-radius: 6px;
 `;
 

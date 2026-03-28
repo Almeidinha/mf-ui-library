@@ -1,6 +1,5 @@
 import { Borders, Icons, Surface } from "foundation/colors";
 import { PropsWithChildren, RequireOnlyOne } from "helpers/generic-types";
-import { Hex } from "helpers/numbers";
 import { ComponentType } from "react";
 
 import { Icon } from "../icon";
@@ -72,17 +71,17 @@ function getLevelFromProps(props: AlertLevelProps): AlertLevel {
   return AlertLevel.Neutral;
 }
 
-export function getBackgroundColor(props: AlertLevelProps): Hex {
+export function getBackgroundColor(props: AlertLevelProps): string {
   return AlertLevelBackgroundColors[getLevelFromProps(props)];
 }
 
-export function getBorderColor(props: AlertLevelProps): Hex {
+export function getBorderColor(props: AlertLevelProps): string {
   return AlertLevelBorderColors[getLevelFromProps(props)];
 }
 
 export function getIcon(props: AlertLevelProps): {
   icon: ComponentType;
-  color: Hex;
+  color: string;
 } {
   return AlertLevelIcons[getLevelFromProps(props)];
 }

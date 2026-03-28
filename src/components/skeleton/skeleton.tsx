@@ -1,3 +1,4 @@
+import { Surface } from "foundation/colors";
 import { toCssSize } from "helpers/css-helpers";
 import React from "react";
 import styled, { css, keyframes } from "styled-components";
@@ -51,7 +52,7 @@ const SkeletonRoot = styled.span<{
   position: relative;
   display: block;
   overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.11);
+  background-color: ${Surface.Neutral.Default};
   width: ${({ $width, $variant }) =>
     toCssSize($width) || ($variant === "text" ? "100%" : undefined)};
   height: ${({ $height, $variant }) =>
@@ -85,7 +86,7 @@ const SkeletonRoot = styled.span<{
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(255, 255, 255, 0.4),
+          ${Surface.Default.Hover},
           transparent
         );
         animation: ${wave} 1.6s linear 0.5s infinite;

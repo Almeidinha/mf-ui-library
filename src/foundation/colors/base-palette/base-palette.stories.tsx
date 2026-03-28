@@ -4,18 +4,23 @@ import {
   gridLayoutGenerator,
   leftRightLayoutGenerator,
 } from "components/layout";
+import { Body } from "components/typography";
+import { Margin } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
+import styled from "styled-components";
 
 import { ColorRectangle } from "../components";
 import {
   BLUE,
   BRAND,
   ColorPalette,
+  CYAN,
   GRAY,
   GREEN,
   ORANGE,
   RED,
   SHADES,
+  VIOLET,
 } from "./base-palette";
 
 const STORY_HEADING = "Color System: Base Palette";
@@ -30,6 +35,16 @@ const paletteConfig = {
     palette: BLUE,
     description:
       "Primary interactive ramp used for actions, links, focus, and selected states.",
+  },
+  Violet: {
+    palette: VIOLET,
+    description:
+      "Accent ramp used for expressive data visualization and supporting highlight treatments.",
+  },
+  Cyan: {
+    palette: CYAN,
+    description:
+      "Secondary accent ramp used for charts and informational contrast where blue alone is not enough.",
   },
   Green: {
     palette: GREEN,
@@ -63,6 +78,10 @@ const paletteEntries = Object.entries(paletteConfig) as Array<
     (typeof paletteConfig)[keyof typeof paletteConfig],
   ]
 >;
+
+const IntroNote = styled(Body)`
+  margin: ${Margin.none} ${Margin.none} ${Margin.l};
+`;
 
 const PaletteStory = ({
   colorName,
@@ -132,7 +151,7 @@ const Palette: FC<IPaletteProps> = ({ colors }) => {
 };
 
 const meta = {
-  title: "Foundations/Colors",
+  title: "Foundations/Colors/Base Palette",
   tags: ["autodocs"],
   parameters: {
     viewMode: "docs",
@@ -147,6 +166,10 @@ The base palette is the raw source color ramp for the library.
 Components should generally consume semantic tokens from the color guidelines instead of using these values directly.
 
 Use this page to inspect hue ramps, verify spacing between steps, and review which families exist before mapping them into semantic roles.
+
+The chart accents introduced in the semantic layer are also represented here as the \`Violet\` and \`Cyan\` ramps.
+
+This page answers “what raw ramps exist?”. Use the semantic Color System page to answer “which token should a component actually use?”.
         `,
       },
     },
@@ -159,6 +182,11 @@ type Story = StoryObj<typeof meta>;
 export const Docs: Story = {
   render: () => (
     <>
+      <IntroNote>
+        Use this page for raw ramps. Use <strong>Foundations/Color System</strong>{" "}
+        for semantic tokens like <code>Surface.Default.Default</code> and{" "}
+        <code>Text.Active</code>.
+      </IntroNote>
       {paletteEntries.map(([name, config]) => (
         <PaletteStory
           key={name}

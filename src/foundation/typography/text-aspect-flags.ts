@@ -10,14 +10,18 @@ export const enum TextAspects {
   Success = 16,
   OnPrimary = 32,
   OnCritical = 64,
+  Highlight = 128,
+  Neutral = 256,
 }
 
 type TextAspectsFlags<T> = {
   default?: T;
+  neutral?: T;
   muted?: T;
   soft?: T;
   critical?: T;
   success?: T;
+  highlight?: T;
   onPrimary?: T;
   onCritical?: T;
 };
@@ -31,12 +35,14 @@ type TextOptions<T> = MappedEnum<typeof TextAspects, T>;
 
 const TextAspectColors = {
   [TextAspects.Default]: Text.Default,
+  [TextAspects.Neutral]: Text.Neutral,
   [TextAspects.Muted]: Text.Muted,
   [TextAspects.Soft]: Text.Soft,
   [TextAspects.OnPrimary]: Text.OnPrimary,
   [TextAspects.OnCritical]: Text.OnCritical,
   [TextAspects.Success]: Text.Success,
   [TextAspects.Critical]: Text.Critical,
+  [TextAspects.Highlight]: Text.Highlight,
 };
 
 export type TransientTextOptions = Omit<
@@ -56,6 +62,9 @@ function getTextAspectFromProps(props: TextAspectProps): TextAspects {
   if (props.default) {
     return TextAspects.Default;
   }
+  if (props.neutral) {
+    return TextAspects.Neutral;
+  }
   if (props.muted) {
     return TextAspects.Muted;
   }
@@ -67,6 +76,9 @@ function getTextAspectFromProps(props: TextAspectProps): TextAspects {
   }
   if (props.success) {
     return TextAspects.Success;
+  }
+  if (props.highlight) {
+    return TextAspects.Highlight;
   }
   if (props.onPrimary) {
     return TextAspects.OnPrimary;
@@ -91,10 +103,12 @@ export const TYPOGRAPHY_BLOCKED_PROPS = new Set([
   "onWarning",
   "onDanger",
   "onInfo",
+  "neutral",
   "muted",
   "soft",
   "critical",
   "success",
+  "highlight",
   "onCritical",
   "onPrimary",
   "$onCritical",

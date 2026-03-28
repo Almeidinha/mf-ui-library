@@ -26,6 +26,9 @@ import { Divider } from './index'
   },
   args: {
     muted: false,
+    direction: "horizontal",
+    width: undefined,
+    height: undefined,
   },
   argTypes: {
     muted: {
@@ -38,6 +41,31 @@ import { Divider } from './index'
         },
       },
     },
+    direction: {
+      description: "Controls whether the divider is rendered horizontally or vertically.",
+      control: "inline-radio",
+      options: ["horizontal", "vertical"],
+      table: {
+        category: "Layout",
+        defaultValue: {
+          summary: "horizontal",
+        },
+      },
+    },
+    width: {
+      description:
+        "Optional explicit width. Defaults to full width for horizontal dividers and 1px for vertical ones.",
+      table: {
+        category: "Layout",
+      },
+    },
+    height: {
+      description:
+        "Optional explicit height. Defaults to 1px for horizontal dividers and stretch for vertical ones.",
+      table: {
+        category: "Layout",
+      },
+    },
   },
 } satisfies Meta<DividerProps>;
 
@@ -47,7 +75,41 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   render: function Render(args) {
     return (
-      <Flex>
+      <Flex
+        style={
+          args.direction === "vertical"
+            ? { height: 120, alignItems: "stretch" }
+            : { width: "100%" }
+        }
+      >
+        <Divider {...args} />
+      </Flex>
+    );
+  },
+};
+
+export const Vertical: Story = {
+  args: {
+    direction: "vertical",
+  },
+  render: function Render(args) {
+    return (
+      <Flex style={{ height: 120, alignItems: "stretch" }}>
+        <Divider {...args} />
+      </Flex>
+    );
+  },
+};
+
+export const VerticalCustomSize: Story = {
+  args: {
+    direction: "vertical",
+    height: 48,
+    width: 2,
+  },
+  render: function Render(args) {
+    return (
+      <Flex style={{ height: 120, alignItems: "center" }}>
         <Divider {...args} />
       </Flex>
     );

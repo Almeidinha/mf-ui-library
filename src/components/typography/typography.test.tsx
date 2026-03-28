@@ -74,6 +74,18 @@ describe("Typography", () => {
     expect(screen.getByText("My Text Here")).toBeTruthy();
   });
 
+  it("should render Neutral successfully", () => {
+    render(<Body neutral>My Text Here</Body>);
+
+    expect(screen.getByText("My Text Here")).toBeTruthy();
+  });
+
+  it("should render Highlight successfully", () => {
+    render(<Body highlight>My Text Here</Body>);
+
+    expect(screen.getByText("My Text Here")).toBeTruthy();
+  });
+
   it("should render White successfully", () => {
     render(<Body onPrimary>My Text Here</Body>);
 

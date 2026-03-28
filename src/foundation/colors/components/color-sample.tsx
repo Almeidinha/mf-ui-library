@@ -1,5 +1,5 @@
 import { Flex } from "@components";
-import { FC, Hex, isDefined } from "@helpers";
+import { FC, isDefined } from "@helpers";
 import { Caption, Label } from "components/typography";
 import styled from "styled-components";
 
@@ -11,7 +11,7 @@ function isPale(color: string) {
 }
 
 /** a ColorSample is a rectangular area with a uniform color */
-const ColorSample = styled.div<{ color: string; border?: Hex }>`
+const ColorSample = styled.div<{ color: string; border?: string }>`
   ${({ border, color }) =>
     isDefined(border) ? "" : `background-color: ${color};`}
   ${({ border, color }) =>
@@ -48,8 +48,8 @@ const SquareColorSample = styled(ColorSample)`
 
 interface IColorRectangleProps {
   name: string;
-  hex: Hex;
-  border?: Hex;
+  hex: string;
+  border?: string;
 }
 
 export const ColorRectangle: FC<IColorRectangleProps> = ({
@@ -89,8 +89,8 @@ const ColorId = styled(Caption)`
 interface IColorSquareProps {
   name: string;
   colorId: string;
-  hex: Hex;
-  border?: Hex;
+  hex: string;
+  border?: string;
 }
 
 export const ColorSquare: FC<IColorSquareProps> = ({

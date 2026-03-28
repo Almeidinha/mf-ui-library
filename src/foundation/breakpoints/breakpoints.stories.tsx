@@ -1,137 +1,36 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Card } from "components/card";
-import { Body, Heading3, Label } from "components/typography";
+import { Flex } from "components/layout";
+import { Body, Heading2, Label } from "components/typography";
+import { Borders, Surface, Text } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { useMediaQuery } from "hooks/useMediaQuery";
-import styled, { ThemeProvider, useTheme } from "styled-components";
-import { type MfUITheme, theme } from "theme/theme";
+import { useEffect, useMemo, useState } from "react";
+import styled, { useTheme } from "styled-components";
+import type { MfUITheme } from "theme/theme";
 
-const styledCodeExample = [
-  "const Panel = styled.div`",
-  "  padding: 16px;",
-  "",
-  '  ${({ theme }) => theme.breakpoints.up("md")} {',
-  "    padding: 24px;",
-  "  }",
-  "`;",
-].join("\n");
+const docsDescription = `
+Breakpoints are shared between component code and styled-components so the same
+responsive rules can be reused everywhere.
 
-const docsDescription = [
-  "## How to use",
-  "",
-  "```ts",
-  "import { breakpoints, useMediaQuery } from '@almeidinha/mfui'",
-  "",
-  "const isTabletUp = useMediaQuery(breakpoints.up('md'))",
-  "```",
-  "",
-  "## Styled-components",
-  "",
-  "```ts",
-  "const Panel = styled.div`",
-  '  ${({ theme }) => theme.breakpoints.up("md")} {',
-  "    display: grid;",
-  "    grid-template-columns: 1fr 1fr;",
-  "  }",
-  "`",
-  "```",
-].join("\n");
+\`\`\`ts
+import { breakpoints, useMediaQuery } from "@almeidinha/mfui";
 
-const Page = styled.div`
-  display: grid;
-  gap: ${Margin.xl};
-  padding: ${Padding.l};
-  max-width: 960px;
-`;
+const isTabletUp = useMediaQuery(breakpoints.up("md"));
+\`\`\`
 
-const Section = styled.section`
-  display: grid;
-  gap: ${Margin.m};
-`;
-
-const CodeBlock = styled(Card)`
-  background: #f3f4f6;
-  overflow-x: auto;
-`;
-
-const ValueGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: ${Margin.s};
-`;
-
-const ValueCard = styled(Card)`
-  background: #f9fafb;
-`;
-
-const ResponsiveCard = styled(Card)`
-  background: #dbeafe;
-  border: 1px solid #93c5fd;
-
-  ${({ theme }: { theme: MfUITheme }) => theme.breakpoints.up("md")} {
-    background: #dcfce7;
-    border-color: #86efac;
+\`\`\`ts
+const Panel = styled.div\`
+  \${({ theme }) => theme.breakpoints.up("md")} {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
-
-  ${({ theme }: { theme: MfUITheme }) => theme.breakpoints.up("xl")} {
-    background: #fef3c7;
-    border-color: #fcd34d;
-  }
+\`;
+\`\`\`
 `;
-
-function BreakpointValuesExample() {
-  return (
-    <ValueGrid>
-      {theme.breakpoints.keys.map((key) => (
-        <ValueCard key={key}>
-          <Label>{key}</Label>
-          <Body>{theme.breakpoints.values[key]}px</Body>
-        </ValueCard>
-      ))}
-    </ValueGrid>
-  );
-}
-
-function HookExample() {
-  const isTabletUp = useMediaQuery(theme.breakpoints.up("md"));
-  const isDesktopOnly = useMediaQuery(theme.breakpoints.only("lg"));
-
-  return (
-    <ValueGrid>
-      <ValueCard>
-        <Label>useMediaQuery(theme.breakpoints.up(&quot;md&quot;))</Label>
-        <Body>{String(isTabletUp)}</Body>
-      </ValueCard>
-      <ValueCard>
-        <Label>useMediaQuery(theme.breakpoints.only(&quot;lg&quot;))</Label>
-        <Body>{String(isDesktopOnly)}</Body>
-      </ValueCard>
-    </ValueGrid>
-  );
-}
-
-const ThemeExample = () => {
-  const resolvedTheme = useTheme() as MfUITheme;
-
-  return (
-    <Section>
-      <Body>
-        Current query for <code>theme.breakpoints.up(&quot;md&quot;)</code>:
-        {resolvedTheme.breakpoints.up("md")}
-      </Body>
-      <ResponsiveCard>
-        Resize the viewport. This card uses <code>theme.breakpoints.up()</code>
-        inside styled-components.
-      </ResponsiveCard>
-      <CodeBlock>
-        <pre>{styledCodeExample}</pre>
-      </CodeBlock>
-    </Section>
-  );
-};
 
 const meta = {
-  title: "Foundations/Breakpoints",
+  title: "Foundations/Layout/Breakpoints",
   tags: ["autodocs"],
   parameters: {
     viewMode: "docs",
@@ -144,43 +43,286 @@ const meta = {
       },
     },
   },
-} as Meta;
+} satisfies Meta;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+type BreakpointCardProps = {
+  label: string;
+  value: number;
+  active: boolean;
+};
+
+function useViewportWidth() {
+  const [width, setWidth] = useState(() =>
+    typeof window === "undefined" ? 0 : window.innerWidth,
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const update = () => {
+      setWidth(window.innerWidth);
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return width;
+}
+
+const BreakpointValueCard = ({ label, value, active }: BreakpointCardProps) => {
+  return (
+    <ValueCard $active={active}>
+      <Flex column style={{ gap: 8 }}>
+        <Label strong>{label}</Label>
+        <Body>{value}px</Body>
+      </Flex>
+      <StatePill $active={active}>{active ? "Active" : "Inactive"}</StatePill>
+    </ValueCard>
+  );
+};
+
+const DocsContent = () => {
+  const theme = useTheme() as MfUITheme;
+  const viewportWidth = useViewportWidth();
+
+  const values = theme.breakpoints.values;
+  const keys = theme.breakpoints.keys;
+
+  const currentBreakpoint = useMemo(() => {
+    return [...keys].reverse().find((key) => viewportWidth >= values[key]) ?? "xs";
+  }, [keys, values, viewportWidth]);
+
+  const upMdQuery = theme.breakpoints.up("md");
+  const onlyLgQuery = theme.breakpoints.only("lg");
+  const betweenSmAndXlQuery = theme.breakpoints.between("sm", "xl");
+
+  const isUpMd = useMediaQuery(upMdQuery);
+  const isOnlyLg = useMediaQuery(onlyLgQuery);
+  const isBetweenSmAndXl = useMediaQuery(betweenSmAndXlQuery);
+
+  const mediaChecks = [
+    {
+      label: 'theme.breakpoints.up("md")',
+      query: upMdQuery,
+      matches: isUpMd,
+    },
+    {
+      label: 'theme.breakpoints.only("lg")',
+      query: onlyLgQuery,
+      matches: isOnlyLg,
+    },
+    {
+      label: 'theme.breakpoints.between("sm", "xl")',
+      query: betweenSmAndXlQuery,
+      matches: isBetweenSmAndXl,
+    },
+  ];
+
+  return (
+    <Page column>
+      <Body>
+        Current viewport: <strong>{viewportWidth}px</strong>. Active breakpoint:{" "}
+        <strong>{currentBreakpoint}</strong>.
+      </Body>
+
+      <Section>
+        <Heading2>Breakpoint Values</Heading2>
+        <Body>
+          These thresholds are the canonical viewport cutoffs used throughout the
+          library.
+        </Body>
+        <ValueGrid>
+          {keys.map((key) => (
+            <BreakpointValueCard
+              key={key}
+              label={key}
+              value={values[key]}
+              active={viewportWidth >= values[key]}
+            />
+          ))}
+        </ValueGrid>
+      </Section>
+
+      <Section>
+        <Heading2>Current Queries</Heading2>
+        <Body>
+          These are the exact media queries generated by the breakpoint helper
+          API.
+        </Body>
+        <QueryGrid>
+          {mediaChecks.map((item) => (
+            <QueryCard key={item.label}>
+              <Label strong>{item.label}</Label>
+              <QueryCode>{item.query}</QueryCode>
+              <Body>{String(item.matches)}</Body>
+            </QueryCard>
+          ))}
+        </QueryGrid>
+      </Section>
+
+      <Section>
+        <Heading2>Responsive Example</Heading2>
+        <Body>
+          This panel changes its layout and emphasis as the viewport crosses the
+          configured breakpoint thresholds.
+        </Body>
+        <ResponsiveDemo>
+          <ResponsivePanel>
+            <Label strong>Adaptive Panel</Label>
+            <Body>
+              Resize the viewport to see the layout respond at <code>md</code> and{" "}
+              <code>xl</code>.
+            </Body>
+            <ResponsiveSlots>
+              <ResponsiveSlot>
+                <Label strong>Slot A</Label>
+              </ResponsiveSlot>
+              <ResponsiveSlot>
+                <Label strong>Slot B</Label>
+              </ResponsiveSlot>
+            </ResponsiveSlots>
+          </ResponsivePanel>
+          <CodeBlock>
+            <pre>{`const Panel = styled.div\`
+  display: grid;
+  gap: 16px;
+
+  \${({ theme }) => theme.breakpoints.up("md")} {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  \${({ theme }) => theme.breakpoints.up("xl")} {
+    gap: 24px;
+  }
+\`;`}</pre>
+          </CodeBlock>
+        </ResponsiveDemo>
+      </Section>
+    </Page>
+  );
+};
+
+const Page = styled(Flex)`
+  max-width: 1100px;
+  gap: ${Margin.xl};
+  padding: ${Padding.l};
+  color: ${Text.Default};
+`;
+
+const Section = styled.section`
+  display: grid;
+  gap: ${Margin.m};
+`;
+
+const ValueGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: ${Margin.m};
+`;
+
+const ValueCard = styled(Card)<{ $active: boolean }>`
+  border-color: ${({ $active }) =>
+    $active ? Borders.Highlight.Default : Borders.Default.Default};
+  background: ${({ $active }) =>
+    $active ? Surface.Highlight.Muted : Surface.Default.Default};
+`;
+
+const StatePill = styled.span<{ $active: boolean }>`
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: ${({ $active }) => ($active ? Text.Highlight : Text.Muted)};
+  background: ${({ $active }) =>
+    $active ? Surface.Highlight.Soft : Surface.Default.Muted};
+`;
+
+const QueryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: ${Margin.m};
+`;
+
+const QueryCard = styled(Card)`
+  background: ${Surface.Default.Default};
+`;
+
+const QueryCode = styled.code`
+  display: block;
+  margin: ${Margin.s} 0;
+  padding: ${Padding.s};
+  border-radius: 8px;
+  background: ${Surface.Default.Muted};
+  color: ${Text.Default};
+  word-break: break-word;
+`;
+
+const ResponsiveDemo = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: ${Margin.l};
+
+  ${({ theme }) => theme.breakpoints.down("md")} {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ResponsivePanel = styled.div`
+  display: grid;
+  gap: ${Margin.m};
+  padding: ${Padding.l};
+  border-radius: 16px;
+  border: 1px solid ${Borders.Default.Default};
+  background: ${Surface.Default.Default};
+
+  ${({ theme }) => theme.breakpoints.up("md")} {
+    background: ${Surface.Highlight.Muted};
+  }
+
+  ${({ theme }) => theme.breakpoints.up("xl")} {
+    padding: ${Padding.xl};
+  }
+`;
+
+const ResponsiveSlots = styled.div`
+  display: grid;
+  gap: ${Margin.m};
+
+  ${({ theme }) => theme.breakpoints.up("md")} {
+    grid-template-columns: 1fr 1fr;
+  }
+`;
+
+const ResponsiveSlot = styled.div`
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid ${Borders.Default.Muted};
+  background: ${Surface.Default.Muted};
+`;
+
+const CodeBlock = styled(Card)`
+  background: ${Surface.Default.Muted};
+  overflow-x: auto;
+
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: ${Text.Default};
+  }
+`;
+
 export const Docs: Story = {
-  render: () => (
-    <ThemeProvider theme={theme}>
-      <Page>
-        <Section>
-          <Heading3>Breakpoint values</Heading3>
-          <Body>
-            Breakpoints are shared between component code and styled-components
-            so the same responsive rules can be reused everywhere.
-          </Body>
-          <BreakpointValuesExample />
-        </Section>
-
-        <Section>
-          <Heading3>Hook usage</Heading3>
-          <Body>
-            Use <code>useMediaQuery</code> with the exported breakpoint helpers
-            in React component code.
-          </Body>
-          <HookExample />
-        </Section>
-
-        <Section>
-          <Heading3>Theme usage</Heading3>
-          <Body>
-            The same breakpoint helpers are exposed on the styled-components
-            theme.
-          </Body>
-          <ThemeExample />
-        </Section>
-      </Page>
-    </ThemeProvider>
-  ),
+  render: () => <DocsContent />,
 };

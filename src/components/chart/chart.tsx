@@ -37,12 +37,12 @@ import type {
 } from "./types";
 
 const DEFAULT_SERIES_COLORS = [
-  Text.Active,
-  Text.Success,
-  Text.Warning,
-  Text.Critical,
-  "#7C3AED",
-  "#0891B2",
+  Surface.Selected.Active,
+  Surface.Success.Active,
+  Surface.Warning.Active,
+  Surface.Critical.Active,
+  Surface.Violet.Active,
+  Surface.Cyan.Active,
 ];
 
 const Root = styled.div`
@@ -73,7 +73,7 @@ const TooltipCard = styled.div`
   border: 1px solid ${Borders.Default.Default};
   border-radius: 10px;
   background: ${Surface.Default.Default};
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--mfui-shadow-shadowlg);
   padding: ${Padding.s};
 `;
 

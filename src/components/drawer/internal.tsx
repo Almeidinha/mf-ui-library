@@ -1,4 +1,4 @@
-import { Borders } from "foundation/colors";
+import { Background, Borders, Surface as ThemeSurface } from "foundation/colors";
 import { If } from "helpers/nothing";
 import { RefObject, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -136,7 +136,7 @@ const Backdrop = styled.div<{
 }>`
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: ${Background.Overlay};
   opacity: ${({ $open }) => ($open ? 1 : 0)};
   transition: opacity ${({ $duration }) => $duration}ms ease;
   pointer-events: ${({ $open }) => ($open ? "auto" : "none")};
@@ -153,7 +153,7 @@ const Surface = styled.div<{
   $duration: number;
 }>`
   position: ${({ $temporary }) => ($temporary ? "absolute" : "relative")};
-  background: white;
+  background: ${ThemeSurface.Default.Default};
   border: 1px solid ${Borders.Default.Default};
   border-top-width: ${({ $anchor }) => ($anchor === "bottom" ? "1px" : "0")};
   border-bottom-width: ${({ $anchor }) => ($anchor === "top" ? "1px" : "0")};

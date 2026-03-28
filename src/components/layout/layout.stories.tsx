@@ -1,5 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import {
+  Table,
+  TableBody,
+  TableBodyCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "components/table";
 import { Body, Caption, Heading3, Label } from "components/typography";
+import { Background, Borders, Text } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
@@ -23,23 +32,23 @@ const Section = styled.section`
 const Description = styled.p`
   margin: 0;
   max-width: 760px;
-  color: #6b7280;
+  color: ${Text.Default};
 `;
 
 const CodeBlock = styled.pre`
   margin: 0;
   padding: ${Padding.m};
   border-radius: 8px;
-  background: #f3f4f6;
+  background: ${Background.Default};
   overflow-x: auto;
   white-space: pre-wrap;
 `;
 
 const DemoSurface = styled.div`
   padding: ${Padding.m};
-  border: 1px solid #e5e7eb;
+  border: 1px solid ${Borders.Default.Default};
   border-radius: 8px;
-  background: #fafafa;
+  background: ${Background.Default};
 `;
 
 const ExampleGrid = styled.div`
@@ -51,8 +60,8 @@ const ExampleGrid = styled.div`
 const PropTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: ${Background.Default};
+  border: 1px solid ${Borders.Default.Default};
   border-radius: 8px;
   overflow: hidden;
 `;
@@ -60,13 +69,13 @@ const PropTable = styled.table`
 const Th = styled.th`
   text-align: left;
   padding: ${Padding.s};
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: ${Background.Default};
+  border-bottom: 1px solid ${Borders.Default.Default};
 `;
 
 const Td = styled.td`
   padding: ${Padding.s};
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid ${Borders.Default.Default};
   vertical-align: top;
 
   &:last-child {
@@ -82,8 +91,9 @@ const DemoBox = styled.div`
   justify-content: center;
   padding: ${Padding.s};
   border-radius: 6px;
-  background: #dbeafe;
-  color: #1e3a8a;
+  border: 1px solid ${Borders.Default.Default};
+  background: ${Background.Muted};
+  color: ${Text.Active};
   font-size: 14px;
   font-weight: 600;
 `;
@@ -91,15 +101,16 @@ const DemoBox = styled.div`
 const GridCellBox = styled(DemoBox)`
   min-width: max-content;
   min-height: 56px;
-  background: #dcfce7;
-  color: #166534;
+  border: 1px solid ${Borders.Default.Default};
+  background: ${Background.Muted};
+  color: ${Text.Active};
 `;
 
 const LeftRightBox = styled.div`
   padding: ${Padding.s};
   border-radius: 6px;
-  background: #ede9fe;
-  color: #5b21b6;
+  background: ${Background.Default};
+  color: ${Text.Active};
 `;
 
 const flexCode = `import { Flex } from "./index";
@@ -163,39 +174,39 @@ function PropsTable({
   }>;
 }) {
   return (
-    <PropTable>
-      <thead>
-        <tr>
-          <Th>Prop</Th>
-          <Th>Type</Th>
-          <Th>Description</Th>
-          <Th>Default</Th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell>Prop</TableHeaderCell>
+          <TableHeaderCell>Type</TableHeaderCell>
+          <TableHeaderCell>Description</TableHeaderCell>
+          <TableHeaderCell>Default</TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
         {rows.map((row) => (
-          <tr key={row.name}>
-            <Td>
+          <TableRow key={row.name}>
+            <TableBodyCell>
               <Label>{row.name}</Label>
-            </Td>
-            <Td>
+            </TableBodyCell>
+            <TableBodyCell>
               <Caption>{row.type}</Caption>
-            </Td>
-            <Td>
+            </TableBodyCell>
+            <TableBodyCell>
               <Body>{row.description}</Body>
-            </Td>
-            <Td>
+            </TableBodyCell>
+            <TableBodyCell>
               <Caption>{row.defaultValue ?? "-"}</Caption>
-            </Td>
-          </tr>
+            </TableBodyCell>
+          </TableRow>
         ))}
-      </tbody>
-    </PropTable>
+      </TableBody>
+    </Table>
   );
 }
 
 const meta = {
-  title: "Foundations/Layout",
+  title: "Foundations/Layout/Layout",
   tags: ["autodocs"],
   parameters: {
     viewMode: "docs",

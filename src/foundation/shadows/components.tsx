@@ -15,7 +15,7 @@ import {
 const Container = styled.div`
   width: 128px;
   height: 128px;
-  background: ${Surface.Default};
+  background: ${Surface.Default.Default};
   display: flex;
   flex-direction: row;
   justify-content: center;
