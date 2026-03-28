@@ -12,6 +12,7 @@ import {
   is,
   isDefined,
   isEmpty,
+  isNil,
   safeArray,
 } from "helpers/safe-navigation";
 import React, {
@@ -27,6 +28,7 @@ import styled, { css } from "styled-components";
 import {
   DEFAULT_PLACEHOLDER,
   iconPositionType,
+  IOption,
   IValueProps,
   labelPositionType,
 } from "../types";
@@ -199,6 +201,95 @@ const SearchSpan = styled.span<{ $canSearch: boolean }>`
   color: ${Text.Default};
 `;
 
+function getSingleValueOption<T>(
+  options: IValueProps<T>["options"],
+  value: T | undefined,
+  getOptionKey: (value: T) => string,
+) {
+  if (isNil(value)) {
+    return undefined;
+  }
+
+  const key = getOptionKey(value);
+  return safeArray(options).find((option) => getOptionKey(option.value) === key);
+}
+
+function renderSingleValueContent<T>(params: {
+  isSearchable: boolean;
+  isOpen: boolean;
+  isFocused: boolean | undefined;
+  placeholder?: string;
+  searchText: string;
+  option?: IOption<T>;
+  getOptionKey: (value: T) => string;
+  labelComponent?: IValueProps<T>["labelComponent"];
+}) {
+  const {
+    isSearchable,
+    isOpen,
+    isFocused,
+    placeholder,
+    searchText,
+    option,
+    getOptionKey,
+    labelComponent,
+  } = params;
+
+  if (isSearchable && isOpen) {
+    return <Nothing />;
+  }
+
+  if (!option && !isFocused && searchText.length === 0) {
+    return <Placeholder>{defaultTo(placeholder, DEFAULT_PLACEHOLDER)}</Placeholder>;
+  }
+
+  if (!option) {
+    return <Nothing />;
+  }
+
+  return (
+    <ValueComponentSingle<T>
+      key={getOptionKey(option.value)}
+      option={option}
+      labelComponent={labelComponent}
+    />
+  );
+}
+
+function renderMultiValueContent<T>(params: {
+  isFocused: boolean | undefined;
+  placeholder?: string;
+  searchText: string;
+  valueOptions: IOption<T>[];
+  getOptionKey: (value: T) => string;
+  labelComponent?: IValueProps<T>["labelComponent"];
+  onOptionRemove: IValueProps<T>["onOptionRemove"];
+}) {
+  const {
+    isFocused,
+    placeholder,
+    searchText,
+    valueOptions,
+    getOptionKey,
+    labelComponent,
+    onOptionRemove,
+  } = params;
+
+  if (valueOptions.length === 0 && !isFocused && searchText.length === 0) {
+    return <Placeholder>{defaultTo(placeholder, DEFAULT_PLACEHOLDER)}</Placeholder>;
+  }
+
+  return valueOptions.map((option) => (
+    <ValueComponentMulti<T>
+      key={getOptionKey(option.value)}
+      option={option}
+      labelComponent={labelComponent}
+      options={valueOptions}
+      onRemove={onOptionRemove}
+    />
+  ));
+}
+
 // eslint-disable-next-line comma-spacing
 const ValueImpl = <T,>({
   options = [],
@@ -231,10 +322,19 @@ const ValueImpl = <T,>({
 }: IValueProps<T>) => {
   const searchRef = useRef<HTMLSpanElement>(null);
   const [searchText, setSearchText] = useState("");
+  const isMulti = is(multi);
+  const isSearchable = is(searchable);
+  const isSimpleSingle = !isMulti && !is(multiLevel);
 
   const valueOptions = useMemo(() => {
+    if (isSimpleSingle && !Array.isArray(value)) {
+      const singleOption = getSingleValueOption(options, value, getOptionKey);
+      return singleOption ? [singleOption] : [];
+    }
+
     return getValueOptions(options, value, multi, multiLevel, getOptionKey);
-  }, [options, value, multi, multiLevel, getOptionKey]);
+  }, [getOptionKey, isSimpleSingle, multi, multiLevel, options, value]);
+  const singleValueOption = !isMulti ? valueOptions[0] : undefined;
 
   const clearSearch = useCallback(() => {
     if (searchRef.current) {
@@ -252,11 +352,11 @@ const ValueImpl = <T,>({
       return;
     }
 
-    if (is(searchable)) {
+    if (isSearchable) {
       focusSearch();
     }
     onClick();
-  }, [disabled, searchable, focusSearch, onClick]);
+  }, [disabled, isSearchable, focusSearch, onClick]);
 
   const handleOnClear = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
@@ -278,10 +378,10 @@ const ValueImpl = <T,>({
     setSearchText(text);
 
     onInputChange?.(text);
-    if (is(searchable)) {
+    if (isSearchable) {
       onSearch(text);
     }
-  }, [onInputChange, onSearch, searchable]);
+  }, [onInputChange, onSearch, isSearchable]);
 
   const onBeforeInput = useCallback(
     (event: React.FormEvent<HTMLSpanElement>) => {
@@ -314,7 +414,7 @@ const ValueImpl = <T,>({
   const onSearchKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLSpanElement>) => {
       if (
-        (!is(searchable) && event.key !== keys.TAB) ||
+        (!isSearchable && event.key !== keys.TAB) ||
         event.key === keys.ENTER ||
         event.key === keys.ARROW_UP ||
         event.key === keys.ARROW_DOWN
@@ -322,15 +422,15 @@ const ValueImpl = <T,>({
         event.preventDefault();
       }
     },
-    [searchable],
+    [isSearchable],
   );
 
   const canSearch = useMemo(() => {
-    if (is(disabled) || !is(searchable)) {
+    if (is(disabled) || !isSearchable) {
       return false;
     }
     return is(open) || is(focused);
-  }, [disabled, searchable, open, focused]);
+  }, [disabled, isSearchable, open, focused]);
 
   const renderSearch = () => {
     if (!canSearch) {
@@ -364,42 +464,29 @@ const ValueImpl = <T,>({
     );
   };
 
-  const renderValues = () => {
-    if (is(searchable) && is(open) && !is(multi)) {
-      return <Nothing />;
-    }
-
-    const shouldDisplayPlaceholder =
-      valueOptions.length === 0 && !focused && searchText.length === 0;
-
-    if (shouldDisplayPlaceholder) {
-      return (
-        <Placeholder>{defaultTo(placeholder, DEFAULT_PLACEHOLDER)}</Placeholder>
-      );
-    }
-
-    return valueOptions.map((option) =>
-      is(multi) ? (
-        <ValueComponentMulti<T>
-          key={getOptionKey(option.value)}
-          option={option}
-          labelComponent={labelComponent}
-          options={valueOptions}
-          onRemove={onOptionRemove}
-        />
-      ) : (
-        <ValueComponentSingle<T>
-          key={getOptionKey(option.value)}
-          option={option}
-          labelComponent={labelComponent}
-        />
-      ),
-    );
-  };
-
   const showClearer = is(clearable) && valueOptions.length > 0;
-  const searchAtStart = !is(multi) || valueOptions.length === 0;
-  const searchAtEnd = is(multi) && valueOptions.length > 0;
+  const searchAtStart = !isMulti || valueOptions.length === 0;
+  const searchAtEnd = isMulti && valueOptions.length > 0;
+  const valueContent = isMulti
+    ? renderMultiValueContent({
+        isFocused: focused,
+        placeholder,
+        searchText,
+        valueOptions,
+        getOptionKey,
+        labelComponent,
+        onOptionRemove,
+      })
+    : renderSingleValueContent({
+        isSearchable,
+        isOpen: is(open),
+        isFocused: focused,
+        placeholder,
+        searchText,
+        option: singleValueOption,
+        getOptionKey,
+        labelComponent,
+      });
 
   return (
     <>
@@ -424,11 +511,11 @@ const ValueImpl = <T,>({
 
           <ValueLeft
             className="value-left"
-            $multi={multi}
+            $multi={isMulti}
             $hasValue={valueOptions.length > 0}
           >
             {searchAtStart ? renderSearch() : null}
-            {renderValues()}
+            {valueContent}
             {searchAtEnd ? renderSearch() : null}
           </ValueLeft>
         </ValueWrapper>
@@ -449,7 +536,7 @@ const ValueImpl = <T,>({
         >
           {isDefined(customIcon) ? (
             customIcon
-          ) : is(searchable) ? (
+          ) : isSearchable ? (
             <IconMinor.MagnifyingGlass />
           ) : (
             <TransformIconWrapper $rotate={open} aria-hidden="true">

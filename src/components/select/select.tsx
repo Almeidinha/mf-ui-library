@@ -9,7 +9,13 @@ import {
 } from "@helpers";
 import { useMergedRefs, useOnClickOutside } from "hooks";
 import useDebounce from "hooks/useDebounce";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { styled } from "styled-components";
 
 import { Menu } from "./components/menu";
@@ -86,10 +92,13 @@ const SelectImpl = <T,>(
   );
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [focused, setFocused] = useState<boolean>(false);
-  const debouncedSearch = useDebounce(search, searchDebounce);
+  const debouncedSearch = useDebounce(defaultTo(search, ""), searchDebounce);
   const lastEmittedSearchRef = useRef<string | undefined>(undefined);
+  const isMulti = is(multi);
+  const isSearchable = is(searchable);
+  const hasSearch = isDefined(search) && search !== "";
 
-  const value = is(multi) ? defaultTo(selectValue, []) : selectValue;
+  const value = isMulti ? defaultTo(selectValue, []) : selectValue;
 
   const labelId = id
     ? `${id}-label`
@@ -97,16 +106,15 @@ const SelectImpl = <T,>(
 
   const baseOptions = useMemo((): IOption<T>[] => {
     const base = defaultTo(options, []);
-    if (!isDefined(search) || search === "") {
+    if (!isSearchable || !hasSearch) {
       return base;
     }
 
     return safeArray(base).filter((option) => filterResults(search, option));
-  }, [options, search, filterResults]);
+  }, [options, isSearchable, hasSearch, search, filterResults]);
 
   const openMenu = useCallback(() => {
     setOpen(true);
-    setSearch(search);
 
     const singleValue = !Array.isArray(value) ? value : undefined;
 
@@ -119,7 +127,7 @@ const SelectImpl = <T,>(
     );
 
     onOpen?.();
-  }, [value, search, baseOptions, getOptionKey, onOpen]);
+  }, [value, baseOptions, getOptionKey, onOpen]);
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -161,7 +169,7 @@ const SelectImpl = <T,>(
         onChange?.(v, opt);
       };
 
-      if (is(multi)) {
+      if (isMulti) {
         callOnChangeMulti(nextValue as T[], option);
         return;
       }
@@ -171,7 +179,7 @@ const SelectImpl = <T,>(
 
       closeMenu();
     },
-    [multi, closeMenu, onChange],
+    [isMulti, closeMenu, onChange, multi],
   );
 
   const toggleMenu = useCallback((): void => {
@@ -277,7 +285,7 @@ const SelectImpl = <T,>(
     setFocused(false);
     setSearch(undefined);
     setSelectedIndex(undefined);
-    onOptionSelect(is(multi) ? [] : undefined);
+    onOptionSelect(isMulti ? [] : undefined);
   }
 
   function handleOnSearch(searchValue: string): void {
@@ -287,7 +295,7 @@ const SelectImpl = <T,>(
   }
 
   useEffect(() => {
-    if (!isDefined(debouncedSearch)) {
+    if (!isDefined(search)) {
       lastEmittedSearchRef.current = undefined;
       return;
     }
@@ -299,10 +307,10 @@ const SelectImpl = <T,>(
     lastEmittedSearchRef.current = debouncedSearch;
     onInputChange?.(debouncedSearch);
 
-    if (is(searchable)) {
+    if (isSearchable) {
       onSearch?.(debouncedSearch);
     }
-  }, [debouncedSearch, onInputChange, onSearch, searchable]);
+  }, [debouncedSearch, isSearchable, onInputChange, onSearch, search]);
 
   function onSearchFocus() {
     setFocused(true);
@@ -314,7 +322,7 @@ const SelectImpl = <T,>(
 
   function onOptionRemove(removedValue: T): void {
     //TODO check is need to chec for array
-    if (Array.isArray(value) && is(multi)) {
+    if (Array.isArray(value) && isMulti) {
       const removedKey = getOptionKey(removedValue);
       const next = value.filter((v) => getOptionKey(v) !== removedKey);
       onOptionSelect(next);
@@ -346,11 +354,11 @@ const SelectImpl = <T,>(
     >
       <Value
         clearable={clearable}
-        searchable={searchable}
+        searchable={isSearchable}
         iconPosition={iconPosition}
         open={open}
         disabled={disabled}
-        multi={multi}
+        multi={isMulti}
         focused={focused}
         options={options}
         placeholder={placeholder}
@@ -376,7 +384,7 @@ const SelectImpl = <T,>(
         open={open}
         options={baseOptions}
         value={value}
-        multi={multi}
+        multi={isMulti}
         invalid={invalid}
         search={search}
         label={label}

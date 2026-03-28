@@ -170,6 +170,7 @@ export interface IValueComponentMultiProps<T> {
 export interface ItemData<T> {
   options: IOption<T>[];
   value: T[];
+  activeKeys: Set<string>;
   multi?: boolean;
   selectedIndex?: number;
   rowHeight?: number;

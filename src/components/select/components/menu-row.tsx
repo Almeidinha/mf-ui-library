@@ -13,14 +13,12 @@ const MenuRowInner = <T,>({
   data,
 }: IMenuRowProps<T>) => {
   const {
-    options,
+    activeKeys,
     labelComponent,
-    selectedIndex,
-    rowHeight,
-    //search,
+    options,
     onSelect,
-    value,
-    getOptionKey,
+    rowHeight,
+    selectedIndex,
   } = data;
 
   const option = options[index];
@@ -31,9 +29,7 @@ const MenuRowInner = <T,>({
         option={option}
         labelComponent={labelComponent}
         height={rowHeight}
-        active={value.some(
-          (val) => getOptionKey(val) === getOptionKey(option.value),
-        )}
+        active={activeKeys.has(data.getOptionKey(option.value))}
         selected={selectedIndex === index}
         //search={search}
         onSelect={onSelect}
@@ -53,7 +49,7 @@ const MenuRowWithMultiLevelsInner = <T,>({
   data,
 }: IMenuRowProps<T>) => {
   const {
-    value,
+    activeKeys,
     options,
     labelComponent,
     selectedIndex,
@@ -62,7 +58,6 @@ const MenuRowWithMultiLevelsInner = <T,>({
     onSelect,
     onExpand,
     onReturn,
-    getOptionKey,
   } = data;
 
   const option = options[index];
@@ -73,9 +68,7 @@ const MenuRowWithMultiLevelsInner = <T,>({
         option={option}
         labelComponent={labelComponent}
         height={rowHeight}
-        active={value.some(
-          (val) => getOptionKey(val) === getOptionKey(option.value),
-        )}
+        active={activeKeys.has(data.getOptionKey(option.value))}
         selected={selectedIndex === index}
         search={search}
         onSelect={onSelect}

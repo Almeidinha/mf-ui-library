@@ -9,7 +9,6 @@ import {
 } from "helpers/safe-navigation";
 import {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -79,9 +78,17 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     matchAnchorWidth = true,
   } = props;
 
-  const [options, setOptions] = useState<IOption<T>[]>(() =>
-    safeArray(propOptions),
-  );
+  const baseOptions = useMemo(() => safeArray(propOptions), [propOptions]);
+  const isMultiLevel = is(multiLevel);
+  const isMulti = is(multi);
+  const [expandedParent, setExpandedParent] = useState<IOption<T> | null>(null);
+  const options = useMemo(() => {
+    if (!isMultiLevel || !expandedParent) {
+      return baseOptions;
+    }
+
+    return [{ ...expandedParent, isParent: true }, ...safeArray(expandedParent.options)];
+  }, [baseOptions, expandedParent, isMultiLevel]);
 
   const listRef = useRef<VirtuosoHandle | null>(null);
 
@@ -100,10 +107,6 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
 
     return { index: selectedIndex, align: "center" as const };
   }, [open, selectedIndex]);
-
-  useEffect(() => {
-    setOptions(safeArray(propOptions));
-  }, [propOptions]);
 
   const scrollSelectedRow = useCallback(() => {
     if (
@@ -138,7 +141,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
 
   const handleSelect = useCallback(
     (nextValue: T, option: IOption<T>) => {
-      if (Array.isArray(value) && is(multi)) {
+      if (Array.isArray(value) && isMulti) {
         const nextKey = getOptionKey(nextValue);
 
         const found = value.some((item) => getOptionKey(item) === nextKey);
@@ -147,30 +150,30 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
           : [...value, nextValue];
 
         onSelect(values, option);
-        return;
-      }
+      return;
+    }
 
-      onSelect(nextValue, option);
-    },
-    [multi, value, onSelect, getOptionKey],
+    onSelect(nextValue, option);
+  },
+    [getOptionKey, isMulti, onSelect, value],
   );
 
   const handleExpand = useCallback((option: IOption<T>) => {
-    setOptions([{ ...option, isParent: true }, ...safeArray(option.options)]);
+    setExpandedParent(option);
   }, []);
 
   const handleReturn = useCallback(() => {
-    setOptions(safeArray(propOptions));
-  }, [propOptions]);
+    setExpandedParent(null);
+  }, []);
 
   const handleExited = useCallback(() => {
-    if (is(multiLevel)) {
-      setOptions(safeArray(propOptions));
+    if (isMultiLevel) {
+      setExpandedParent(null);
     }
-  }, [multiLevel, propOptions]);
+  }, [isMultiLevel]);
 
   const normalizedValue = useMemo<T[]>(() => {
-    if (is(multi) && Array.isArray(value)) {
+    if (isMulti && Array.isArray(value)) {
       return value;
     }
 
@@ -179,36 +182,49 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
     }
 
     return [value];
-  }, [value, multi]);
+  }, [isMulti, value]);
 
-  const itemData: ItemData<T> = useMemo(
+  const activeKeys = useMemo(
+    () => new Set(normalizedValue.map((item) => getOptionKey(item))),
+    [normalizedValue, getOptionKey],
+  );
+
+  const flatItemData: ItemData<T> = useMemo(
     () => ({
       options,
       value: normalizedValue,
-      multi,
+      activeKeys,
+      multi: isMulti,
       selectedIndex,
       rowHeight,
-      search,
       labelComponent,
       getOptionKey,
       onSelect: handleSelect,
+    }),
+    [
+      activeKeys,
+      getOptionKey,
+      handleSelect,
+      isMulti,
+      labelComponent,
+      normalizedValue,
+      options,
+      rowHeight,
+      selectedIndex,
+    ],
+  );
+
+  const multiLevelItemData: ItemData<T> = useMemo(
+    () => ({
+      ...flatItemData,
+      search,
       onExpand: handleExpand,
       onReturn: handleReturn,
     }),
-    [
-      options,
-      normalizedValue,
-      multi,
-      selectedIndex,
-      rowHeight,
-      search,
-      labelComponent,
-      getOptionKey,
-      handleSelect,
-      handleExpand,
-      handleReturn,
-    ],
+    [flatItemData, handleExpand, handleReturn, search],
   );
+
+  const itemData = isMultiLevel ? multiLevelItemData : flatItemData;
 
   const getItemKey = useCallback(
     (index: number, option?: IOption<T>) =>
@@ -233,13 +249,29 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
         },
       };
 
-      return is(multiLevel) ? (
-        <MenuRowWithMultiLevels {...rowProps} />
-      ) : (
-        <MenuRow {...rowProps} />
-      );
+      return <MenuRow {...rowProps} />;
     },
-    [itemData, rowHeight, multiLevel],
+    [itemData, rowHeight],
+  );
+
+  const renderMultiLevelMenuRow = useCallback(
+    (index: number, option?: IOption<T>) => {
+      if (!option) {
+        return null;
+      }
+
+      const rowProps: IMenuRowProps<T> = {
+        index,
+        data: itemData,
+        style: {
+          height: rowHeight,
+          boxSizing: "border-box",
+        },
+      };
+
+      return <MenuRowWithMultiLevels {...rowProps} />;
+    },
+    [itemData, rowHeight],
   );
 
   const renderList = () => {
@@ -267,7 +299,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
         initialItemCount={initialItemCount}
         initialTopMostItemIndex={initialTopMostItemIndex}
         computeItemKey={getItemKey}
-        itemContent={renderMenuRow}
+        itemContent={isMultiLevel ? renderMultiLevelMenuRow : renderMenuRow}
         style={{ height, width: "100%" }}
       />
     );
