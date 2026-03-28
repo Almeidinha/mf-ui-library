@@ -57,32 +57,6 @@ const ExampleGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 `;
 
-const PropTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  background: ${Background.Default};
-  border: 1px solid ${Borders.Default.Default};
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const Th = styled.th`
-  text-align: left;
-  padding: ${Padding.s};
-  background: ${Background.Default};
-  border-bottom: 1px solid ${Borders.Default.Default};
-`;
-
-const Td = styled.td`
-  padding: ${Padding.s};
-  border-bottom: 1px solid ${Borders.Default.Default};
-  vertical-align: top;
-
-  &:last-child {
-    border-bottom: 0;
-  }
-`;
-
 const DemoBox = styled.div`
   min-height: 44px;
   min-width: 50px;

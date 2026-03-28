@@ -6,8 +6,21 @@ import {
 } from "@storybook/addon-docs/blocks";
 import type { Preview } from "@storybook/react-vite";
 import { createElement, Fragment } from "react";
+import { createGlobalStyle } from "styled-components";
 
 import { ThemeProvider, resolveTheme } from "../src/theme/theme";
+
+const DocsStoryBlockStyles = createGlobalStyle<{
+  $themeMode: "light" | "dark";
+}>`
+  .docs-story, .sb-show-main {
+    min-height: 100vh;
+    padding: 16px;
+    box-sizing: border-box;
+    background: ${({ $themeMode }) =>
+      $themeMode === "dark" ? "#0B1220" : "#F9FAFB"};
+  }
+`;
 
 const preview: Preview = {
   tags: ["autodocs"],
@@ -30,18 +43,10 @@ const preview: Preview = {
       createElement(
         ThemeProvider,
         { theme: resolveTheme(context.globals.themeMode) },
-        createElement(
-          "div",
-          {
-            style: {
-              minHeight: "100vh",
-              padding: 16,
-              background:
-                context.globals.themeMode === "dark" ? "#0B1220" : "#F9FAFB",
-            },
-          },
-          createElement(Story),
-        ),
+        createElement(DocsStoryBlockStyles, {
+          $themeMode: context.globals.themeMode,
+        }),
+        createElement(Story),
       ),
   ],
   parameters: {
