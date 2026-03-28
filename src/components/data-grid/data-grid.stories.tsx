@@ -1184,6 +1184,7 @@ export const ColumnGrouping: Story = {
     showActionColumns: false,
     defaultPinnedColumns: undefined,
     defaultColumnOrder: columnGroupingColumnOrder,
+    maxTableHeight: 500,
     defaultColumnVisibility: {
       age: false,
       city: false,
@@ -1255,6 +1256,7 @@ export const ColumnGrouping: Story = {
 export const RowGrouping: Story = {
   args: {
     striped: false,
+    maxTableHeight: 500,
     showCellBorders: true,
     defaultPinnedColumns: undefined,
     rowGrouping: {
@@ -1308,6 +1310,7 @@ export const RowGrouping: Story = {
 export const ColumnAndRowGrouping: Story = {
   args: {
     striped: false,
+    maxTableHeight: 500,
     showCellBorders: true,
     showActionColumns: false,
     defaultColumnOrder: columnAndRowGroupingColumnOrder,

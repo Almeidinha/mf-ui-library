@@ -53,9 +53,14 @@ const TableFrame = styled.div<{
   $responsive: boolean;
   $borderTop?: boolean;
   $borderBottom?: boolean;
+  $minHeight?: string;
+  $maxHeight?: string;
 }>`
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   min-width: 0;
+  min-height: ${({ $minHeight }) => $minHeight};
+  max-height: ${({ $maxHeight }) => $maxHeight};
   border-top: ${({ $borderTop }) =>
     $borderTop ? `1px solid ${Borders.Default.Default}` : "none"};
   border-bottom: ${({ $borderBottom }) =>
@@ -69,14 +74,10 @@ const TableFrame = styled.div<{
   }
 `;
 
-const TableScroll = styled.div<{
-  $minTableHeight?: string;
-  $maxTableHeight?: string;
-}>`
+const TableScroll = styled.div`
   width: 100%;
   min-width: 0;
-  min-height: ${({ $minTableHeight }) => $minTableHeight};
-  max-height: ${({ $maxTableHeight }) => $maxTableHeight};
+  min-height: 0;
   overflow: auto;
 `;
 
@@ -533,12 +534,11 @@ export function DataTable<T extends Record<string, unknown>>(
           $responsive={isResponsive}
           $borderTop={searchable || manageColumns}
           $borderBottom={paginated}
+          $minHeight={toCssSize(minTableHeight)}
+          $maxHeight={toCssSize(maxTableHeight)}
           style={tableCssVariables}
         >
-        <TableScroll
-          $minTableHeight={toCssSize(minTableHeight)}
-          $maxTableHeight={toCssSize(maxTableHeight)}
-        >
+        <TableScroll>
           <Table
             $cellBorders={cellBorderMode}
             $width={isResponsive ? "100%" : tableWidth || "auto"}

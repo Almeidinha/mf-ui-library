@@ -220,9 +220,14 @@ type VirtualizedDataGridRowProps<T extends Record<string, unknown>> = {
 const GridFrame = styled.div<{
   $borderTop?: boolean;
   $borderBottom?: boolean;
+  $minHeight?: string;
+  $maxHeight?: string;
 }>`
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
+  min-height: ${({ $minHeight }) => $minHeight};
+  max-height: ${({ $maxHeight }) => $maxHeight};
   border-top: ${({ $borderTop }) =>
     $borderTop ? `1px solid ${Borders.Default.Default}` : "none"};
   border-bottom: ${({ $borderBottom }) =>
@@ -242,14 +247,10 @@ const GridHeaderScroll = styled.div`
   }
 `;
 
-const GridBodyScroll = styled.div<{
-  $minHeight?: string;
-  $maxHeight?: string;
-}>`
+const GridBodyScroll = styled.div`
   width: 100%;
   min-width: 0;
-  min-height: ${({ $minHeight }) => $minHeight};
-  max-height: ${({ $maxHeight }) => $maxHeight};
+  min-height: 0;
   overflow: auto;
 `;
 
@@ -2592,7 +2593,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     }
   }, []);
 
-  const updateBodyVerticalScrollbar = useCallback(
+  const updateBodyScrollbarState = useCallback(
     (bodyScrollElement?: HTMLDivElement | null) => {
       const resolvedBodyScrollElement =
         bodyScrollElement ?? bodyScrollRef.current;
@@ -2614,15 +2615,16 @@ export function DataGrid<T extends Record<string, unknown>>(
     },
     [],
   );
+
   const handleBodyScrollRef = useCallback(
     (node: HTMLDivElement | null) => {
       bodyScrollRef.current = node;
       setBodyScrollElement((currentNode) =>
         currentNode === node ? currentNode : node,
       );
-      updateBodyVerticalScrollbar(node);
+      updateBodyScrollbarState(node);
     },
-    [updateBodyVerticalScrollbar],
+    [updateBodyScrollbarState],
   );
 
   useLayoutEffect(() => {
@@ -2640,7 +2642,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     }
 
     const handleWindowResize = () => {
-      updateBodyVerticalScrollbar();
+      updateBodyScrollbarState();
     };
 
     window.addEventListener("resize", handleWindowResize);
@@ -2652,7 +2654,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     }
 
     const resizeObserver = new ResizeObserver(() => {
-      updateBodyVerticalScrollbar();
+      updateBodyScrollbarState();
     });
 
     resizeObserver.observe(bodyScrollElement);
@@ -2668,7 +2670,7 @@ export function DataGrid<T extends Record<string, unknown>>(
       window.removeEventListener("resize", handleWindowResize);
     };
   }, [
-    updateBodyVerticalScrollbar,
+    updateBodyScrollbarState,
     groupedBodyEntries.length,
     visibleRows.length,
     gridTemplateColumns,
@@ -2678,6 +2680,7 @@ export function DataGrid<T extends Record<string, unknown>>(
     headerGridWidth,
     headerGridMinWidth,
     maxTableHeight,
+    minTableHeight,
   ]);
 
   return (
@@ -2727,6 +2730,8 @@ export function DataGrid<T extends Record<string, unknown>>(
       <GridFrame
         $borderTop={searchable || manageColumns}
         $borderBottom={paginated}
+        $minHeight={toCssSize(minTableHeight)}
+        $maxHeight={toCssSize(maxTableHeight)}
         role="grid"
         aria-label="Data grid"
         aria-colcount={totalColumnCount}
@@ -2767,8 +2772,6 @@ export function DataGrid<T extends Record<string, unknown>>(
 
         <GridBodyScroll
           ref={handleBodyScrollRef}
-          $minHeight={toCssSize(minTableHeight)}
-          $maxHeight={toCssSize(maxTableHeight)}
           onScroll={() => syncScrollLeft("body")}
         >
           <GridSurface
