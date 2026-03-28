@@ -41,6 +41,12 @@ const MenuPanel = styled.div`
   left: 0;
 `;
 
+const MENU_BOTTOM_SPACER = 4;
+
+const MenuFooterSpacer = styled.div`
+  height: ${MENU_BOTTOM_SPACER}px;
+`;
+
 // eslint-disable-next-line comma-spacing
 export const Menu = <T,>(props: MenuComponentProps<T>) => {
   const {
@@ -79,7 +85,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
 
   const listRef = useRef<VirtuosoHandle | null>(null);
 
-  const contentHeight = options.length * rowHeight + 2;
+  const contentHeight = options.length * rowHeight + MENU_BOTTOM_SPACER + 2;
   const height = clamp(contentHeight, rowHeight, menuHeight);
   const itemCount = options.length;
   const initialItemCount = Math.min(
@@ -256,6 +262,7 @@ export const Menu = <T,>(props: MenuComponentProps<T>) => {
         className="menu-list"
         ref={listRef}
         data={options}
+        components={{ Footer: MenuFooterSpacer }}
         fixedItemHeight={rowHeight}
         initialItemCount={initialItemCount}
         initialTopMostItemIndex={initialTopMostItemIndex}

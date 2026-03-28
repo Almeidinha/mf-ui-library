@@ -20,7 +20,7 @@ export const OptionItem = styled(Flex).attrs({
   min-width: 0;
   cursor: pointer;
   box-sizing: border-box;
-  padding: ${Padding.xxxs} ${Padding.xxs};
+  padding: ${Padding.xxs} ${Padding.xxs} ${Padding.none};
   border-radius: 8px;
   background-clip: content-box;
 

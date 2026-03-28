@@ -13,7 +13,7 @@ export const MenuListFrame = styled.div<{ height?: number }>`
   border: 1px solid ${Borders.Default.Muted};
   background-color: ${Surface.Default.Default};
   height: ${({ height }) => height}px;
-  padding: ${Padding.xxs} ${Padding.none};
+  padding-bottom: ${Padding.xxs};
   max-height: ${({ height }) => height}px;
   width: -moz-available;
   width: -webkit-fill-available;

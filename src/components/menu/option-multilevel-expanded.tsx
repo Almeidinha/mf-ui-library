@@ -53,7 +53,7 @@ const PortalMenuFrame = styled.div<{
 }>`
   border: 1px solid ${Borders.Default.Muted};
   border-radius: 5px;
-  padding: ${Padding.xxs} ${Padding.none};
+  padding-bottom: ${Padding.xxs};
   box-sizing: border-box;
   background-color: ${Surface.Default.Default};
   position: fixed;
@@ -99,7 +99,7 @@ function computeSubmenuPosition(args: {
 // eslint-disable-next-line comma-spacing
 const OptionMultiLevelExpandedComponentImpl = <T,>({
   selected,
-  labelComponent: CustomLabel,
+  labelComponent,
   option,
   height,
   width,
@@ -111,6 +111,7 @@ const OptionMultiLevelExpandedComponentImpl = <T,>({
   onReturn,
   getOptionKey,
 }: OptionMultiLevelExpandedProps<T>) => {
+  const CustomLabel = labelComponent || Label;
   const active = useMemo(
     () =>
       selectedValues.some(
@@ -184,21 +185,17 @@ const OptionMultiLevelExpandedComponentImpl = <T,>({
         height={height}
         onClick={onClick}
       >
-        {CustomLabel ? (
-          <CustomLabel type="option" active={active} {...option}>
-            <Flex>
-              {option.icon}
-              {option.label}
-            </Flex>
-          </CustomLabel>
-        ) : (
-          <Label>
-            <Flex>
-              {option.icon}
-              {option.label}
-            </Flex>
-          </Label>
-        )}
+        <CustomLabel
+          type="option"
+          active={active}
+          {...option}
+          style={{ paddingLeft: 8 }}
+        >
+          <Flex>
+            {option.icon}
+            {option.label}
+          </Flex>
+        </CustomLabel>
 
         <If is={hasChildren}>
           <IconMinor.ChevronRightSolid />

@@ -644,7 +644,7 @@ When using the custom menuComponent, the select exposes this properties.
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Primary: Story = {
+export const Docs: Story = {
   render: function Render(args) {
     const [sbArgs, sbUpdateArgs] = useArgs();
     const { value, multi } = sbArgs as unknown as ISelectProps<string>;
