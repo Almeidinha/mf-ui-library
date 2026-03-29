@@ -91,6 +91,27 @@ Build static Storybook:
 pnpm build-storybook
 ```
 
+## Publishing
+
+This repo is set up to publish to npm through GitHub Actions when you push a
+version tag matching `v*.*.*`.
+
+Typical release flow:
+
+```bash
+pnpm version 2.0.1 --no-git-tag-version
+git add package.json pnpm-lock.yaml
+git commit -m "release: v2.0.1"
+git tag v2.0.1
+git push origin main --tags
+```
+
+Notes:
+
+- The npm package version in `package.json` and the git tag should match.
+- GitHub Actions will only publish on pushed version tags, not on every commit.
+- Republishing the same npm version is not allowed, so bump the version first.
+
 ## Testing
 
 ### Unit tests
