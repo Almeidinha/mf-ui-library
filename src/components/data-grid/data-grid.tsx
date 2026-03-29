@@ -16,7 +16,7 @@ import { Label } from "components/typography";
 import { Borders, Focus, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { toCssSize } from "helpers/css-helpers";
 import { If } from "helpers/nothing";
 import { is } from "helpers/safe-navigation";
@@ -349,7 +349,7 @@ const CellContent = styled.span<{
   overflow-wrap: ${({ $overflow = "ellipsis" }) =>
     $overflow === "wrap" ? "anywhere" : "normal"};
   text-align: ${({ $textAlign }) => $textAlign};
-  ${Typography.Body}
+  ${TypographyStyles.Body}
 `;
 
 const HeaderSortContent = styled.span<{

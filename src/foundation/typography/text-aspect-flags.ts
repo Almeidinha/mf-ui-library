@@ -1,6 +1,6 @@
 import { MappedEnum, PropsWithChildren, RequireOnlyOne } from "@helpers";
 
-import { Text } from "../colors";
+import { TextColors } from "../colors";
 
 export const enum TextAspects {
   Default = 1,
@@ -34,15 +34,15 @@ export type TextAspectProps = Partial<
 type TextOptions<T> = MappedEnum<typeof TextAspects, T>;
 
 const TextAspectColors = {
-  [TextAspects.Default]: Text.Default,
-  [TextAspects.Neutral]: Text.Neutral,
-  [TextAspects.Muted]: Text.Muted,
-  [TextAspects.Soft]: Text.Soft,
-  [TextAspects.OnPrimary]: Text.OnPrimary,
-  [TextAspects.OnCritical]: Text.OnCritical,
-  [TextAspects.Success]: Text.Success,
-  [TextAspects.Critical]: Text.Critical,
-  [TextAspects.Highlight]: Text.Highlight,
+  [TextAspects.Default]: TextColors.Default,
+  [TextAspects.Neutral]: TextColors.Neutral,
+  [TextAspects.Muted]: TextColors.Muted,
+  [TextAspects.Soft]: TextColors.Soft,
+  [TextAspects.OnPrimary]: TextColors.OnPrimary,
+  [TextAspects.OnCritical]: TextColors.OnCritical,
+  [TextAspects.Success]: TextColors.Success,
+  [TextAspects.Critical]: TextColors.Critical,
+  [TextAspects.Highlight]: TextColors.Highlight,
 };
 
 export type TransientTextOptions = Omit<

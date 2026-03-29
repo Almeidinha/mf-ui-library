@@ -16,7 +16,7 @@ import { Label } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { If, Nothing } from "helpers/nothing";
 import { is, isDefined, isString } from "helpers/safe-navigation";
@@ -233,7 +233,7 @@ const TableBodyCellFrame = styled.td<{
   $overflow?: DataTableCellOverflow;
 }>`
   padding: var(--data-table-cell-padding, ${Padding.m});
-  ${Typography.Body}
+  ${TypographyStyles.Body}
   position: relative;
 
   ${({ $fitContent }) =>

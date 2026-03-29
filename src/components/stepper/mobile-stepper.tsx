@@ -1,8 +1,8 @@
 import { Container, Flex } from "components/layout";
 import { Button } from "components/molecules";
 import { ProgressBar } from "components/progress-bar";
-import { Borders, Surface, Text } from "foundation/colors";
-import { Typography } from "foundation/typography";
+import { Borders, Surface, TextColors } from "foundation/colors";
+import { TypographyStyles } from "foundation/typography";
 import { If } from "helpers/nothing";
 import { clamp } from "helpers/numbers";
 import { defaultTo } from "helpers/safe-navigation";
@@ -76,8 +76,8 @@ const MobileCenter = styled(Flex)`
 `;
 
 const TextIndicator = styled.div`
-  ${Typography.Label}
-  color: ${Text.Default};
+  ${TypographyStyles.Label}
+  color: ${TextColors.Default};
 `;
 
 const Dots = styled.div`

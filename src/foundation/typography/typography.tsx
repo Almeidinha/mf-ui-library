@@ -145,7 +145,7 @@ const Link = css<BodyProps>`
   }
 `;
 
-export const Typography = {
+export const TypographyStyles = {
   Display,
   Heading1,
   Heading2,

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Divider } from "components/divider";
 import { Label } from "components/typography";
-import { Background, Borders, Text } from "foundation/colors";
+import { Background, Borders, TextColors } from "foundation/colors";
 import type { ComponentProps } from "react";
 import styled from "styled-components";
 
@@ -48,7 +48,7 @@ const DemoBlock = styled.div`
   border-radius: 8px;
   border: 1px solid ${Borders.Default.Default};
   background: ${Background.Default};
-  color: ${Text.Active};
+  color: ${TextColors.Active};
   font-weight: 600;
   margin: auto;
 `;

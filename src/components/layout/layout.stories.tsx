@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "components/table";
 import { Body, Caption, Heading3, Label } from "components/typography";
-import { Background, Borders, Text } from "foundation/colors";
+import { Background, Borders, TextColors } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
@@ -32,7 +32,7 @@ const Section = styled.section`
 const Description = styled.p`
   margin: 0;
   max-width: 760px;
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 const CodeBlock = styled.pre`
@@ -67,7 +67,7 @@ const DemoBox = styled.div`
   border-radius: 6px;
   border: 1px solid ${Borders.Default.Default};
   background: ${Background.Muted};
-  color: ${Text.Active};
+  color: ${TextColors.Active};
   font-size: 14px;
   font-weight: 600;
 `;
@@ -77,14 +77,14 @@ const GridCellBox = styled(DemoBox)`
   min-height: 56px;
   border: 1px solid ${Borders.Default.Default};
   background: ${Background.Muted};
-  color: ${Text.Active};
+  color: ${TextColors.Active};
 `;
 
 const LeftRightBox = styled.div`
   padding: ${Padding.s};
   border-radius: 6px;
   background: ${Background.Default};
-  color: ${Text.Active};
+  color: ${TextColors.Active};
 `;
 
 const flexCode = `import { Flex } from "./index";

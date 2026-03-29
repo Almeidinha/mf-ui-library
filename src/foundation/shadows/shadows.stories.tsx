@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Card } from "components/card";
 import { Flex } from "components/layout";
 import { Body, Heading2, Heading3, Label } from "components/typography";
-import { Borders, Surface, Text } from "foundation/colors";
+import { Borders, Surface, TextColors } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import type { ReactNode } from "react";
 import styled, { type RuleSet } from "styled-components";
@@ -256,7 +256,7 @@ const PreviewSurface = styled.div<{ $shadow: RuleSet<object> }>`
   border-radius: 12px;
   background: ${Surface.Default.Default};
   border: 1px solid ${Borders.Default.Muted};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,7 +285,7 @@ const ExamplePanel = styled.div<{ $shadow: RuleSet<object> }>`
   background: ${Surface.Default.Default};
   border: 1px solid ${Borders.Default.Muted};
   padding: ${Padding.l};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
   text-align: center;
 `;
 
@@ -296,7 +296,7 @@ const ExampleInsetPanel = styled.div`
   background: ${Surface.Default.Muted};
   border: 1px solid ${Borders.Default.Muted};
   padding: ${Padding.l};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
   text-align: center;
 `;
 
@@ -306,14 +306,14 @@ const TokenValue = styled.code`
   padding: ${Padding.s};
   border-radius: 8px;
   background: ${Surface.Default.Muted};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
   font-size: 12px;
   line-height: 1.5;
   word-break: break-word;
 `;
 
 const StoryRoot = styled(Flex)`
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 export const Docs: Story = {

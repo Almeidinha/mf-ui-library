@@ -3,10 +3,10 @@ import {
   Background,
   Interactive,
   Surface,
-  Text,
+  TextColors,
 } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { Calendar } from "react-multi-date-picker";
 import styled from "styled-components";
 
@@ -16,8 +16,8 @@ import styled from "styled-components";
  */
 export const CustomCalendar = styled(Calendar)`
   .rmdp-week-day {
-    ${Typography.Caption}
-    color: ${Text.Muted};
+    ${TypographyStyles.Caption}
+    color: ${TextColors.Muted};
   }
 
   .rmdp-header {
@@ -27,8 +27,8 @@ export const CustomCalendar = styled(Calendar)`
     margin-top: ${Margin.none};
 
     .rmdp-header-values span {
-      ${Typography.Heading3}
-      color: ${Text.Default};
+      ${TypographyStyles.Heading3}
+      color: ${TextColors.Default};
       padding: ${Padding.none};
     }
 
@@ -58,8 +58,8 @@ export const CustomCalendar = styled(Calendar)`
   .rmdp-day.rmdp-disabled {
     border-radius: 6px;
     box-shadow: none;
-    ${Typography.Body}
-    color: ${Text.Disabled};
+    ${TypographyStyles.Body}
+    color: ${TextColors.Disabled};
 
     &:active {
       background-color: transparent;
@@ -78,7 +78,7 @@ export const CustomCalendar = styled(Calendar)`
     border-radius: 0px;
     background-color: ${Surface.Neutral.Muted};
     box-shadow: none;
-    ${Typography.Body}
+    ${TypographyStyles.Body}
 
     margin-bottom: ${"1px"};
 
@@ -104,7 +104,7 @@ export const CustomCalendar = styled(Calendar)`
 
     &:not(.rmdp-disabled):not(.rmdp-day-hidden) span {
       background-color: unset;
-      color: ${Text.Default};
+      color: ${TextColors.Default};
     }
 
     &.rmdp-today {
@@ -123,17 +123,17 @@ export const CustomCalendar = styled(Calendar)`
     &.end {
       background-color: ${Interactive.Subtle.Default};
       box-shadow: none;
-      ${Typography.Heading4}
-      color: ${Text.OnPrimary};
+      ${TypographyStyles.Heading4}
+      color: ${TextColors.OnPrimary};
 
       &:not(.rmdp-disabled):not(.rmdp-day-hidden) span {
         background-color: unset;
-        color: ${Text.OnPrimary};
+        color: ${TextColors.OnPrimary};
       }
 
       &:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
         background-color: unset;
-        color: ${Text.OnPrimary};
+        color: ${TextColors.OnPrimary};
       }
     }
 
@@ -146,7 +146,7 @@ export const CustomCalendar = styled(Calendar)`
 
   .rmdp-day {
     border-radius: 6px;
-    ${Typography.Body}
+    ${TypographyStyles.Body}
 
     &.rmdp-today {
       border-radius: 6px;
@@ -170,24 +170,24 @@ export const CustomCalendar = styled(Calendar)`
 
     &:not(.rmdp-disabled):not(.rmdp-day-hidden) span {
       background-color: unset;
-      color: ${Text.Default};
+      color: ${TextColors.Default};
     }
 
     &.rmdp-selected {
       background-color: ${Interactive.Subtle.Default};
       border-radius: 6px;
       box-shadow: none;
-      ${Typography.Heading4}
-      color: ${Text.OnPrimary};
+      ${TypographyStyles.Heading4}
+      color: ${TextColors.OnPrimary};
 
       &:not(.rmdp-disabled):not(.rmdp-day-hidden) span {
         background-color: unset;
-        color: ${Text.OnPrimary};
+        color: ${TextColors.OnPrimary};
       }
 
       &:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
         background-color: unset;
-        color: ${Text.OnPrimary};
+        color: ${TextColors.OnPrimary};
       }
     }
 

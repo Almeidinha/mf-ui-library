@@ -1,9 +1,9 @@
 import { Flex } from "components/layout";
 import { Skeleton } from "components/skeleton";
 import { Body, Label } from "components/typography";
-import { Borders, Surface, Text } from "foundation/colors";
+import { Borders, Surface, TextColors } from "foundation/colors";
 import { Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { useMemo } from "react";
 import {
   Area,
@@ -78,8 +78,8 @@ const TooltipCard = styled.div`
 `;
 
 const TooltipTitle = styled.div`
-  ${Typography.Label};
-  color: ${Text.Active};
+  ${TypographyStyles.Label};
+  color: ${TextColors.Active};
   margin-bottom: 8px;
 `;
 
@@ -109,7 +109,7 @@ const Header = styled(Flex)`
 `;
 
 const AxisLabel = styled(Label)`
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 function defaultFormat(value: unknown): string {

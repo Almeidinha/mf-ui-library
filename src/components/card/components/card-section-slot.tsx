@@ -2,7 +2,7 @@ import { Flex } from "components/layout";
 import { Heading4 } from "components/typography";
 import { Borders } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { PropsWithChildren } from "helpers/generic-types";
 import { If } from "helpers/nothing";
 import { isDefined } from "helpers/safe-navigation";
@@ -28,7 +28,7 @@ const SectionFrame = styled.section`
   & + & {
     border-top: 1px solid ${Borders.Default.Muted};
   }
-  ${Typography.Body}
+  ${TypographyStyles.Body}
 `;
 
 const SubheadingFrame = styled(Flex).attrs({ justify: "space-between" })`

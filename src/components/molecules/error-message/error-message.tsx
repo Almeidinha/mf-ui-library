@@ -1,7 +1,7 @@
 import { IconMinor } from "components/icon";
 import { Flex } from "components/layout";
 import { Body } from "components/typography";
-import { Icons, Text } from "foundation/colors";
+import { Icons, TextColors } from "foundation/colors";
 import { Margin } from "foundation/spacing";
 import React from "react";
 import styled from "styled-components";
@@ -13,7 +13,7 @@ const ErrorMessageWrapper = styled(Flex)`
   }
   div {
     margin-left: ${Margin.xs};
-    color: ${Text.Critical};
+    color: ${TextColors.Critical};
   }
 `;
 

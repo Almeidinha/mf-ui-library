@@ -6,7 +6,7 @@ import { Select } from "components/select";
 import { Body } from "components/typography";
 import { Borders, Surface } from "foundation/colors";
 import { Gap } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { If } from "helpers/nothing";
 import { clamp } from "helpers/numbers";
 import { isNil } from "helpers/safe-navigation";
@@ -45,7 +45,7 @@ const StaticBox = styled(Flex)`
   border: 1px solid ${Borders.Default.Default};
   border-radius: 6px;
   background-color: ${Surface.Neutral.Default};
-  ${Typography.Body};
+  ${TypographyStyles.Body};
 `;
 
 const LeftInputText = styled(StaticBox)`

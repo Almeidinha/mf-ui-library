@@ -1,4 +1,4 @@
-import { Borders, Text } from "foundation/colors";
+import { Borders, TextColors } from "foundation/colors";
 import { clamp } from "helpers/numbers";
 import React, {
   type ComponentPropsWithoutRef,
@@ -177,13 +177,13 @@ const Thumb = styled.div.attrs<{
   transition: background 160ms ease;
 
   &:hover {
-    background: ${Text.Muted};
+    background: ${TextColors.Muted};
   }
 
   ${({ $dragging }) =>
     $dragging &&
     css`
-      background: ${Text.Default};
+      background: ${TextColors.Default};
     `}
 `;
 

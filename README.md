@@ -28,12 +28,14 @@ The code lives under `src/`:
 
 The library’s **single entry point** is `src/index.ts` (configured in `tsup.config.ts`).
 
-At the moment, the package root exports are intentionally minimal:
+The package root currently exports:
 
-- `src/index.ts` currently exports **only** `foundation/`
-- `components/`, `hooks/`, `helpers/`, and `theme/` exist in the repo but are not exported from the package root yet
+- `components/`
+- `foundation/`
+- `hooks/`
+- `theme/`
 
-If you want consumers to import components from the package root (e.g. `import { Modal } from "@almeidinha/mfui"`), expose them by exporting from `src/index.ts`.
+Helpers remain internal to the repo and are not part of the public package API.
 
 ### Internal path aliases
 

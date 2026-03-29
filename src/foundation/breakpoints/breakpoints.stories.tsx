@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Card } from "components/card";
 import { Flex } from "components/layout";
 import { Body, Heading2, Label } from "components/typography";
-import { Borders, Surface, Text } from "foundation/colors";
+import { Borders, Surface, TextColors } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
 import { useMediaQuery } from "hooks/useMediaQuery";
 import { useEffect, useMemo, useState } from "react";
@@ -214,7 +214,7 @@ const Page = styled(Flex)`
   max-width: 1100px;
   gap: ${Margin.xl};
   padding: ${Padding.l};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 const Section = styled.section`
@@ -241,7 +241,8 @@ const StatePill = styled.span<{ $active: boolean }>`
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 12px;
-  color: ${({ $active }) => ($active ? Text.Highlight : Text.Muted)};
+  color: ${({ $active }) =>
+    $active ? TextColors.Highlight : TextColors.Muted};
   background: ${({ $active }) =>
     $active ? Surface.Highlight.Soft : Surface.Default.Muted};
 `;
@@ -262,7 +263,7 @@ const QueryCode = styled.code`
   padding: ${Padding.s};
   border-radius: 8px;
   background: ${Surface.Default.Muted};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
   word-break: break-word;
 `;
 
@@ -319,7 +320,7 @@ const CodeBlock = styled(Card)`
   pre {
     margin: 0;
     white-space: pre-wrap;
-    color: ${Text.Default};
+    color: ${TextColors.Default};
   }
 `;
 

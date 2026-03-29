@@ -2,7 +2,7 @@ import { Margin } from "foundation/spacing";
 import {
   BodyProps,
   LabelProps,
-  Typography as FoundationTypography,
+  TypographyStyles as FoundationTypographyStyles,
 } from "foundation/typography";
 import {
   ITransientTextAspectProps,
@@ -63,7 +63,7 @@ function toTransientProps(
 export const DISPLAY = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${FoundationTypography.Display};
+  ${FoundationTypographyStyles.Display};
 `;
 
 export const Display: FC<ITextComponentProps> = ({ children, ...props }) => {
@@ -73,7 +73,7 @@ export const Display: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const HEADING1 = styled.h1.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${FoundationTypography.Heading1};
+  ${FoundationTypographyStyles.Heading1};
   margin: ${Margin.none};
   margin-bottom: ${Margin.l};
 `;
@@ -85,7 +85,7 @@ export const Heading1: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const HEADING2 = styled.h2.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${FoundationTypography.Heading2};
+  ${FoundationTypographyStyles.Heading2};
   margin: ${Margin.none};
   margin-bottom: ${Margin.m};
 `;
@@ -97,7 +97,7 @@ export const Heading2: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const HEADING3 = styled.h3.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${FoundationTypography.Heading3};
+  ${FoundationTypographyStyles.Heading3};
   margin: ${Margin.none};
   margin-bottom: ${Margin.l};
 `;
@@ -109,7 +109,7 @@ export const Heading3: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const HEADING4 = styled.h4.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${FoundationTypography.Heading4};
+  ${FoundationTypographyStyles.Heading4};
   margin: ${Margin.none};
   margin-bottom: ${Margin.m};
 `;
@@ -121,7 +121,7 @@ export const Heading4: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const BODY_LARGE = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & BodyProps>`
-  ${FoundationTypography.BodyLarge};
+  ${FoundationTypographyStyles.BodyLarge};
 `;
 
 export const BodyLarge: FC<ITextComponentProps & BodyProps> = ({
@@ -134,7 +134,7 @@ export const BodyLarge: FC<ITextComponentProps & BodyProps> = ({
 export const BODY = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & BodyProps>`
-  ${FoundationTypography.Body};
+  ${FoundationTypographyStyles.Body};
 `;
 
 export const Body: FC<ITextComponentProps & BodyProps> = ({
@@ -147,7 +147,7 @@ export const Body: FC<ITextComponentProps & BodyProps> = ({
 export const CAPTION = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps>`
-  ${FoundationTypography.Caption};
+  ${FoundationTypographyStyles.Caption};
 `;
 
 export const Caption: FC<ITextComponentProps> = ({ children, ...props }) => {
@@ -157,7 +157,7 @@ export const Caption: FC<ITextComponentProps> = ({ children, ...props }) => {
 export const LABEL = styled.label.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & LabelProps>`
-  ${FoundationTypography.Label};
+  ${FoundationTypographyStyles.Label};
 `;
 
 export const Label: FC<ITextComponentProps & LabelProps> = ({
@@ -170,7 +170,7 @@ export const Label: FC<ITextComponentProps & LabelProps> = ({
 export const LINK = styled.div.withConfig({
   shouldForwardProp: (prop) => !TYPOGRAPHY_BLOCKED_PROPS.has(prop),
 })<ITransientTextComponentProps & BodyProps>`
-  ${FoundationTypography.Link};
+  ${FoundationTypographyStyles.Link};
 `;
 
 export const Link: FC<ITextComponentProps & BodyProps> = ({

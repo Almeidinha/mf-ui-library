@@ -1,7 +1,7 @@
 import { IconMinor } from "components/icon";
 import { Button } from "components/molecules";
 import { Body, Heading3 } from "components/typography";
-import { Borders, Focus, Surface, Text } from "foundation/colors";
+import { Borders, Focus, Surface, TextColors } from "foundation/colors";
 import { shadowMd } from "foundation/shadows";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import { FC } from "helpers/generic-types";
@@ -288,7 +288,7 @@ const ActionButton = styled(Button).attrs({
 })`
   padding: ${Padding.none};
   > div {
-    color: ${Text.Muted};
+    color: ${TextColors.Muted};
   }
   &:focus {
     border: none;

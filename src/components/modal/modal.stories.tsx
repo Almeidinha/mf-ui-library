@@ -4,7 +4,7 @@ import { Flex } from "components/layout";
 import { Button } from "components/molecules";
 import { Body, BodyLarge } from "components/typography";
 import { Surface } from "foundation/colors";
-import { Text } from "foundation/colors/color-guidelines";
+import { TextColors } from "foundation/colors/color-guidelines";
 import { Gap, Margin } from "foundation/spacing";
 import { useArgs } from "storybook/internal/preview-api";
 import styled from "styled-components";
@@ -23,7 +23,7 @@ const IconFrame = styled(Flex)`
 
 const ExclamationIcon = styled(Icon.TriangleExclamation)`
   path {
-    fill: ${Text.Critical};
+    fill: ${TextColors.Critical};
   }
 `;
 

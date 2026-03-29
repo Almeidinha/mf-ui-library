@@ -151,7 +151,7 @@ export const Focus = {
   Critical: colorVar("Focus", "Critical"),
 } as const;
 
-export const Text = {
+export const TextColors = {
   Default: colorVar("Text", "Default"),
   Neutral: colorVar("Text", "Neutral"),
   Muted: colorVar("Text", "Muted"),

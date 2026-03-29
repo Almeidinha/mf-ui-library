@@ -1,8 +1,8 @@
 import { Flex } from "components/layout";
 import { Label } from "components/typography";
-import { Surface, Text } from "foundation/colors";
+import { Surface, TextColors } from "foundation/colors";
 import { Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { FC, PropsWithChildren } from "helpers/generic-types";
 import { is } from "helpers/safe-navigation";
 import { HTMLAttributes } from "react";
@@ -22,13 +22,14 @@ const LabelFrame = styled(Flex)<{
   width: 100%;
   border-radius: ${(props) => (props.$closable ? "4px 0px 0px 4px" : "4px")};
   word-break: break-all;
-  ${Typography.Body}
+  ${TypographyStyles.Body}
 `;
 
 const LabelText = styled(Label)<{
   $disabled: boolean;
 }>`
-  color: ${(props) => (props.$disabled ? Text.Soft : Text.Default)};
+  color: ${(props) =>
+    props.$disabled ? TextColors.Soft : TextColors.Default};
 `;
 
 interface IProps extends HTMLAttributes<HTMLLabelElement>, PropsWithChildren {

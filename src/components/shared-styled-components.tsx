@@ -1,7 +1,7 @@
-import { Borders, Focus, Surface, Text } from "foundation/colors";
+import { Borders, Focus, Surface, TextColors } from "foundation/colors";
 import { shadow } from "foundation/shadows";
 import { Margin, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import styled from "styled-components";
 
 export const CardFrame = styled.section.withConfig({
@@ -87,16 +87,16 @@ export const NativeSelect = styled.select`
   padding: 0 32px 0 ${Padding.s};
   background: ${Surface.Default.Default};
   background-image:
-    linear-gradient(45deg, transparent 50%, ${Text.Soft} 50%),
-    linear-gradient(135deg, ${Text.Soft} 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, ${TextColors.Soft} 50%),
+    linear-gradient(135deg, ${TextColors.Soft} 50%, transparent 50%);
   background-position:
     calc(100% - 16px) calc(50% - 2px),
     calc(100% - 11px) calc(50% - 2px);
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
-  color: ${Text.Default};
+  color: ${TextColors.Default};
   cursor: pointer;
-  ${Typography.Label}
+  ${TypographyStyles.Label}
 
   &:focus-visible {
     outline: 2px solid ${Focus.Default};
@@ -104,6 +104,6 @@ export const NativeSelect = styled.select`
   }
 
   & option {
-    ${Typography.Body}
+    ${TypographyStyles.Body}
   }
 `;

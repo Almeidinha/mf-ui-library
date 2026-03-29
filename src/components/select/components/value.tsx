@@ -3,9 +3,9 @@ import { Flex } from "components/layout";
 import { Button } from "components/molecules/button";
 import { TransformIconWrapper } from "components/shared-styled-components";
 import { Body, Label } from "components/typography";
-import { Borders, Focus, Icons, Surface, Text } from "foundation/colors";
+import { Borders, Focus, Icons, Surface, TextColors } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { If, maybeRender, Nothing } from "helpers/nothing";
 import {
   defaultTo,
@@ -135,7 +135,7 @@ const ValueLeft = styled(Flex)<{ $multi?: boolean; $hasValue?: boolean }>`
   min-height: 20px;
   box-sizing: border-box;
   gap: ${({ $multi, $hasValue }) => (is($multi) && is($hasValue) ? "4px" : 0)};
-  ${Typography.Body}
+  ${TypographyStyles.Body}
 `;
 
 const ValueRight = styled(Flex)<{ $iconPosition?: "left" | "right" }>`
@@ -152,7 +152,7 @@ const ValueRight = styled(Flex)<{ $iconPosition?: "left" | "right" }>`
 
 const Placeholder = styled(Label)`
   pointer-events: none;
-  color: ${Text.Soft};
+  color: ${TextColors.Soft};
 `;
 
 const ClearButton = styled(Button).attrs<{ plain?: boolean; subtle?: boolean }>(
@@ -181,7 +181,7 @@ const ErrorMessage = styled.div<{ $visible?: boolean }>`
     fill: ${Icons.Critical};
   }
   div {
-    color: ${Text.Critical};
+    color: ${TextColors.Critical};
     margin: ${Margin.none} ${Margin.xxs};
   }
 `;
@@ -198,7 +198,7 @@ const SearchSpan = styled.span<{ $canSearch: boolean }>`
   font-weight: 400;
   font-size: 14px;
   line-height: 20px;
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 function getSingleValueOption<T>(

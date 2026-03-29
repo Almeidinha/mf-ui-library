@@ -1,7 +1,7 @@
 import { Label } from "components/typography";
 import { Borders, Focus, Surface } from "foundation/colors";
 import { Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { isDefined } from "helpers/safe-navigation";
 import { forwardRef, TextareaHTMLAttributes, useId } from "react";
 import styled from "styled-components";
@@ -25,7 +25,7 @@ const TextAreaFrame = styled.textarea<{
   $hasLabel: boolean;
   $resize: TextAreaResize;
 }>`
-  ${Typography.Body};
+  ${TypographyStyles.Body};
   box-sizing: border-box;
   width: 100%;
   min-height: 100px;
@@ -55,7 +55,7 @@ const TextAreaFrame = styled.textarea<{
 `;
 
 const LabelFrame = styled(Label).attrs({ as: "label" })`
-  ${Typography.Label};
+  ${TypographyStyles.Label};
   position: absolute;
   top: ${Padding.s};
   left: ${Padding.m};

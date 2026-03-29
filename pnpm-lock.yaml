@@ -11,24 +11,15 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
-      react:
-        specifier: ^19.2.4
-        version: 19.2.4
       react-compound-slider:
         specifier: ^3.4.0
         version: 3.4.0(react@19.2.4)
-      react-dom:
-        specifier: ^19.2.4
-        version: 19.2.4(react@19.2.4)
       react-virtuoso:
         specifier: ^4.18.3
         version: 4.18.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       recharts:
         specifier: ^3.8.0
         version: 3.8.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-is@18.3.1)(react@19.2.4)(redux@5.0.1)
-      styled-components:
-        specifier: ^6.3.9
-        version: 6.3.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^5.0.1
@@ -150,9 +141,15 @@ importers:
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
       react-date-object:
         specifier: 2.1.9
         version: 2.1.9
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
       react-hook-form:
         specifier: ^7.71.1
         version: 7.71.1(react@19.2.4)
@@ -162,6 +159,9 @@ importers:
       storybook:
         specifier: ^10.2.8
         version: 10.2.10(@testing-library/dom@10.4.1)(prettier@3.8.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      styled-components:
+        specifier: ^6.3.9
+        version: 6.3.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.3.3)(typescript@5.9.3)

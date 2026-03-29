@@ -1,7 +1,7 @@
 import { Flex } from "components/layout";
-import { Borders, Surface, Text } from "foundation/colors";
+import { Borders, Surface, TextColors } from "foundation/colors";
 import { Gap, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { clamp } from "helpers/numbers";
 import React from "react";
 import styled, { css } from "styled-components";
@@ -200,25 +200,25 @@ const IconCircle = styled.div<{
         return css`
           background: ${Surface.Success.Default};
           border-color: ${Borders.Success.Active};
-          color: ${Text.Default};
+          color: ${TextColors.Default};
         `;
       case "active":
         return css`
           background: ${Surface.Selected.Default};
           border-color: ${Borders.Highlight.Active};
-          color: ${Text.Default};
+          color: ${TextColors.Default};
         `;
       case "error":
         return css`
           background: ${Surface.Critical.Default};
           border-color: ${Borders.Critical.Default};
-          color: ${Text.Default};
+          color: ${TextColors.Default};
         `;
       default:
         return css`
           background: ${Surface.Default.Default};
           border-color: ${Borders.Default.Default};
-          color: ${Text.Default};
+          color: ${TextColors.Default};
         `;
     }
   }}
@@ -270,22 +270,22 @@ const LabelBlock = styled(Flex)<{
 const Label = styled.span<{
   $status: StepStatus;
 }>`
-  ${Typography.Label};
+  ${TypographyStyles.Label};
   font-weight: ${({ $status }) => ($status === "active" ? 700 : 600)};
   color: ${({ $status }) =>
-    $status === "error" ? Text.Critical : Text.Default};
+    $status === "error" ? TextColors.Critical : TextColors.Default};
 `;
 
 const OptionalText = styled.span`
   margin-top: 2px;
   font-size: 12px;
   line-height: 1.4;
-  color: ${Text.Muted};
+  color: ${TextColors.Muted};
 `;
 
 const Description = styled.span`
-  ${Typography.Caption};
-  color: ${Text.Muted};
+  ${TypographyStyles.Caption};
+  color: ${TextColors.Muted};
 `;
 
 const VerticalContent = styled.div`

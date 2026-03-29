@@ -1,4 +1,10 @@
-import { Actions, Borders, Icons, Interactive, Text } from "foundation/colors";
+import {
+  Actions,
+  Borders,
+  Icons,
+  Interactive,
+  TextColors,
+} from "foundation/colors";
 import { Padding } from "foundation/spacing";
 import { PropsWithChildren, RequireOnlyOne } from "helpers/generic-types";
 
@@ -162,13 +168,13 @@ const ButtonBackgroundColorPressedValues = {
 };
 
 const ButtonTextColorValues = {
-  [ButtonType.Basic]: Text.Default,
-  [ButtonType.Primary]: Text.OnPrimary,
-  [ButtonType.DestructivePrimary]: Text.OnCritical,
-  [ButtonType.Destructive]: Text.Default,
-  [ButtonType.Outline]: Text.Default,
+  [ButtonType.Basic]: TextColors.Default,
+  [ButtonType.Primary]: TextColors.OnPrimary,
+  [ButtonType.DestructivePrimary]: TextColors.OnCritical,
+  [ButtonType.Destructive]: TextColors.Default,
+  [ButtonType.Outline]: TextColors.Default,
   [ButtonType.Plain]: Interactive.Default.Default,
-  [ButtonType.Subtle]: Text.Default,
+  [ButtonType.Subtle]: TextColors.Default,
   [ButtonType.PlainSubtle]: Interactive.Subtle.Default,
 };
 
@@ -184,13 +190,13 @@ const IconTextColorValues = {
 };
 
 const ButtonTextColorHoverValues = {
-  [ButtonType.Basic]: Text.Default,
-  [ButtonType.Primary]: Text.OnPrimary,
-  [ButtonType.DestructivePrimary]: Text.OnCritical,
-  [ButtonType.Destructive]: Text.OnCritical,
-  [ButtonType.Outline]: Text.Default,
+  [ButtonType.Basic]: TextColors.Default,
+  [ButtonType.Primary]: TextColors.OnPrimary,
+  [ButtonType.DestructivePrimary]: TextColors.OnCritical,
+  [ButtonType.Destructive]: TextColors.OnCritical,
+  [ButtonType.Outline]: TextColors.Default,
   [ButtonType.Plain]: Interactive.Default.Hover,
-  [ButtonType.Subtle]: Text.Default,
+  [ButtonType.Subtle]: TextColors.Default,
   [ButtonType.PlainSubtle]: Interactive.Subtle.Hover,
 };
 
@@ -229,7 +235,7 @@ const ButtonBorderDisabledValues = {
 
 const ButtonTextColorDisabled = {
   [ButtonDisabledType.Enabled]: "",
-  [ButtonDisabledType.Disabled]: Text.Disabled,
+  [ButtonDisabledType.Disabled]: TextColors.Disabled,
 };
 
 const ButtonCursor = {

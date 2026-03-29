@@ -1,7 +1,7 @@
 import { IconMinor } from "components/icon";
 import { Label } from "components/typography";
 import { Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { If } from "helpers/nothing";
 import { is, isNilOrEmpty } from "helpers/safe-navigation";
 import { JSX, memo, useCallback } from "react";
@@ -26,7 +26,7 @@ type OptionMultiLevelComponentProps<T> = {
 };
 
 const ParentLabel = styled.div`
-  ${Typography.Label};
+  ${TypographyStyles.Label};
   text-align: left;
   width: 100%;
   font-weight: 700;

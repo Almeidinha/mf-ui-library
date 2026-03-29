@@ -1,6 +1,6 @@
 import { Borders, Focus, Icons, Surface } from "foundation/colors";
 import { Margin, Padding } from "foundation/spacing";
-import { Typography } from "foundation/typography";
+import { TypographyStyles } from "foundation/typography";
 import { FC } from "helpers/generic-types";
 import { is } from "helpers/safe-navigation";
 import { InputHTMLAttributes, ReactNode } from "react";
@@ -94,7 +94,7 @@ const Radio = styled.input`
 `;
 
 const Label = styled.label<{ $disabled: boolean }>`
-  ${Typography.Label}
+  ${TypographyStyles.Label}
   padding: ${Padding.xxs} ${Padding.none};
   display: inline-flex;
   align-items: center;

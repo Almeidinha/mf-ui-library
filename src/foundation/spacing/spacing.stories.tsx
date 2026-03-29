@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Card } from "components/card";
 import { Flex } from "components/layout";
 import { Body, Heading2, Label } from "components/typography";
-import { Borders, Surface, Text } from "foundation/colors";
+import { Borders, Surface, TextColors } from "foundation/colors";
 import { Gap, Margin, Padding } from "foundation/spacing";
 import styled from "styled-components";
 
@@ -151,7 +151,7 @@ const Page = styled(Flex)`
   max-width: 1100px;
   gap: ${Margin.xl};
   padding: ${Padding.l};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 const Section = styled.section`
@@ -210,14 +210,14 @@ const AliasRow = styled.div`
   gap: ${Margin.s};
   padding: ${Padding.s} 0;
   border-bottom: 1px solid ${Borders.Default.Muted};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 
   &:last-child {
     border-bottom: none;
   }
 
   span {
-    color: ${Text.Muted};
+    color: ${TextColors.Muted};
   }
 `;
 
@@ -237,7 +237,7 @@ const ExampleTile = styled.div`
   border-radius: 12px;
   border: 1px solid ${Borders.Default.Muted};
   background: ${Surface.Default.Muted};
-  color: ${Text.Default};
+  color: ${TextColors.Default};
 `;
 
 const PaddedExample = styled.div`

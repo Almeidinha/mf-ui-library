@@ -185,7 +185,7 @@ export const Docs: Story = {
       <IntroNote>
         Use this page for raw ramps. Use <strong>Foundations/Color System</strong>{" "}
         for semantic tokens like <code>Surface.Default.Default</code> and{" "}
-        <code>Text.Active</code>.
+        <code>TextColors.Active</code>.
       </IntroNote>
       {paletteEntries.map(([name, config]) => (
         <PaletteStory
