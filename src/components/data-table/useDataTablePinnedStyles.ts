@@ -158,10 +158,10 @@ export function useDataTablePinnedStyles<T extends Record<string, unknown>>({
           left: leftOffsets[field],
           zIndex: 2,
           background: "inherit",
-          borderRight:
-            field === lastLeftPinnedField
-              ? `1px solid ${borderColor}`
-              : undefined,
+          borderRightWidth: field === lastLeftPinnedField ? "1px" : undefined,
+          borderRightStyle: field === lastLeftPinnedField ? "solid" : undefined,
+          borderRightColor:
+            field === lastLeftPinnedField ? borderColor : undefined,
         };
         return;
       }
@@ -172,10 +172,10 @@ export function useDataTablePinnedStyles<T extends Record<string, unknown>>({
           right: rightOffsets[field],
           zIndex: 2,
           background: "inherit",
-          borderLeft:
-            field === firstRightPinnedField
-              ? `1px solid ${borderColor}`
-              : undefined,
+          borderLeftWidth: field === firstRightPinnedField ? "1px" : undefined,
+          borderLeftStyle: field === firstRightPinnedField ? "solid" : undefined,
+          borderLeftColor:
+            field === firstRightPinnedField ? borderColor : undefined,
         };
         return;
       }

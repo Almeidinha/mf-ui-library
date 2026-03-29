@@ -59,8 +59,10 @@ const PaperRoot = styled(SystemRoot).withConfig({
   border-radius: ${({ $square }) => ($square ? "0" : "6px")};
   box-shadow: ${({ $variant, $elevation }) =>
     $variant === "outlined" ? "none" : getPaperShadow($elevation)};
-  border: ${({ $variant }) =>
-    $variant === "outlined" ? `1px solid ${Borders.Default.Default}` : "none"};
+  border-width: ${({ $variant }) => ($variant === "outlined" ? "1px" : "0")};
+  border-style: solid;
+  border-color: ${({ $variant }) =>
+    $variant === "outlined" ? Borders.Default.Default : "transparent"};
 `;
 
 export type PaperProps = React.HTMLAttributes<HTMLElement> &

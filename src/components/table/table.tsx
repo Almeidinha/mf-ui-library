@@ -41,7 +41,10 @@ import {
 import type { DataTableSize } from "../data-table/types";
 import { TransformIconWrapper } from "../shared-styled-components";
 
-type TableHeadSelectProps = Omit<CheckboxPropsThreeState, "indeterminate" | "size"> & {
+type TableHeadSelectProps = Omit<
+  CheckboxPropsThreeState,
+  "indeterminate" | "size"
+> & {
   dividerRight?: boolean;
   tableSize?: DataTableSize;
 };
@@ -143,21 +146,32 @@ export const Table = styled.table<{
     if ($cellBorders === "all") {
       return css`
         thead th:not(:last-child) {
-          border-right: 1px solid ${Borders.Default.Muted};
+          border-right-width: 1px;
+          border-right-style: solid;
+          border-right-color: ${Borders.Default.Muted};
         }
 
         tbody td {
-          border-right: 1px solid ${Borders.Default.Muted};
-          border-bottom: 1px solid ${Borders.Default.Muted};
+          border-right-width: 1px;
+          border-right-style: solid;
+          border-right-color: ${Borders.Default.Muted};
+          border-bottom-width: 1px;
+          border-bottom-style: solid;
+          border-bottom-color: ${Borders.Default.Muted};
           box-sizing: border-box;
         }
 
-        tbody td:last-child {
-          border-right: none;
+        tbody td:last-child,
+        tbody td[style*="position: sticky"][style*="right: 0px"] {
+          border-right-width: 0;
+          border-right-style: none;
+          border-right-color: transparent;
         }
 
         tbody tr:last-child td {
-          border-bottom: none;
+          border-bottom-width: 0;
+          border-bottom-style: none;
+          border-bottom-color: transparent;
         }
       `;
     }
@@ -165,12 +179,16 @@ export const Table = styled.table<{
     if ($cellBorders === "horizontal") {
       return css`
         tbody td {
-          border-bottom: 1px solid ${Borders.Default.Muted};
+          border-bottom-width: 1px;
+          border-bottom-style: solid;
+          border-bottom-color: ${Borders.Default.Muted};
           box-sizing: border-box;
         }
 
         tbody tr:last-child td {
-          border-bottom: none;
+          border-bottom-width: 0;
+          border-bottom-style: none;
+          border-bottom-color: transparent;
         }
       `;
     }
@@ -416,27 +434,26 @@ const TableHeadSelect: FC<TableHeadSelectProps> = function TableHeadSelect({
   );
 };
 
-const TableCellSelect: FC<TableBodySelectProps> =
-  function TableCellSelect({
-    style,
-    selected,
-    checked: checkedProp,
-    tableSize = "medium",
-    ...rest
-  }) {
-    const checked = is(checkedProp) || is(selected);
-    const cssVariables: TableCssVariables = {
-      "--data-table-cell-padding": getDataTableCellPadding(tableSize),
-      "--data-table-header-divider-inset":
-        getDataTableHeaderDividerInset(tableSize),
-    };
-
-    return (
-      <TableCellSelectSelectFrame style={{ ...cssVariables, ...style }}>
-        <Checkbox {...rest} checked={checked} />
-      </TableCellSelectSelectFrame>
-    );
+const TableCellSelect: FC<TableBodySelectProps> = function TableCellSelect({
+  style,
+  selected,
+  checked: checkedProp,
+  tableSize = "medium",
+  ...rest
+}) {
+  const checked = is(checkedProp) || is(selected);
+  const cssVariables: TableCssVariables = {
+    "--data-table-cell-padding": getDataTableCellPadding(tableSize),
+    "--data-table-header-divider-inset":
+      getDataTableHeaderDividerInset(tableSize),
   };
+
+  return (
+    <TableCellSelectSelectFrame style={{ ...cssVariables, ...style }}>
+      <Checkbox {...rest} checked={checked} />
+    </TableCellSelectSelectFrame>
+  );
+};
 
 const TableHeadActions: FC<ITableHeadProps> = function TableHeadActions(
   props: ITableHeadProps,

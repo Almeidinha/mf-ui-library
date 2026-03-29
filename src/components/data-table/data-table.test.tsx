@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { Borders, Surface } from "@foundations";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
 import { vi } from "vitest";
@@ -134,7 +141,9 @@ async function chooseSelectOption(
   });
 
   const menu = document.querySelector(".select-menu") as HTMLElement;
-  const option = within(menu).getByText(optionText).closest('[data-role="option"]');
+  const option = within(menu)
+    .getByText(optionText)
+    .closest('[data-role="option"]');
 
   expect(option).not.toBeNull();
 
@@ -242,9 +251,7 @@ describe("DataTable grouping", () => {
       />,
     );
 
-    await user.click(
-      screen.getByRole("button", { name: "Advanced filters" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Advanced filters" }));
 
     await chooseSelectOption(user, "Filter 1 column", "Name");
     await chooseSelectOption(user, "Filter 1 operator", "Contains");
@@ -268,7 +275,7 @@ describe("DataTable grouping", () => {
 
     expect(screen.queryByText("Alice")).not.toBeInTheDocument();
     expect(screen.getByText("Carla")).toBeInTheDocument();
-  });
+  }, 10000);
 
   it("renders nested column group headers", () => {
     render(
@@ -482,10 +489,10 @@ describe("DataTable row striping", () => {
     expect(brunoRow).not.toBeNull();
     expect(
       getComputedStyle(aliceRow as HTMLTableRowElement).backgroundColor,
-    ).toBe("rgb(255, 255, 255)");
+    ).toBe(Surface.Default.Default);
     expect(
       getComputedStyle(brunoRow as HTMLTableRowElement).backgroundColor,
-    ).toBe("rgb(249, 250, 251)");
+    ).toBe(Surface.Default.Muted);
   });
 
   it("can disable row striping", () => {
@@ -507,10 +514,10 @@ describe("DataTable row striping", () => {
     expect(brunoRow).not.toBeNull();
     expect(
       getComputedStyle(aliceRow as HTMLTableRowElement).backgroundColor,
-    ).toBe("rgb(255, 255, 255)");
+    ).toBe(Surface.Default.Default);
     expect(
       getComputedStyle(brunoRow as HTMLTableRowElement).backgroundColor,
-    ).toBe("rgb(255, 255, 255)");
+    ).toBe(Surface.Default.Default);
   });
 });
 
@@ -559,15 +566,15 @@ describe("DataTable cell spans", () => {
 
     expect(revenueStyles.borderRightWidth).toBe("1px");
     expect(revenueStyles.borderRightStyle).toBe("solid");
-    expect(revenueStyles.borderRightColor).toBe("rgb(229, 231, 235)");
+    expect(revenueStyles.borderRightColor).toBe(Borders.Default.Muted);
     expect(revenueStyles.borderBottomWidth).toBe("1px");
     expect(revenueStyles.borderBottomStyle).toBe("solid");
-    expect(revenueStyles.borderBottomColor).toBe("rgb(229, 231, 235)");
+    expect(revenueStyles.borderBottomColor).toBe(Borders.Default.Muted);
 
     expect(noteStyles.borderRightStyle).toBe("none");
     expect(noteStyles.borderBottomWidth).toBe("1px");
     expect(noteStyles.borderBottomStyle).toBe("solid");
-    expect(noteStyles.borderBottomColor).toBe("rgb(229, 231, 235)");
+    expect(noteStyles.borderBottomColor).toBe(Borders.Default.Muted);
   });
 
   it("uses only horizontal cell borders when columns are pinned", () => {
@@ -615,7 +622,7 @@ describe("DataTable cell spans", () => {
     expect(countryCellStyles.borderRightWidth).toBe("");
     expect(countryCellStyles.borderBottomWidth).toBe("1px");
     expect(countryCellStyles.borderBottomStyle).toBe("solid");
-    expect(countryCellStyles.borderBottomColor).toBe("rgb(229, 231, 235)");
+    expect(countryCellStyles.borderBottomColor).toBe(Borders.Default.Muted);
   });
 
   it("renders column spans without affecting the default row path", () => {

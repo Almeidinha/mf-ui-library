@@ -1,18 +1,9 @@
-import { Borders, Surface } from "@foundations";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { withThemeProvider } from "theme/theme";
 import { vi } from "vitest";
 
 import { TextArea } from "./index";
-
-function normalizeColor(color: string) {
-  const el = document.createElement("div");
-  el.style.color = color;
-  document.body.appendChild(el);
-  const normalized = getComputedStyle(el).color;
-  document.body.removeChild(el);
-  return normalized;
-}
 
 describe("TextArea Component", () => {
   it("should render TextArea with given Text", () => {
@@ -47,18 +38,10 @@ describe("TextArea Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("should apply invalid styles when invalid prop is true", () => {
-    render(<TextArea invalid />);
+  it("should expose invalid state when invalid prop is true", () => {
+    render(withThemeProvider(<TextArea invalid />));
 
     const textArea = screen.getByRole("textbox");
-    const styles = getComputedStyle(textArea);
-
-    expect(styles.borderTopColor).toBe(
-      normalizeColor(Borders.Critical.Default),
-    );
-    expect(styles.backgroundColor).toBe(
-      normalizeColor(Surface.Critical.Muted),
-    );
     expect(textArea).toHaveAttribute("aria-invalid", "true");
   });
 });

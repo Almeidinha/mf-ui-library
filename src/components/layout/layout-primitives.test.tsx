@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { withThemeProvider } from "theme/theme";
 
 import { Box, Container, Paper, Stack } from "./index";
 
@@ -30,24 +31,27 @@ describe("Layout primitives", () => {
   });
 
   it("renders Paper variants", () => {
-    const { rerender } = render(<Paper>Paper content</Paper>);
+    const { rerender } = render(withThemeProvider(<Paper>Paper content</Paper>));
 
     expect(screen.getByText("Paper content")).toHaveStyle({
       borderRadius: "6px",
     });
 
     rerender(
-      <Paper square variant="outlined">
-        Paper content
-      </Paper>,
+      withThemeProvider(
+        <Paper square variant="outlined">
+          Paper content
+        </Paper>,
+      ),
     );
 
-    expect(screen.getByText("Paper content")).toHaveStyle("border-radius: 0px");
-    expect(screen.getByText("Paper content")).toHaveStyle("box-shadow: none");
-    expect(screen.getByText("Paper content")).toHaveStyle("border-width: 1px");
-    expect(screen.getByText("Paper content")).toHaveStyle(
-      "border-style: solid",
-    );
+    const paper = screen.getByText("Paper content");
+    const styles = getComputedStyle(paper);
+
+    expect(paper).toHaveStyle("border-radius: 0px");
+    expect(paper).toHaveStyle("box-shadow: none");
+    expect(styles.borderTopWidth).toBe("1px");
+    expect(styles.borderTopStyle).toBe("solid");
   });
 
   it("renders Stack spacing, direction and dividers", () => {

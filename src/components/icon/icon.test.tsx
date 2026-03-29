@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { Button } from "components/molecules/button";
+import { withThemeProvider } from "theme/theme";
 
 import { Icon, IconMinor } from "./index";
 
@@ -31,9 +32,11 @@ describe("Icon Tests", () => {
 
     it("Change the color when styles inside a button", () => {
       render(
-        <Button primary IconPrefix={IconMinor.Bookmark}>
-          Button Test
-        </Button>,
+        withThemeProvider(
+          <Button primary IconPrefix={IconMinor.Bookmark}>
+            Button Test
+          </Button>,
+        ),
       );
 
       expect(screen.getByText("Button Test")).toBeInTheDocument();
@@ -41,10 +44,8 @@ describe("Icon Tests", () => {
       const icon = screen.getByRole("img", { name: "icon" });
 
       expect(icon).toBeInTheDocument();
-      // JSDOM doesn't resolve CSS variables in computed styles; we assert the
-      // icon is wired to the button-driven CSS var instead.
       expect(getComputedStyle(icon).color).toBe("var(--icon-color)");
-      expect(icon.querySelector("path")).toHaveStyle("fill: currentColor");
+      expect(icon.querySelector("path")).toHaveAttribute("fill", "currentColor");
     });
   });
 });

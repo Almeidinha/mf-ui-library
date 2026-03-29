@@ -31,9 +31,10 @@ const TextAreaFrame = styled.textarea<{
   min-height: 100px;
   resize: ${({ $resize }) => resizeMap[$resize]};
   border-radius: 6px;
-  border: 1px solid
-    ${({ $isInvalid }) =>
-      $isInvalid ? Borders.Critical.Default : Borders.Default.Default};
+  border-width: 1px;
+  border-style: solid;
+  border-color: ${({ $isInvalid }) =>
+    $isInvalid ? Borders.Critical.Default : Borders.Default.Default};
   background: ${({ $isInvalid }) =>
     $isInvalid ? Surface.Critical.Muted : "transparent"};
   padding: ${({ $hasLabel }) =>
